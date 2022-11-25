@@ -299,3 +299,4 @@ def test_DFA_even_ones_or_alternation(entry, action, accepts):
     print(combined_dfa)
 
     assert combined_dfa.parse(entry) == accepts
+
