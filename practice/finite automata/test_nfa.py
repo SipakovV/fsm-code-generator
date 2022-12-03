@@ -25,30 +25,31 @@ from nfa import NFA
         ('rr',            False),
         ('rrrrb',         True),
 ])
-def test_NFA_3x3_chessboard(entry, accepts):
-    alphabet = {'r', 'b'}
-    state_set = {1, 2, 3, 4, 5, 6, 7, 8, 9}
-    initial_state = 1
-    final_states = {9}
-    transition_map = {
-        'HEADER': ('r', 'b'),
-        1: ({2, 4},         {5}),
-        2: ({4, 6},         {1, 3, 5}),
-        3: ({2, 6},         {5}),
-        4: ({2, 8},         {1, 5, 7}),
-        5: ({2, 4, 6, 8},   {1, 3, 7, 9}),
-        6: ({2, 8},         {3, 5, 9}),
-        7: ({4, 8},         {5}),
-        8: ({4, 6},         {5, 7, 9}),
-        9: ({6, 8},         {5}),
-    }
+class TestDFATripleOnes:
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        alphabet = {'r', 'b'}
+        state_set = {1, 2, 3, 4, 5, 6, 7, 8, 9}
+        initial_state = 1
+        final_states = {9}
+        transition_map = {
+            'HEADER': ('r', 'b'),
+            1: {'r': {2, 4},        'b': {5}},
+            2: {'r': {4, 6},        'b': {1, 3, 5}},
+            3: {'r': {2, 6},        'b': {5}},
+            4: {'r': {2, 8},        'b': {1, 5, 7}},
+            5: {'r': {2, 4, 6, 8},  'b': {1, 3, 7, 9}},
+            6: {'r': {2, 8},        'b': {3, 5, 9}},
+            7: {'r': {4, 8},        'b': {5}},
+            8: {'r': {4, 6},        'b': {5, 7, 9}},
+            9: {'r': {6, 8},        'b': {5}},
+        }
 
-    assert all(char in alphabet for char in entry)
+        self.nfa = NFA(alphabet, state_set, initial_state, final_states, transition_map)
 
-    chessboard_3x3_nfa = NFA(alphabet, state_set, initial_state, final_states, transition_map)
-
-    assert chessboard_3x3_nfa.parse(entry) == accepts
-
+    def test_NFA_3x3_chessboard(self, entry, accepts):
+        assert all(char in self.nfa.alphabet for char in entry)
+        assert self.nfa.parse(entry) == accepts
 
 @pytest.mark.parametrize(
     argnames="entry, accepts",
@@ -71,46 +72,47 @@ def test_NFA_3x3_chessboard(entry, accepts):
         ('0110',          False),
         ('0011',          False),
 ])
-def test_eps_NFA_example(entry, accepts):
-    alphabet = {'0', '1'}
-    state_set = {'A', 'B', 'C', 'D', 'E', 'F'}
-    initial_state = 'A'
-    final_states = {'D'}
-    transition_map = {
-        'HEADER':   ('0', '1', 'epsilon'),
-        'A':        ({'E'},  {'B'},  set()),
-        'B':        (set(),  {'C'},  {'D'}),
-        'C':        (set(),  {'D'},  set()),
-        'D':        (set(),  set(),  set()),
-        'E':        ({'F'},  set(),  {'B', 'C'}),
-        'F':        ({'D'},  set(),  set()),
-    }
+class TestEpsilonNFA:
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        alphabet = {'0', '1'}
+        state_set = {'A', 'B', 'C', 'D', 'E', 'F'}
+        initial_state = 'A'
+        final_states = {'D'}
+        transition_map = {
+            'HEADER': ('0', '1', 'EPS'),
+            'A': {'0': {'E'}, '1': {'B'}},
+            'B': {'1': {'C'}, 'EPS': {'D'}},
+            'C': {'1': {'D'}},
+            'D': {},
+            'E': {'0': {'F'}, 'EPS': {'B', 'C'}},
+            'F': {'0': {'D'}},
+        }
 
-    assert all(char in alphabet for char in entry)
+        self.epsilon_nfa = NFA(alphabet, state_set, initial_state, final_states, transition_map, epsilon_mode=True)
+        # print()
+        # print(example_epsilon_nfa)
 
-    example_epsilon_nfa = NFA(alphabet, state_set, initial_state, final_states, transition_map, epsilon_mode=True)
-    print()
-    print(example_epsilon_nfa)
+        alphabet = {'0', '1'}
+        state_set = {'A', 'B', 'C', 'D', 'E', 'F'}
+        initial_state = 'A'
+        final_states = {'B', 'D', 'E'}
+        transition_map = {
+            'HEADER': ('0', '1'),
+            'A': {'0': {'E'}, '1': {'B'}},
+            'B': {'1': {'C'}},
+            'C': {'1': {'D'}},
+            'D': {},
+            'E': {'0': {'F'}, '1': {'C', 'D'}},
+            'F': {'0': {'D'}},
+        }
 
-    alphabet = {'0', '1'}
-    state_set = {'A', 'B', 'C', 'D', 'E', 'F'}
-    initial_state = 'A'
-    final_states = {'B', 'D', 'E'}
-    transition_map = {
-        'HEADER': ('0', '1'),
-        'A': ({'E'}, {'B'}),
-        'B': (set(), {'C'}),
-        'C': (set(), {'D'}),
-        'D': (set(), set()),
-        'E': ({'F'}, {'C', 'D'}),
-        'F': ({'D'}, set()),
-    }
+        self.non_epsilon_nfa = NFA(alphabet, state_set, initial_state, final_states, transition_map)
 
-    example_non_epsilon_nfa = NFA(alphabet, state_set, initial_state, final_states, transition_map)
+        assert self.epsilon_nfa == self.non_epsilon_nfa
 
-    assert example_epsilon_nfa == example_non_epsilon_nfa
-
-    assert example_non_epsilon_nfa.parse(entry) == accepts
-
-    assert example_epsilon_nfa.parse(entry) == accepts
+    def test_eps_NFA_example(self, entry, accepts):
+        assert all(char in self.epsilon_nfa.alphabet for char in entry)
+        assert self.non_epsilon_nfa.parse(entry) == accepts
+        assert self.epsilon_nfa.parse(entry) == accepts
 

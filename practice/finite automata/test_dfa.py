@@ -3,7 +3,6 @@ import pytest
 from dfa import DFA
 
 
-'''
 @pytest.mark.parametrize(
     argnames="entry, accepts",
     argvalues=[
@@ -22,44 +21,44 @@ from dfa import DFA
         ('0110110',       False),
         ('0000000',       False),
 ])
-def test_DFA_triple_ones(entry, accepts):
-    alphabet = {'0', '1'}
-    state_set = {0, 1, 2, 3}
-    initial_state = 0
-    final_states = {3}
-    transition_map = {
-        'HEADER': ('0', '1'),
-        0: (0, 1),
-        1: (0, 2),
-        2: (0, 3),
-        3: (3, 3),
-    }
+class TestDFATripleOnes:
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        alphabet = {'0', '1'}
+        state_set = {0, 1, 2, 3}
+        initial_state = 0
+        final_states = {3}
+        transition_map = {
+            'HEADER': ('0', '1'),
+            0: {'0': 0, '1': 1},
+            1: {'0': 0, '1': 2},
+            2: {'0': 0, '1': 3},
+            3: {'0': 3, '1': 3},
+        }
 
-    '#''
-    for state in state_set:
-        instruction = [state]
-        for 
-        transition_map.append(instruction)
-    '#''
+        assert len(transition_map) == len(state_set) + 1
+        assert (row in state_set for row in transition_map)
+        assert (all(len(alphabet) == len(row) for row in transition_map.values()))
+        assert set(transition_map['HEADER']) == alphabet
 
-    assert len(transition_map) == len(state_set) + 1
-    assert (row in state_set for row in transition_map)
-    assert (all(len(alphabet) == len(row) for row in transition_map.values()))
-    assert set(transition_map['HEADER']) == alphabet
-    assert all(char in alphabet for char in entry)
-    assert initial_state in state_set
-    assert final_states.issubset(state_set)
+        assert initial_state in state_set
+        assert final_states.issubset(state_set)
 
-    triple_ones_dfa = DFA(alphabet, state_set, initial_state, final_states, transition_map)
+        print('generating dfa')
 
-    assert triple_ones_dfa.parse(entry) == accepts
+        self.dfa = DFA(alphabet, state_set, initial_state, final_states, transition_map)
 
-    #print(triple_ones_dfa)
-    #triple_ones_dfa_copy = DFA(dfa_set=(triple_ones_dfa,))
+        #self.dfa_copy = DFA(dfa_set=(self.dfa,))
 
-    #assert triple_ones_dfa_copy.parse(entry) == accepts
+    def test_DFA_triple_ones(self, entry, accepts):
+
+        # assert triple_ones_dfa_copy.parse(entry) == accepts
+        assert all(char in self.dfa.alphabet for char in entry)
+        assert self.dfa.parse(entry) == accepts
+        #assert self.dfa_copy.parse(entry) == accepts
 
 
+"""
 @pytest.mark.parametrize(
     argnames="entry, accepts",
     argvalues=[
@@ -178,7 +177,6 @@ def test_DFA_alternation(entry, accepts):
         ('0101010',       True),
         ('1111111',       False),
 ])
-'''
 # AND
 @pytest.mark.parametrize(
     argnames="entry, action, accepts",
@@ -300,3 +298,4 @@ def test_DFA_even_ones_or_alternation(entry, action, accepts):
 
     assert combined_dfa.parse(entry) == accepts
 
+"""
