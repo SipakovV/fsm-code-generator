@@ -9,13 +9,12 @@ class NFA:
         assert (row in state_set for row in transition_map)
 
         if not epsilon_mode:
-            assert (all(len(alphabet) == len(row) for row in transition_map.values()))
+            #assert (all(len(alphabet) == len(row) for row in transition_map.values()))
             assert set(transition_map['HEADER']) == alphabet
         else:
-            assert (all(len(alphabet) + 1 == len(row) for row in transition_map.values()))
-            assert transition_map['HEADER'][-1] == 'epsilon'
-            #print(set(transition_map['HEADER']), set().union(alphabet, {'epsilon'}))
-            assert set(transition_map['HEADER']) == set().union(alphabet, {'epsilon'})
+            #assert (all(len(alphabet) + 1 == len(row) for row in transition_map.values()))
+            assert transition_map['HEADER'][-1] == 'EPS'
+            assert set(transition_map['HEADER']) == set().union(alphabet, {'EPS'})
         assert init_state in state_set
         assert final_states.issubset(state_set)
 
@@ -32,13 +31,19 @@ class NFA:
             }
             for q in list(transition_map.keys())[1:]:
                 q_closed = self.epsilon_closure(q, transition_map)
-                res_entry = []
-                for i in range(len(transition_map['HEADER'])-1):
+                res_entry = {}
+                for char in self.alphabet:
                     q_set = set()
                     for p in q_closed:
-                        q_set.update(transition_map[p][i])
-                    res_entry.append(q_set)
-                self.transition_map[q] = tuple(res_entry)
+                        try:
+                            q_set.update(transition_map[p][char])
+                        except KeyError:
+                            pass
+                    if q_set:
+                        res_entry[char] = q_set
+                        #print('added', res_entry[char])
+                #print('res entry = ', res_entry)
+                self.transition_map[q] = res_entry
                 #for target_q_set in transition_map[q]:
                 if q not in self.final_states:
                     for p in q_closed:
@@ -46,9 +51,9 @@ class NFA:
                             self.final_states.add(q)
                             break
 
-        self.char_index = {}
-        for i, char in enumerate(self.transition_map['HEADER']):
-            self.char_index[char] = i
+        #self.char_index = {}
+        #for i, char in enumerate(self.transition_map['HEADER']):
+        #    self.char_index[char] = i
 
     def __repr__(self):
         try:
@@ -64,20 +69,32 @@ class NFA:
     def __eq__(self, other) -> bool:
         assert isinstance(other, NFA)
         if self.alphabet != other.alphabet:
+            print('Alphabets don\'t match')
             return False
         if self.state_set != other.state_set:
+            print('Statesets don\'t match')
             return False
         if self.init_state != other.init_state:
+            print('Init states don\'t match')
             return False
         if self.final_states != other.final_states:
+            print('Final states don\'t match')
             return False
         if self.transition_map != other.transition_map:
+            print('Transition maps don\'t match')
+            print(self.transition_map)
+            print(other.transition_map)
             return False
         return True
 
     def epsilon_closure(self, state: Union[str, int], transition_map: dict) -> set[Union[str, int]]:
         res = {state}
-        for q in transition_map[state][-1]:
+        try:
+            q_set = transition_map[state]['EPS']
+        except KeyError:
+            return res
+
+        for q in q_set:
             res.add(q)
             res.update(self.epsilon_closure(q, transition_map))
         return res
@@ -90,9 +107,12 @@ class NFA:
                 return False
             q_res = set()
             for q in q_set:
-                q_res.update(self.transition_map[q][self.char_index[char]])
+                try:
+                    q_res.update(self.transition_map[q][char])
+                except KeyError:
+                    pass
             q_set = q_res
-            print('\n', char, q_set)
+            #print('\n', char, q_set)
 
         for q in q_set:
             if q in self.final_states:

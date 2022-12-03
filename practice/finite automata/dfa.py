@@ -78,7 +78,6 @@ class DFA:
 
         #print('\n', self.state_set, self.init_state)
 
-
     def _init(self, alphabet: set[str], state_set: set[Union[str, int]], init_state: Union[str, int], final_states: set[Union[str, int]], transition_map: dict):
         self.alphabet = alphabet
         self.state_set = state_set
@@ -86,12 +85,10 @@ class DFA:
         self.final_states = final_states
         self.transition_map = transition_map
 
-        self.char_index = {}
-        for i, char in enumerate(transition_map['HEADER']):
-            self.char_index[char] = i
+        #for i, char in enumerate(transition_map['HEADER']):
+        #    self.char_index[char] = i
 
     def parse(self, string: str) -> bool:
-
         #print('\ninput:', string)
 
         q = self.init_state
@@ -99,7 +96,7 @@ class DFA:
         #print(q, type(q))
 
         for char in string:
-            q = self.transition_map[q][self.char_index[char]]
+            q = self.transition_map[q][char]
             #print(q, char)
 
         if q in self.final_states:
