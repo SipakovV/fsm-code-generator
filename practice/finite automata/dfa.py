@@ -66,14 +66,7 @@ class DFA:
 
         self.init_state = str((first_dfa.init_state, second_dfa.init_state))
 
-        assert first_dfa.transition_map['HEADER'] == second_dfa.transition_map['HEADER']
-        self.transition_map = {
-            'HEADER': first_dfa.transition_map['HEADER']
-        }
-
-        self.char_index = {}
-        for i, char in enumerate(self.transition_map['HEADER']):
-            self.char_index[char] = i
+        self.transition_map = {}
 
         self.final_states = set()
 
@@ -81,13 +74,13 @@ class DFA:
             state_name = str(state)
             self.state_set.add(state_name)
 
-            map_entry = []
+            map_entry = {}
             first_transition = first_dfa.transition_map[state[0]]
             second_transition = second_dfa.transition_map[state[1]]
-            for char in self.transition_map['HEADER']:
-                result_state = (first_transition[self.char_index[char]], second_transition[self.char_index[char]])
-                map_entry.append(str(result_state))
-            self.transition_map[state_name] = tuple(map_entry)
+            for char in self.alphabet:
+                result_state = (first_transition[char], second_transition[char])
+                map_entry[char] = str(result_state)
+            self.transition_map[state_name] = map_entry
 
             if action == 'or' and (state[0] in first_dfa.final_states or state[1] in second_dfa.final_states):
                 self.final_states.add(state_name)
@@ -105,9 +98,6 @@ class DFA:
         self.init_state = init_state
         self.final_states = final_states
         self.transition_map = transition_map
-
-        #for i, char in enumerate(transition_map['HEADER']):
-        #    self.char_index[char] = i
 
     def parse(self, string: str) -> bool:
         #print('\ninput:', string)

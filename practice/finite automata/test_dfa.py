@@ -44,7 +44,7 @@ class TestDFATripleOnes:
         assert initial_state in state_set
         assert final_states.issubset(state_set)
 
-        print('generating dfa')
+        #print('generating dfa')
 
         self.dfa = DFA(alphabet, state_set, initial_state, final_states, transition_map)
 
@@ -58,7 +58,6 @@ class TestDFATripleOnes:
         #assert self.dfa_copy.parse(entry) == accepts
 
 
-"""
 @pytest.mark.parametrize(
     argnames="entry, accepts",
     argvalues=[
@@ -85,8 +84,8 @@ def test_DFA_even_ones(entry, accepts):
     final_states = {0}
     transition_map = {
         'HEADER': ('0', '1'),
-        0: (0, 1),
-        1: (1, 0),
+        0: {'0': 0, '1': 1},
+        1: {'0': 1, '1': 0},
     }
 
     assert len(transition_map) == len(state_set) + 1
@@ -131,10 +130,10 @@ def test_DFA_alternation(entry, accepts):
     final_states = {0, 1, 2}
     transition_map = {
         'HEADER': ('0', '1'),
-        0: (1, 2),
-        1: (3, 2),
-        2: (1, 3),
-        3: (3, 3),
+        0: {'0': 1, '1': 2},
+        1: {'0': 3, '1': 2},
+        2: {'0': 1, '1': 3},
+        3: {'0': 3, '1': 3},
     }
 
     assert len(transition_map) == len(state_set) + 1
@@ -148,36 +147,8 @@ def test_DFA_alternation(entry, accepts):
     triple_ones_dfa = DFA(alphabet, state_set, initial_state, final_states, transition_map)
 
     assert triple_ones_dfa.parse(entry) == accepts
-'''
 
 
-'''
-# OR
-@pytest.mark.parametrize(
-    argnames="entry, accepts",
-    argvalues=[
-        # Entry:          Accepts:
-        ('',              True),
-        ('0',             True),
-        ('1',             True),
-        ('00',            True),
-        ('01',            True),
-        ('10',            True),
-        ('010',           True),
-        ('101',           True),
-        ('1010',          True),
-        ('11',            True),
-        ('111',           False),
-        ('11011',         True),
-        ('11100001',      True),
-        ('0110111',       False),
-        ('010101010',     True),
-        ('0000000',       True),
-        ('110110101',     True),
-        ('0101010',       True),
-        ('1111111',       False),
-])
-# AND
 @pytest.mark.parametrize(
     argnames="entry, action, accepts",
     argvalues=[
@@ -250,8 +221,8 @@ def test_DFA_even_ones_or_alternation(entry, action, accepts):
     final_states = {0}
     transition_map = {
         'HEADER': ('0', '1'),
-        0: (0, 1),
-        1: (1, 0),
+        0: {'0': 0, '1': 1},
+        1: {'0': 1, '1': 0},
     }
 
     assert len(transition_map) == len(state_set) + 1
@@ -273,10 +244,10 @@ def test_DFA_even_ones_or_alternation(entry, action, accepts):
     final_states = {0, 1, 2}
     transition_map = {
         'HEADER': ('0', '1'),
-        0: (1, 2),
-        1: (3, 2),
-        2: (1, 3),
-        3: (3, 3),
+        0: {'0': 1, '1': 2},
+        1: {'0': 3, '1': 2},
+        2: {'0': 1, '1': 3},
+        3: {'0': 3, '1': 3},
     }
 
     assert len(transition_map) == len(state_set) + 1
@@ -293,9 +264,7 @@ def test_DFA_even_ones_or_alternation(entry, action, accepts):
 
     combined_dfa = DFA(dfa_set=(even_ones_dfa, alternation_dfa), action=action)
 
-    print()
-    print(combined_dfa)
+    #print()
+    #print(combined_dfa)
 
     assert combined_dfa.parse(entry) == accepts
-
-"""
