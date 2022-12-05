@@ -100,15 +100,11 @@ class DFA:
         self.transition_map = transition_map
 
     def parse(self, string: str) -> bool:
-        #print('\ninput:', string)
 
         q = self.init_state
 
-        #print(q, type(q))
-
         for char in string:
             q = self.transition_map[q][char]
-            #print(q, char)
 
         if q in self.final_states:
             return True

@@ -33,7 +33,6 @@ class TestDFATripleOnes:
         initial_state = 1
         final_states = {9}
         transition_map = {
-            'HEADER': ('r', 'b'),
             1: {'r': {2, 4},        'b': {5}},
             2: {'r': {4, 6},        'b': {1, 3, 5}},
             3: {'r': {2, 6},        'b': {5}},
@@ -98,7 +97,6 @@ class TestEpsilonNFA:
         initial_state = 'A'
         final_states = {'B', 'D', 'E'}
         transition_map = {
-            'HEADER': ('0', '1'),
             'A': {'0': {'E'}, '1': {'B'}},
             'B': {'1': {'C'}},
             'C': {'1': {'D'}},
