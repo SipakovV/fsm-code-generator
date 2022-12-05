@@ -19,7 +19,7 @@ class NFA:
             self.transition_map = transition_map
         else:
             self.transition_map = {}
-            for q in list(transition_map.keys())[1:]:
+            for q in transition_map:
                 q_closed = self._epsilon_closure(q, transition_map)
                 res_entry = {}
                 for char in self.alphabet:
