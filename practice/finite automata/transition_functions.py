@@ -1,7 +1,9 @@
+import sys
+
 
 class Transition:
-    def timeout(self, timeout_seconds: int):
-        pass
+    def sleep(self, sleep_seconds: int):
+        sys.sleep()
 
     def print_string(self, s: str):
         print(s)

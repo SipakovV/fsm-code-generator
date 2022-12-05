@@ -27,6 +27,27 @@ class DFA:
             out += '{:>4s}: {}\n'.format(k, v)
         return out
 
+    def __eq__(self, other) -> bool:
+        assert isinstance(other, DFA)
+        if self.alphabet != other.alphabet:
+            print('Alphabets don\'t match')
+            return False
+        if self.state_set != other.state_set:
+            print('Statesets don\'t match')
+            return False
+        if self.init_state != other.init_state:
+            print('Init states don\'t match')
+            return False
+        if self.final_states != other.final_states:
+            print('Final states don\'t match')
+            return False
+        if self.transition_map != other.transition_map:
+            print('Transition maps don\'t match')
+            print(self.transition_map)
+            print(other.transition_map)
+            return False
+        return True
+
     def _init_cartesian_product(self, dfa_set: tuple, action: str):
         #assert len(dfa_set) > 1
         assert len(dfa_set) == 2
