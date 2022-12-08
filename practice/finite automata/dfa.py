@@ -27,6 +27,27 @@ class DFA:
             out += '{:>4s}: {}\n'.format(k, v)
         return out
 
+    def __eq__(self, other) -> bool:
+        assert isinstance(other, DFA)
+        if self.alphabet != other.alphabet:
+            print('Alphabets don\'t match')
+            return False
+        if self.state_set != other.state_set:
+            print('Statesets don\'t match')
+            return False
+        if self.init_state != other.init_state:
+            print('Init states don\'t match')
+            return False
+        if self.final_states != other.final_states:
+            print('Final states don\'t match')
+            return False
+        if self.transition_map != other.transition_map:
+            print('Transition maps don\'t match')
+            print(self.transition_map)
+            print(other.transition_map)
+            return False
+        return True
+
     def _init_cartesian_product(self, dfa_set: tuple, action: str):
         #assert len(dfa_set) > 1
         assert len(dfa_set) == 2
@@ -45,14 +66,7 @@ class DFA:
 
         self.init_state = str((first_dfa.init_state, second_dfa.init_state))
 
-        assert first_dfa.transition_map['HEADER'] == second_dfa.transition_map['HEADER']
-        self.transition_map = {
-            'HEADER': first_dfa.transition_map['HEADER']
-        }
-
-        self.char_index = {}
-        for i, char in enumerate(self.transition_map['HEADER']):
-            self.char_index[char] = i
+        self.transition_map = {}
 
         self.final_states = set()
 
@@ -60,13 +74,13 @@ class DFA:
             state_name = str(state)
             self.state_set.add(state_name)
 
-            map_entry = []
+            map_entry = {}
             first_transition = first_dfa.transition_map[state[0]]
             second_transition = second_dfa.transition_map[state[1]]
-            for char in self.transition_map['HEADER']:
-                result_state = (first_transition[self.char_index[char]], second_transition[self.char_index[char]])
-                map_entry.append(str(result_state))
-            self.transition_map[state_name] = tuple(map_entry)
+            for char in self.alphabet:
+                result_state = (first_transition[char], second_transition[char])
+                map_entry[char] = str(result_state)
+            self.transition_map[state_name] = map_entry
 
             if action == 'or' and (state[0] in first_dfa.final_states or state[1] in second_dfa.final_states):
                 self.final_states.add(state_name)
@@ -85,19 +99,12 @@ class DFA:
         self.final_states = final_states
         self.transition_map = transition_map
 
-        #for i, char in enumerate(transition_map['HEADER']):
-        #    self.char_index[char] = i
-
     def parse(self, string: str) -> bool:
-        #print('\ninput:', string)
 
         q = self.init_state
 
-        #print(q, type(q))
-
         for char in string:
             q = self.transition_map[q][char]
-            #print(q, char)
 
         if q in self.final_states:
             return True
