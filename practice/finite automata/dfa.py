@@ -20,8 +20,7 @@ class DFA:
         try:
             out = f'{self.__name__}\n'
         except AttributeError:
-            pass
-        out = f'DFA:\n'
+            out = f'DFA:\n'
 
         for k, v in self.__dict__.items():
             out += '{:>4s}: {}\n'.format(k, v)
@@ -98,6 +97,21 @@ class DFA:
         self.init_state = init_state
         self.final_states = final_states
         self.transition_map = transition_map
+
+    """
+    Decision properties
+    """
+    def is_empty(self) -> bool:
+        # if final states unreachable
+        pass
+
+    def is_infinite(self) -> bool:
+        # if contains cycles on the path from init state to final states
+        pass
+
+    def is_equivalent(self, other) -> bool:
+        # if
+        pass
 
     def parse(self, string: str) -> bool:
 
