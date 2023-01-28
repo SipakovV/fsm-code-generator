@@ -125,6 +125,8 @@ class DFA:
                     break
 
             marked_states.add(state)
+            if marked_states == self.state_set:
+                break
 
             for transition_arc in arcs.difference(traversed_arcs):
                 new_state = self.transition_map[state][transition_arc]
