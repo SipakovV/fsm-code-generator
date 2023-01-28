@@ -254,3 +254,95 @@ def test_DFA_even_ones_or_alternation(entry, action, accepts):
     #print(combined_dfa)
 
     assert combined_dfa.parse(entry) == accepts
+
+
+def test_DFA_emptiness():
+    # empty
+    alphabet = {'0', '1'}
+    state_set = {0, 1, 2, 3, 4, 5}
+    initial_state = 0
+    final_states = {5}
+    transition_map = {
+        0: {'0': 1, '1': 2},
+        1: {'0': 0, '1': 3},
+        2: {'0': 0, '1': 3},
+        3: {'0': 1, '1': 2},
+        4: {'0': 4, '1': 5},
+        5: {'0': 5, '1': 4},
+    }
+
+    assert len(transition_map) == len(state_set)
+    assert (row in state_set for row in transition_map)
+    assert (all(len(alphabet) == len(row) for row in transition_map.values()))
+    assert initial_state in state_set
+    assert final_states.issubset(state_set)
+
+    empty_dfa = DFA(alphabet, state_set, initial_state, final_states, transition_map)
+
+    assert empty_dfa.is_empty()
+
+    # not empty
+    alphabet = {'0', '1'}
+    state_set = {0, 1, 2, 3, 4, 5}
+    initial_state = 0
+    final_states = {5}
+    transition_map = {
+        0: {'0': 1, '1': 2},
+        1: {'0': 0, '1': 3},
+        2: {'0': 0, '1': 4},
+        3: {'0': 1, '1': 2},
+        4: {'0': 4, '1': 5},
+        5: {'0': 5, '1': 4},
+    }
+
+    assert len(transition_map) == len(state_set)
+    assert (row in state_set for row in transition_map)
+    assert (all(len(alphabet) == len(row) for row in transition_map.values()))
+    assert initial_state in state_set
+    assert final_states.issubset(state_set)
+
+    empty_dfa = DFA(alphabet, state_set, initial_state, final_states, transition_map)
+
+    assert not empty_dfa.is_empty()
+
+'''
+@pytest.mark.parametrize(
+    argnames="entry, accepts",
+    argvalues=[
+        # Entry:          Accepts:
+        ('',              True),
+        ('0',             True),
+        ('1',             False),
+        ('00',            True),
+        ('01',            False),
+        ('10',            False),
+        ('11',            True),
+        ('111',           False),
+        ('11011',         True),
+        ('11100001',      True),
+        ('0110111',       False),
+        ('0110110',       True),
+        ('0000000',       True),
+        ('1111111',       False),
+])
+def test_DFA_equivalence(entry, accepts):
+    alphabet = {'0', '1'}
+    state_set = {0, 1}
+    initial_state = 0
+    final_states = {0}
+    transition_map = {
+        0: {'0': 0, '1': 1},
+        1: {'0': 1, '1': 0},
+    }
+
+    assert len(transition_map) == len(state_set)
+    assert (row in state_set for row in transition_map)
+    assert (all(len(alphabet) == len(row) for row in transition_map.values()))
+    assert all(char in alphabet for char in entry)
+    assert initial_state in state_set
+    assert final_states.issubset(state_set)
+
+    triple_ones_dfa = DFA(alphabet, state_set, initial_state, final_states, transition_map)
+
+    assert triple_ones_dfa.parse(entry) == accepts
+'''

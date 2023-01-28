@@ -103,13 +103,61 @@ class DFA:
     """
     def is_empty(self) -> bool:
         # if final states unreachable
-        pass
+        marked_states = set()
+        stack = []
+
+        state = self.init_state
+        traversed_arcs = set()
+
+        print()
+
+        while True:
+            #print(self.transition_map[state].keys())
+            #print(f'{state=}: {traversed_arcs=}, {marked_states=}')
+            arcs = set(self.transition_map[state])
+            print(f'{state=}: {arcs=}, {traversed_arcs=}, {marked_states=}, {stack=}')
+            if traversed_arcs == arcs:
+                # return up
+                if stack:
+                    state, traversed_arcs = stack.pop()
+                    continue
+                else:
+                    break
+
+            marked_states.add(state)
+
+            for transition_arc in arcs.difference(traversed_arcs):
+                new_state = self.transition_map[state][transition_arc]
+                if new_state in marked_states:
+                    continue
+                else:
+                    break
+            else:
+                if stack:
+                    state, traversed_arcs = stack.pop()
+                    continue
+                else:
+                    break
+
+
+            #print(new_state)
+            traversed_arcs.add(transition_arc)
+
+            stack.append((state, traversed_arcs))
+            traversed_arcs = set()
+            state = new_state
+
+        if marked_states.intersection(self.final_states):
+            return False
+        else:
+            return True
 
     def is_infinite(self) -> bool:
         # if contains cycles on the path from init state to final states
         pass
 
     def is_equivalent(self, other) -> bool:
+        assert isinstance(other, DFA)
         # if
         pass
 
@@ -124,10 +172,3 @@ class DFA:
             return True
         else:
             return False
-
-
-'''
-class DFAExtended(DFA):
-    def __init__(self, dfa1: DFA, dfa2: DFA):
-        state_set
-'''
