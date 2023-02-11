@@ -112,16 +112,15 @@ class DFA:
         print()
 
         while True:
-            #print(self.transition_map[state].keys())
-            #print(f'{state=}: {traversed_arcs=}, {marked_states=}')
             arcs = set(self.transition_map[state])
             print(f'{state=}: {arcs=}, {traversed_arcs=}, {marked_states=}, {stack=}')
             if traversed_arcs == arcs:
-                # return up
                 if stack:
+                    # return up
                     state, traversed_arcs = stack.pop()
                     continue
                 else:
+                    # exit tree
                     break
 
             marked_states.add(state)
@@ -135,14 +134,15 @@ class DFA:
                 else:
                     break
             else:
+                # if all remaining states are marked
                 if stack:
+                    # return up
                     state, traversed_arcs = stack.pop()
                     continue
                 else:
+                    # exit tree
                     break
 
-
-            #print(new_state)
             traversed_arcs.add(transition_arc)
 
             stack.append((state, traversed_arcs))
@@ -156,7 +156,66 @@ class DFA:
 
     def is_infinite(self) -> bool:
         # if contains cycles on the path from init state to final states
-        pass
+
+        # marked_states = set()
+        stack = []
+        state = self.init_state
+        traversed_arcs = set()
+        has_cycle_on_path = False
+
+        print()
+
+        while True:
+            arcs = set(self.transition_map[state])
+            print(f'{state=}: {arcs=}, {traversed_arcs=}, {stack=}')
+
+            # current_cycle = False
+
+            if traversed_arcs == arcs:
+                if stack:
+                    # return up
+                    state, traversed_arcs, has_cycle_on_path = stack.pop()
+                    continue
+                else:
+                    # no cycles found
+                    return False
+
+            # marked_states.add(state)
+
+            if state in self.final_states:
+                if has_cycle_on_path:
+                    print('found final state with cycles on path:', state)
+                    return True
+
+            for transition_arc in arcs.difference(traversed_arcs):
+                new_state = self.transition_map[state][transition_arc]
+
+                if has_cycle_on_path:
+                    continue
+                else:
+                    if new_state == state:
+                        has_cycle_on_path = True
+                        print('found cycle', new_state)
+                    for item in stack:
+                        if new_state == item[0]:
+                            has_cycle_on_path = True
+                            print('found cycle', new_state)
+                            break
+                    break
+            else:
+                if stack:
+                    # return up
+                    state, traversed_arcs, has_cycle_on_path = stack.pop()
+                    continue
+                else:
+                    # no cycles found
+                    return False
+
+            traversed_arcs.add(transition_arc)
+
+            stack.append((state, traversed_arcs, has_cycle_on_path))
+            traversed_arcs = set()
+            state = new_state
 
     def is_equivalent(self, other) -> bool:
         assert isinstance(other, DFA)
