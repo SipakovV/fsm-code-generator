@@ -88,6 +88,8 @@ class DFA:
             elif action == 'xor' and (state[0] in first_dfa.final_states and state[1] not in second_dfa.final_states or
                                       state[0] not in first_dfa.final_states and state[1] in second_dfa.final_states):
                 self.final_states.add(state_name)
+            elif action == 'and not' and (state[0] in first_dfa.final_states and state[1] not in second_dfa.final_states):
+                self.final_states.add(state_name)
 
         #print('\n', self.state_set, self.init_state)
 
@@ -110,6 +112,9 @@ class DFA:
         traversed_arcs = set()
 
         print()
+
+        if not self.final_states:
+            return True
 
         while True:
             arcs = set(self.transition_map[state])
@@ -217,11 +222,6 @@ class DFA:
             traversed_arcs = set()
             state = new_state
 
-    def is_equivalent(self, other) -> bool:
-        assert isinstance(other, DFA)
-        # if
-        pass
-
     def parse(self, string: str) -> bool:
 
         q = self.init_state
@@ -233,3 +233,37 @@ class DFA:
             return True
         else:
             return False
+
+
+def are_equivalent_DFA(dfa1: DFA, dfa2: DFA) -> bool:
+    # if XOR product is empty
+
+    assert isinstance(dfa1, DFA)
+    assert isinstance(dfa2, DFA)
+
+    xor_product_dfa = DFA(dfa_set=(dfa1, dfa2), action='xor')
+
+    print()
+    print(xor_product_dfa.final_states)
+
+    if xor_product_dfa.is_empty():
+        return True
+    else:
+        return False
+
+
+def contains_DFA(dfa: DFA, dfa_sub: DFA) -> bool:
+    # if dfa_sub AND NOT dfa product is empty and dfa AND NOT dfa_sub product is not
+
+    assert isinstance(dfa, DFA)
+    assert isinstance(dfa_sub, DFA)
+
+    complement_product_dfa = DFA(dfa_set=(dfa_sub, dfa), action='and not')
+
+    print()
+    print(complement_product_dfa.final_states)
+
+    if complement_product_dfa.is_empty():
+        return True
+    else:
+        return False
