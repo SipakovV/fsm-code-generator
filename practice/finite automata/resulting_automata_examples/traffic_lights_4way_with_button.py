@@ -53,15 +53,15 @@ def traffic_blinking():
 
 
 def p_red():
-    publish_instruction('p_red')
+    publish_instruction('p1_red')
 
 
-def p_blinking():
-    publish_instruction('p_blinking')
+def p1_blinking():
+    publish_instruction('p1_blinking')
 
 
-def p_green():
-    publish_instruction('p_green')
+def p1_green():
+    publish_instruction('p1_green')
 
 
 def set_timeout(timeout_seconds: float):
@@ -73,7 +73,7 @@ def set_timeout(timeout_seconds: float):
 def main():
     state = initial_state
     logger.info(f'== FSM started')
-    logger.info(f'== State: {state}')
+    logger.info(f'==\t\t  State: {state}')
     traffic_green()
     p_red()
     set_timeout(30)
@@ -112,13 +112,13 @@ def main():
             if event == 'timeout':
                 set_timeout(20)
                 traffic_red()
-                p_green()
+                p1_green()
                 state = 'p_go'
 
         elif state == 'p_go':
             if event == 'timeout':
                 set_timeout(3)
-                p_blinking()
+                p1_blinking()
                 state = 'p_stopping'
 
         elif state == 'p_stopping':
@@ -134,7 +134,7 @@ def main():
                 traffic_green()
                 state = 'traffic_go'
 
-        if event:
+        if event and state != old_state:
             logger.info(f'== State change: {old_state} -{event}-> {state}')
 
 
