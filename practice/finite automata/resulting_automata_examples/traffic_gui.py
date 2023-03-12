@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 import tkinter as tk
 from threading import Thread
+
 import event_queue
 
 
@@ -74,14 +75,14 @@ class App(Thread):
             elif command == 'p1_blinking':
                 self.pedestrian_light_1.set_green_blinking()
 
-        self.root.after(100, self.check_outputs)
+        self.root.after(1000, self.check_outputs)
 
     def timer(self):
         if self.timeout > datetime.now():
             time_remaining = (self.timeout - datetime.now()).seconds
             #self.timer_display.config(text=time_remaining)
             self.timer_display_default.set(time_remaining)
-            self.root.after(100, self.timer)
+            self.root.after(1000, self.timer)
         else:
             event_queue.publish_event('timeout')
 

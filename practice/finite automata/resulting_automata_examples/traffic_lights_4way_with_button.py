@@ -3,8 +3,7 @@ from enum import Enum
 from datetime import datetime, timedelta
 import logging
 
-
-from event_queue import get_next_event, publish_instruction
+import event_queue
 from traffic_gui import App
 
 
@@ -33,41 +32,41 @@ initial_state = 'traffic_go'
 
 
 def traffic_red():
-    publish_instruction('traffic_red')
+    event_queue.publish_instruction('traffic_red')
 
 
 def traffic_yellow_red():
-    publish_instruction('traffic_yellow_red')
+    event_queue.publish_instruction('traffic_yellow_red')
 
 
 def traffic_yellow():
-    publish_instruction('traffic_yellow')
+    event_queue.publish_instruction('traffic_yellow')
 
 
 def traffic_green():
-    publish_instruction('traffic_green')
+    event_queue.publish_instruction('traffic_green')
 
 
 def traffic_blinking():
-    publish_instruction('traffic_blinking')
+    event_queue.publish_instruction('traffic_blinking')
 
 
 def p_red():
-    publish_instruction('p1_red')
+    event_queue.publish_instruction('p1_red')
 
 
 def p1_blinking():
-    publish_instruction('p1_blinking')
+    event_queue.publish_instruction('p1_blinking')
 
 
 def p1_green():
-    publish_instruction('p1_green')
+    event_queue.publish_instruction('p1_green')
 
 
 def set_timeout(timeout_seconds: float):
     #global timeout
     #timeout = datetime.now() + timedelta(seconds=timeout_seconds)
-    publish_instruction('set_timeout', timeout_seconds)
+    event_queue.publish_instruction('set_timeout', timeout_seconds)
 
 
 def main():
@@ -79,7 +78,7 @@ def main():
     set_timeout(30)
 
     while True:
-        event = get_next_event()
+        event = event_queue.get_next_event()
 
         old_state = state
         #log(f'== State: {state}, received event: {event}')
