@@ -1,11 +1,10 @@
-from copy import deepcopy
 from typing import Union
 import itertools
 
 
 class DFA:
     def __init__(self, *args, **kwargs):
-        if 'dfa_set' in kwargs.keys():
+        if 'dfa_set' in kwargs:
             if len(kwargs['dfa_set']) == 1:
                 orig, = kwargs['dfa_set']
                 assert isinstance(orig, DFA), "can only copy instances of DFA"
