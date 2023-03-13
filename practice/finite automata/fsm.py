@@ -6,13 +6,19 @@ import event_queue
 
 
 class FSM:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         if 'fsm' in kwargs:
-                orig = kwargs['fsm']
-                assert isinstance(orig, FSM), "can only copy instances of FSM"
-                self._init(orig.alphabet, orig.state_set, orig.init_state, orig.final_states, orig.transition_map)
+            orig = kwargs['fsm']
+            assert isinstance(orig, FSM), "can only copy instances of FSM"
+            self._init(alphabet=orig.alphabet,
+                       state_set=orig.state_set,
+                       instructions_set=orig.instructions_set,
+                       init_state=orig.init_state,
+                       init_instructions=orig.init_instructions,
+                       final_states=orig.final_states,
+                       transition_map=orig.transition_map)
         else:
-            self._init(*args)
+            self._init(**kwargs)
 
     def __repr__(self):
         try:
@@ -48,30 +54,45 @@ class FSM:
             return False
         return True
 
-    def _init(self, alphabet: set[str], instructions_set: set[str], state_set: set[Union[str, int]], init_state: Union[str, int], init_instructions: list[Union[str, tuple]], final_states: set[Union[str, int]], transition_map: dict, name: str = 'sample_fsm'):
+    def _init(self, alphabet: set[str], instructions_set: set[str], state_set: set[Union[str, int]], initial_state: Union[str, int], initial_instructions: list[Union[str, tuple]], final_states: set[Union[str, int]], transition_map: dict, name: str = 'sample_fsm'):
         self._name = name
 
         self.alphabet = alphabet
         self.instructions_set = instructions_set
         self.state_set = state_set
-        self.init_state = init_state
-        self.init_instructions = init_instructions
+        self.init_state = initial_state
+        self.init_instructions = initial_instructions
         self.final_states = final_states
         self.transition_map = transition_map
 
-    def send_instruction(self, *instruction):
-        event_queue.put_instruction(*instruction)
+    def send_instruction(self, instruction):
+        if type(instruction) is tuple:
+
+            event_queue.put_instruction(instruction[0], instruction[1])
+        else:
+            event_queue.put_instruction(instruction)
 
     def run(self):
-        q = self.init_state
+        state = self.init_state
+        for instr in self.init_instructions:
+            self.send_instruction(instr)
 
-        for char in string:
-            q = self.transition_map[q][char]
+        while True:
+            if state in self.final_states:
+                print('final state reached:', state)
+                break
 
-        if q in self.final_states:
-            return True
-        else:
-            return False
+            event = event_queue.get_next_event()
+            old_state = state
+
+            if state in self.transition_map:
+                transitions_available = self.transition_map[state]
+                if event in transitions_available:
+                    target_state, instruction_list = transitions_available[event]
+                    for instr in instruction_list:
+                        self.send_instruction(instr)
+                    state = target_state
+                    print(f'== State change: {old_state} -{event}-> {state}')
 
     def visualize(self):
         dot = graphviz.Digraph('fsm', comment=self._name)
