@@ -58,6 +58,18 @@ class FSM:
     def _init(self, alphabet: set[str], instructions_set: set[str], state_set: set[Union[str, int]], initial_state: Union[str, int], initial_instructions: list[Union[str, tuple]], final_states: set[Union[str, int]], transition_map: dict, name: str = 'sample_fsm'):
         self._name = name
 
+        assert initial_state in state_set
+        assert all(instr in instructions_set or type(instr) is tuple and instr[0] in instructions_set for instr in initial_instructions)
+
+        assert all(state in state_set for state in transition_map), \
+            'Transition map contains states not in state set'
+        assert all(all(transition_map[state][event][0] in state_set for event in transition_map[state]) for state in transition_map), \
+            'Transition map contains target states not in state set'
+        assert all(all(event in alphabet for event in transition_map[state]) for state in transition_map), \
+            'Transition map contains events not in alphabet'
+        assert all(all(all(instr in instructions_set or (type(instr) is tuple and instr[0] in instructions_set) for instr in transition_map[state][event][1]) for event in transition_map[state]) for state in transition_map), \
+            'Transition map contains instructions not in instructions set'
+
         self.alphabet = alphabet
         self.instructions_set = instructions_set
         self.state_set = state_set
@@ -68,7 +80,6 @@ class FSM:
 
     def send_instruction(self, instruction):
         if type(instruction) is tuple:
-
             event_queue.put_instruction(instruction[0], instruction[1])
         else:
             event_queue.put_instruction(instruction)
@@ -134,6 +145,8 @@ class FSM:
         """Import statements"""
         code_gen.write("import sys")
         code_gen.write("import event_queue")
+        code_gen.write("")
+        code_gen.write("")
 
         """Main run_fsm() function"""
         code_gen.write("def run_fsm():")
@@ -161,7 +174,7 @@ class FSM:
             for event in self.transition_map[state]:
                 code_gen.write(f"if event == '{event}':")
                 code_gen.indent()
-                target_state, instruction_list = self.transition_map[state][event]
+                target_state, instruction_list = transitions[event]
                 for instr in instruction_list:
                     if type(instr) is tuple:
                         code_gen.write(f"event_queue.put_instruction('{instr[0]}', {str(instr[1])})")
