@@ -115,28 +115,37 @@ def start_server():  # запуск сервера
         sys.exit()
 
     sock.listen(1)
+    sock.settimeout(0.5)
     print(f'Socket now listening at {ADDRESS[0]}:{ADDRESS[1]}')
 
-    try:
-        conn, addr = sock.accept()
-        ip, port = str(addr[0]), str(addr[1])
-        print('Accepting connection from ' + ip + ':' + port)
-        try:
-            Thread(target=event_listening_thread, args=(conn, ip, port), daemon=True).start()
-            Thread(target=instruction_listening_thread, args=(conn,), daemon=True).start()
-            for thread in enumerate():
-                print(f'Hello from thread {thread}')
-                # logging.debug(f'Hello from thread {thread}')
-        except:
-            print("Terrible error!")
-            traceback.print_exc()
+    conn = None
 
-        fsm_module.run_fsm()
-        #class_based_fsm.run()
+    try:
+        while True:
+            try:
+                conn, addr = sock.accept()
+                ip, port = str(addr[0]), str(addr[1])
+                print('Accepting connection from ' + ip + ':' + port)
+                try:
+                    Thread(target=event_listening_thread, args=(conn, ip, port), daemon=True).start()
+                    Thread(target=instruction_listening_thread, args=(conn,), daemon=True).start()
+                    for thread in enumerate():
+                        print(f'Hello from thread {thread}')
+                        # logging.debug(f'Hello from thread {thread}')
+                except:
+                    print("Error while starting threads")
+                    traceback.print_exc()
+
+                fsm_module.run_fsm()
+                #class_based_fsm.run()
+            except socket.timeout:
+                pass
 
     except KeyboardInterrupt:
-        print("\nServer stopped")
-        return
+        if conn:
+            conn.close()
+
+    print("\nServer stopped")
 
 
 if __name__ == '__main__':
