@@ -21,7 +21,7 @@ except ImportError as exc:
     print('Invalid automaton file:', args.fsm_code_file)
 
 import event_queue
-from fsm import FSM
+#from fsm import FSM
 
 logging.basicConfig(filename='debug.log', level=logging.DEBUG)
 
@@ -34,6 +34,7 @@ handler = logging.StreamHandler(stream=sys.stdout)
 handler.setFormatter(logging.Formatter(fmt='[%(asctime)s| %(name)-40s: %(levelname)s] %(message)s'))
 logger.addHandler(handler)
 
+'''
 class_based_fsm = FSM(alphabet={'timeout', 'button1'},
                       instructions_set={'set_timeout', 'p1_red', 'p1_green', 'p1_blinking',
                                         't1_red', 't1_red_yellow', 't1_yellow', 't1_green', 't1_blinking'},
@@ -53,7 +54,7 @@ class_based_fsm = FSM(alphabet={'timeout', 'button1'},
                           'p_stopping': {'timeout': ('traffic_ready', [('set_timeout', 3), 't1_yellow_red', 'p1_red'])},
                           'traffic_ready': {'timeout': ('traffic_go', [('set_timeout', 30), 't1_green'])},
                       })
-
+'''
 
 def instruction_listening_thread(conn):  # thread for listening at queue for instructions
     while True:
