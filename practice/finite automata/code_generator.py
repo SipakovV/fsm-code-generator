@@ -6,7 +6,8 @@ class CodeGeneratorBackend:
         self.level = 0
 
     def end(self):
-        return '\n'.join(self.code)
+        res = '\n'.join(self.code)
+        return res + '\n'
 
     def write(self, string):
         self.code.append(self.tab * self.level + string)
