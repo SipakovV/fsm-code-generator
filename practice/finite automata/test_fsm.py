@@ -10,7 +10,7 @@ def test_FSM_TL_4way_1button():
     state_set = {'traffic_go', 'traffic_go_ready', 'traffic_go_change', 'traffic_stopping1', 'traffic_stopping2',
                  'p_go', 'p_stopping', 'traffic_ready'}
     initial_state = 'traffic_go'
-    initial_instructions = [('set_timeout', 30), 't1_green']
+    initial_instructions = [('set_timeout', 30), 't1_green', 'p1_red']
     final_states = set()
     transition_map = {
         'traffic_go':           {'timeout': ('traffic_go_ready',    []), 'button1': ('traffic_go_change', [])},
@@ -27,10 +27,12 @@ def test_FSM_TL_4way_1button():
     assert initial_state in state_set
     assert final_states.issubset(state_set)
 
-    fsm_TL_4way_1button = FSM(alphabet, instructions_set, state_set,
-                              initial_state, initial_instructions, final_states, transition_map,
+    fsm_TL_4way_1button = FSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
+                              initial_state=initial_state, initial_instructions=initial_instructions,
+                              final_states=final_states, transition_map=transition_map,
                               name='fsm_TL_4way_1button')
     print()
     print(fsm_TL_4way_1button)
-    fsm_TL_4way_1button.visualize()
+    #fsm_TL_4way_1button.visualize()
+    fsm_TL_4way_1button.generate_code_python('fsm_tl_4way_1btn.py')
     #assert triple_ones_dfa.parse(entry) == accepts

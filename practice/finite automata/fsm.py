@@ -3,6 +3,7 @@ from typing import Union
 import graphviz
 
 import event_queue
+from code_generator import CodeGeneratorBackend
 
 
 class FSM:
@@ -126,5 +127,57 @@ class FSM:
         print(dot)
         dot.render(directory='doctest-output', view=True).replace('\\', '/')
 
-    def generate_code_python(self):
-        pass
+    def generate_code_python(self, filename=None):
+        code_gen = CodeGeneratorBackend()
+        code_gen.begin(tab='    ')
+
+        """Import statements"""
+        code_gen.write("import sys")
+        code_gen.write("import event_queue")
+
+        """Main run_fsm() function"""
+        code_gen.write("def run_fsm():")
+        code_gen.indent()
+        code_gen.write(f"state = '{self.init_state}'")
+        for instr in self.init_instructions:
+            if type(instr) is tuple:
+                code_gen.write(f"event_queue.put_instruction('{instr[0]}', {str(instr[1])})")
+            elif type(instr) is str:
+                code_gen.write(f"event_queue.put_instruction('{instr}')")
+            else:
+                raise TypeError('Unknown instruction type')
+
+        code_gen.write("while True:")
+        code_gen.indent()
+        code_gen.write("event = event_queue.get_next_event()")
+        i = 0
+        for state in self.transition_map:
+            if i == 0:
+                code_gen.write(f"if state == '{state}':")
+            else:
+                code_gen.write(f"elif state == '{state}':")
+            code_gen.indent()
+            transitions = self.transition_map[state]
+            for event in self.transition_map[state]:
+                code_gen.write(f"if event == '{event}':")
+                code_gen.indent()
+                target_state, instruction_list = self.transition_map[state][event]
+                for instr in instruction_list:
+                    if type(instr) is tuple:
+                        code_gen.write(f"event_queue.put_instruction('{instr[0]}', {str(instr[1])})")
+                    elif type(instr) is str:
+                        code_gen.write(f"event_queue.put_instruction('{instr}')")
+                    else:
+                        raise TypeError('Unknown instruction type')
+                code_gen.write(f"state = '{target_state}'")
+                code_gen.dedent()
+            code_gen.dedent()
+            i += 1
+
+        code_gen.dedent()
+        code_gen.dedent()
+        if not filename:
+            filename = self._name + '.py'
+        f = open(filename, 'w')
+        f.write(code_gen.end())
+        f.close()
