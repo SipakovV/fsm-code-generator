@@ -57,7 +57,7 @@ def test_FSM_TL_4way_p_and_t():
         'ns_stopped':     {'timeout': ('ew_go',         [('set_timeout', 20), 't1_red', 't2_green', 'p2_green'])},
         'ew_go':          {'timeout': ('ew_stopping',   [('set_timeout', 3),  't2_blinking', 'p2_blinking'])},
         'ew_stopping':    {'timeout': ('ew_stopped',    [('set_timeout', 3),  't1_yellow_red', 't2_yellow', 'p2_red'])},
-        'ew_stopped':     {'timeout': ('ns_go',         [('set_timeout', 30), 't1_green', 't2_red'])},
+        'ew_stopped':     {'timeout': ('ns_go',         [('set_timeout', 30), 't1_green', 'p1_green', 't2_red'])},
     }
 
     assert (row in state_set for row in transition_map)
