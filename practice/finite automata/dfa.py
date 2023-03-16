@@ -1,11 +1,10 @@
-from copy import deepcopy
 from typing import Union
 import itertools
 
 
 class DFA:
     def __init__(self, *args, **kwargs):
-        if 'dfa_set' in kwargs.keys():
+        if 'dfa_set' in kwargs:
             if len(kwargs['dfa_set']) == 1:
                 orig, = kwargs['dfa_set']
                 assert isinstance(orig, DFA), "can only copy instances of DFA"
@@ -20,8 +19,7 @@ class DFA:
         try:
             out = f'{self.__name__}\n'
         except AttributeError:
-            pass
-        out = f'DFA:\n'
+            out = f'DFA:\n'
 
         for k, v in self.__dict__.items():
             out += '{:>4s}: {}\n'.format(k, v)
@@ -89,6 +87,8 @@ class DFA:
             elif action == 'xor' and (state[0] in first_dfa.final_states and state[1] not in second_dfa.final_states or
                                       state[0] not in first_dfa.final_states and state[1] in second_dfa.final_states):
                 self.final_states.add(state_name)
+            elif action == 'and not' and (state[0] in first_dfa.final_states and state[1] not in second_dfa.final_states):
+                self.final_states.add(state_name)
 
         #print('\n', self.state_set, self.init_state)
 
@@ -98,6 +98,128 @@ class DFA:
         self.init_state = init_state
         self.final_states = final_states
         self.transition_map = transition_map
+
+    """
+    Decision properties
+    """
+    def is_empty(self) -> bool:
+        # if final states unreachable
+        marked_states = set()
+        stack = []
+
+        state = self.init_state
+        traversed_arcs = set()
+
+        print()
+
+        if not self.final_states:
+            return True
+
+        while True:
+            arcs = set(self.transition_map[state])
+            print(f'{state=}: {arcs=}, {traversed_arcs=}, {marked_states=}, {stack=}')
+            if traversed_arcs == arcs:
+                if stack:
+                    # return up
+                    state, traversed_arcs = stack.pop()
+                    continue
+                else:
+                    # exit tree
+                    break
+
+            marked_states.add(state)
+            if marked_states == self.state_set:
+                break
+
+            for transition_arc in arcs.difference(traversed_arcs):
+                new_state = self.transition_map[state][transition_arc]
+                if new_state in marked_states:
+                    continue
+                else:
+                    break
+            else:
+                # if all remaining states are marked
+                if stack:
+                    # return up
+                    state, traversed_arcs = stack.pop()
+                    continue
+                else:
+                    # exit tree
+                    break
+
+            traversed_arcs.add(transition_arc)
+
+            stack.append((state, traversed_arcs))
+            traversed_arcs = set()
+            state = new_state
+
+        if marked_states.intersection(self.final_states):
+            return False
+        else:
+            return True
+
+    def is_infinite(self) -> bool:
+        # if contains cycles on the path from init state to final states
+
+        # marked_states = set()
+        stack = []
+        state = self.init_state
+        traversed_arcs = set()
+        has_cycle_on_path = False
+
+        print()
+
+        while True:
+            arcs = set(self.transition_map[state])
+            print(f'{state=}: {arcs=}, {traversed_arcs=}, {stack=}')
+
+            # current_cycle = False
+
+            if traversed_arcs == arcs:
+                if stack:
+                    # return up
+                    state, traversed_arcs, has_cycle_on_path = stack.pop()
+                    continue
+                else:
+                    # no cycles found
+                    return False
+
+            # marked_states.add(state)
+
+            if state in self.final_states:
+                if has_cycle_on_path:
+                    print('found final state with cycles on path:', state)
+                    return True
+
+            for transition_arc in arcs.difference(traversed_arcs):
+                new_state = self.transition_map[state][transition_arc]
+
+                if has_cycle_on_path:
+                    continue
+                else:
+                    if new_state == state:
+                        has_cycle_on_path = True
+                        print('found cycle', new_state)
+                    for item in stack:
+                        if new_state == item[0]:
+                            has_cycle_on_path = True
+                            print('found cycle', new_state)
+                            break
+                    break
+            else:
+                if stack:
+                    # return up
+                    state, traversed_arcs, has_cycle_on_path = stack.pop()
+                    continue
+                else:
+                    # no cycles found
+                    return False
+
+            traversed_arcs.add(transition_arc)
+
+            stack.append((state, traversed_arcs, has_cycle_on_path))
+            traversed_arcs = set()
+            state = new_state
 
     def parse(self, string: str) -> bool:
 
@@ -112,8 +234,35 @@ class DFA:
             return False
 
 
-'''
-class DFAExtended(DFA):
-    def __init__(self, dfa1: DFA, dfa2: DFA):
-        state_set
-'''
+def are_equivalent_DFA(dfa1: DFA, dfa2: DFA) -> bool:
+    # if XOR product is empty
+
+    assert isinstance(dfa1, DFA)
+    assert isinstance(dfa2, DFA)
+
+    xor_product_dfa = DFA(dfa_set=(dfa1, dfa2), action='xor')
+
+    print()
+    print(xor_product_dfa.final_states)
+
+    if xor_product_dfa.is_empty():
+        return True
+    else:
+        return False
+
+
+def contains_DFA(dfa: DFA, dfa_sub: DFA) -> bool:
+    # if dfa_sub AND NOT dfa product is empty and dfa AND NOT dfa_sub product is not
+
+    assert isinstance(dfa, DFA)
+    assert isinstance(dfa_sub, DFA)
+
+    complement_product_dfa = DFA(dfa_set=(dfa_sub, dfa), action='and not')
+
+    print()
+    print(complement_product_dfa.final_states)
+
+    if complement_product_dfa.is_empty():
+        return True
+    else:
+        return False
