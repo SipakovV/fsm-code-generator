@@ -7,7 +7,7 @@ from _thread import interrupt_main
 from time import sleep
 import json
 
-from gui import GuiThread
+from app.admin_client.gui import GuiThread
 
 SERVER_ADDRESS = ("127.0.0.1", 12345)
 MAX_BUFFER_SIZE = 4096

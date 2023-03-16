@@ -1,8 +1,8 @@
 from threading import Thread
 
-from fsm_runtime_gui import FSMRuntimeApp
-from fsm_compile_gui import FSMCompileApp
-from timer import TimerThread
+from app.admin_client.fsm_runtime_gui import FSMRuntimeApp
+from app.admin_client.fsm_compile_gui import FSMCompileApp
+from app.admin_client.timer import TimerThread
 
 
 class GuiThread(Thread):
