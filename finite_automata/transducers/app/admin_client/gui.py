@@ -1,7 +1,7 @@
 from threading import Thread
 
 from fsm_runtime_gui import FSMRuntimeApp
-from fsm_compile_gui import FSMEditApp
+from fsm_compile_gui import FSMCompileApp
 from timer import TimerThread
 
 

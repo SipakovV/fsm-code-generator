@@ -148,7 +148,7 @@ class FSM:
         code_gen.begin(tab='    ')
 
         """Import statements"""
-        code_gen.write("from finite_automata.transducers.app.python_server import event_queue")
+        code_gen.write("from app.python_server import event_queue")
         code_gen.write("")
         code_gen.write("")
 
