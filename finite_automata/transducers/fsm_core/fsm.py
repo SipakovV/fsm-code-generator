@@ -2,8 +2,7 @@ from typing import Union
 
 import graphviz
 
-import event_queue
-from code_generator import CodeGeneratorBackend
+from finite_automata.transducers.fsm_core.code_generator import CodeGeneratorBackend
 
 
 class FSM:
@@ -55,8 +54,12 @@ class FSM:
             return False
         return True
 
-    def _init(self, alphabet: set[str], instructions_set: set[str], state_set: set[Union[str, int]], initial_state: Union[str, int], initial_instructions: list[Union[str, tuple]], final_states: set[Union[str, int]], transition_map: dict, name: str = 'sample_fsm'):
+    def _init(self, alphabet: set[str], instructions_set: set[str], state_set: set[Union[str, int]], initial_state: Union[str, int], initial_instructions: list[Union[str, tuple]], final_states: set[Union[str, int]], transition_map: dict, name: str = 'unnamed_fsm', description: str = None):
         self._name = name
+        if description:
+            self._description = description
+        else:
+            self._description = self._name
 
         assert initial_state in state_set
         assert all(instr in instructions_set or type(instr) is tuple and instr[0] in instructions_set for instr in initial_instructions)
@@ -78,16 +81,16 @@ class FSM:
         self.final_states = final_states
         self.transition_map = transition_map
 
-    def send_instruction(self, instruction):
+    def send_instruction(self, instruction, queue):
         if type(instruction) is tuple:
-            event_queue.put_instruction(instruction[0], instruction[1])
+            queue.put_instruction(instruction[0], instruction[1])
         else:
-            event_queue.put_instruction(instruction)
+            queue.put_instruction(instruction)
 
-    def run(self):
+    def run(self, event_queue):
         state = self.init_state
         for instr in self.init_instructions:
-            self.send_instruction(instr)
+            self.send_instruction(instr, event_queue)
 
         while True:
             if state in self.final_states:
@@ -102,12 +105,12 @@ class FSM:
                 if event in transitions_available:
                     target_state, instruction_list = transitions_available[event]
                     for instr in instruction_list:
-                        self.send_instruction(instr)
+                        self.send_instruction(instr, event_queue)
                     state = target_state
                     print(f'== State change: {old_state} -{event}-> {state}')
 
-    def visualize(self):
-        dot = graphviz.Digraph('fsm', comment=self._name)
+    def visualize(self, directory: str = None):
+        dot = graphviz.Digraph(self._name, comment=self._description)
 
         dot.node('START')
 
@@ -136,15 +139,16 @@ class FSM:
         dot.edge('START', self.init_state, label=label)
 
         print(dot)
-        dot.render(directory='doctest-output', view=True).replace('\\', '/')
+        if not directory:
+            directory = 'doctest-output'
+        dot.render(directory=directory, view=True).replace('\\', '/')
 
-    def generate_code_python(self, filename=None):
+    def generate_code_python(self, file_path: str = None):
         code_gen = CodeGeneratorBackend()
         code_gen.begin(tab='    ')
 
         """Import statements"""
-        code_gen.write("import sys")
-        code_gen.write("import event_queue")
+        code_gen.write("from finite_automata.transducers.app.python_server import event_queue")
         code_gen.write("")
         code_gen.write("")
 
@@ -189,8 +193,8 @@ class FSM:
 
         code_gen.dedent()
         code_gen.dedent()
-        if not filename:
-            filename = self._name + '.py'
-        f = open(filename, 'w')
+        if not file_path:
+            file_path = self._name + '.py'
+        f = open(file_path, 'w')
         f.write(code_gen.end())
         f.close()

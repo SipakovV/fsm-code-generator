@@ -1,4 +1,3 @@
-# client.py
 import logging
 import socket
 import sys
@@ -8,7 +7,7 @@ from _thread import interrupt_main
 from time import sleep
 import json
 
-from fsm_gui import App, GuiThread
+from gui import GuiThread
 
 SERVER_ADDRESS = ("127.0.0.1", 12345)
 MAX_BUFFER_SIZE = 4096

@@ -1,12 +1,7 @@
 import logging
 import sys
-import time
 import tkinter as tk
-from tkinter import *
-from threading import Thread
 from queue import Queue
-
-MAX_BUFFER_SIZE = 4096
 
 
 logger = logging.getLogger(__name__)
@@ -39,25 +34,25 @@ class TrafficLight:
         self.canvas.grid(row=0, column=index)
 
         self.base = self.canvas.create_rectangle(CANVAS_SIZE / 2 - LAMP_SIZE / 2 - PADDING_SIZE,
-                                                   PADDING_SIZE,
-                                                   CANVAS_SIZE / 2 + LAMP_SIZE / 2 + PADDING_SIZE,
-                                                   CANVAS_SIZE - PADDING_SIZE,
-                                                   outline='black', fill=BASE_COLOR)
+                                                 PADDING_SIZE,
+                                                 CANVAS_SIZE / 2 + LAMP_SIZE / 2 + PADDING_SIZE,
+                                                 CANVAS_SIZE - PADDING_SIZE,
+                                                 outline='black', fill=BASE_COLOR)
         self.red_light = self.canvas.create_oval(CANVAS_SIZE / 2 - LAMP_SIZE / 2,
                                                  PADDING_SIZE * 2,
                                                  CANVAS_SIZE / 2 + LAMP_SIZE / 2,
                                                  PADDING_SIZE * 2 + LAMP_SIZE,
                                                  fill=OFF_COLOR)
         self.yellow_light = self.canvas.create_oval(CANVAS_SIZE / 2 - LAMP_SIZE / 2,
-                                                 PADDING_SIZE * 3 + LAMP_SIZE,
-                                                 CANVAS_SIZE / 2 + LAMP_SIZE / 2,
-                                                 PADDING_SIZE * 3 + LAMP_SIZE * 2,
-                                                 fill=OFF_COLOR)
+                                                    PADDING_SIZE * 3 + LAMP_SIZE,
+                                                    CANVAS_SIZE / 2 + LAMP_SIZE / 2,
+                                                    PADDING_SIZE * 3 + LAMP_SIZE * 2,
+                                                    fill=OFF_COLOR)
         self.green_light = self.canvas.create_oval(CANVAS_SIZE / 2 - LAMP_SIZE / 2,
-                                                 PADDING_SIZE * 4 + LAMP_SIZE * 2,
-                                                 CANVAS_SIZE / 2 + LAMP_SIZE / 2,
-                                                 PADDING_SIZE * 4 + LAMP_SIZE * 3,
-                                                 fill=OFF_COLOR)
+                                                   PADDING_SIZE * 4 + LAMP_SIZE * 2,
+                                                   CANVAS_SIZE / 2 + LAMP_SIZE / 2,
+                                                   PADDING_SIZE * 4 + LAMP_SIZE * 3,
+                                                   fill=OFF_COLOR)
 
     def set_red(self):
         self.canvas.itemconfig(self.red_light, fill=RED_COLOR)
@@ -119,7 +114,7 @@ class TimerDisplay:
         self.label.pack()
 
 
-class App(tk.Frame):
+class FSMRuntimeApp(tk.Frame):
     queue = Queue()
 
     def __init__(self, master=None):
@@ -132,8 +127,8 @@ class App(tk.Frame):
         for col in range(col_count):
             self.grid_columnconfigure(col, minsize=155)
 
-        menubar = Menu(self.master)
-        filemenu = Menu(menubar, tearoff=0)
+        menubar = tk.Menu(self.master)
+        filemenu = tk.Menu(menubar, tearoff=0)
         filemenu.add_command(label="New", command=_placeholder)
         filemenu.add_command(label="Open", command=_placeholder)
         filemenu.add_command(label="Save", command=_placeholder)
@@ -141,15 +136,15 @@ class App(tk.Frame):
         filemenu.add_command(label="Exit", command=self.master.quit)
         menubar.add_cascade(label="File", menu=filemenu)
 
-        helpmenu = Menu(menubar, tearoff=0)
+        helpmenu = tk.Menu(menubar, tearoff=0)
         helpmenu.add_command(label="About...", command=_placeholder)
         menubar.add_cascade(label="Help", menu=helpmenu)
 
         self.master.config(menu=menubar)
 
-        self.timeout_var = IntVar()
-        self.title_var = StringVar()
-        self.description_var = StringVar()
+        self.timeout_var = tk.IntVar()
+        self.title_var = tk.StringVar()
+        self.description_var = tk.StringVar()
 
         self.title_label = tk.Label(self, textvariable=self.title_var)
         self.title_label.grid(row=0, column=0)
@@ -296,73 +291,3 @@ class App(tk.Frame):
         self.connected = True
         self.title_var.set(config['title'])
         self.description_var.set(config['description'])
-
-
-class TimerThread(Thread):
-    def __init__(self, parent):
-        Thread.__init__(self)
-        self.parent = parent
-        self.seconds_remaining = 0
-        self.is_active = False
-        #self.run()
-
-    def set_timer(self, timeout_seconds):
-        self.seconds_remaining = timeout_seconds
-        self.is_active = True
-        logger.debug(f'Timer is set: {timeout_seconds}s')
-
-    def run(self):
-        logger.debug(f'Timer is running')
-        while True:
-            if self.is_active:
-                self.parent.update_timer(self.seconds_remaining)
-                time.sleep(1)
-                self.seconds_remaining -= 1
-                if self.seconds_remaining == 0:
-                    self.parent.timeout_event()
-                    self.is_active = False
-            else:
-                time.sleep(0.01)
-
-
-class GuiThread(Thread):
-    def __init__(self, *args, **kwargs):
-        Thread.__init__(self, *args, **kwargs)
-        self.timer_thread = TimerThread(self)
-        self.timer_thread.daemon = True
-
-    def run(self):
-        logger.debug('GUI thread started!')
-        self.app = App()
-        self.app.master.title('FSM GUI: Traffic Lights')
-        self.app.master.minsize(1000, 620)
-        self.app.master.maxsize(1000, 620)
-
-        self.timer_thread.start()
-        self.app.mainloop()
-        logger.debug('GUI thread ended!')
-
-    def execute_instruction(self, instr):
-        if instr['instruction'] == 'set_timeout':
-            self.timer_thread.set_timer(instr['parameter'])
-        elif instr['instruction'] in self.app.instructions_dict:
-            self.app.instructions_dict[instr['instruction']]()
-            logger.debug(f'instruction executed: {instr}')
-        else:
-            logger.debug(f'unknown instruction: {instr}')
-
-    def get_event(self):
-        if self.app.queue.empty():
-            return None
-        else:
-            return self.app.queue.get()
-
-    def timeout_event(self):
-        self.app.update_timer(0)
-        self.app.queue.put('timeout')
-
-    def update_timer(self, timeout_seconds):
-        self.app.update_timer(timeout_seconds)
-
-    def activate(self, config):
-        self.app.activate(config)

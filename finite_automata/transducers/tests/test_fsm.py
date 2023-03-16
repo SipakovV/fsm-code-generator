@@ -1,6 +1,6 @@
 import pytest
 
-from fsm import FSM
+from finite_automata.transducers.fsm_core.fsm import FSM
 
 
 def test_FSM_TL_4way_1button():
