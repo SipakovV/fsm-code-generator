@@ -79,7 +79,7 @@ def start_client():  # запуск программы
                 'title': 'test',
                 'description': 'bla bla bla FSM bla bla\nbla bla'
             }
-            gui.activate(config)
+            gui.activate_runtime(config)
             logger.info('Connected to server')
         except KeyboardInterrupt:
             logger.info('Client closed')

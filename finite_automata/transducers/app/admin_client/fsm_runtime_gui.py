@@ -127,21 +127,6 @@ class FSMRuntimeApp(tk.Frame):
         for col in range(col_count):
             self.grid_columnconfigure(col, minsize=155)
 
-        menubar = tk.Menu(self.master)
-        filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="New", command=_placeholder)
-        filemenu.add_command(label="Open", command=_placeholder)
-        filemenu.add_command(label="Save", command=_placeholder)
-        filemenu.add_separator()
-        filemenu.add_command(label="Exit", command=self.master.quit)
-        menubar.add_cascade(label="File", menu=filemenu)
-
-        helpmenu = tk.Menu(menubar, tearoff=0)
-        helpmenu.add_command(label="About...", command=_placeholder)
-        menubar.add_cascade(label="Help", menu=helpmenu)
-
-        self.master.config(menu=menubar)
-
         self.timeout_var = tk.IntVar()
         self.title_var = tk.StringVar()
         self.description_var = tk.StringVar()
@@ -149,8 +134,8 @@ class FSMRuntimeApp(tk.Frame):
         self.title_label = tk.Label(self, textvariable=self.title_var)
         self.title_label.grid(row=0, column=0)
 
-        self.title_label = tk.Label(self, textvariable=self.description_var)
-        self.title_label.grid(row=0, column=1)
+        self.description_label = tk.Label(self, textvariable=self.description_var)
+        self.description_label.grid(row=0, column=1)
 
         """ Traffic lights section """
         self.traffic_frame = tk.Frame(self)
