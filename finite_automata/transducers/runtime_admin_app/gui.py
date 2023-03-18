@@ -6,8 +6,6 @@ from app.admin_client.fsm_compile_gui import FSMCompileApp
 from app.admin_client.timer import TimerThread
 
 
-def _placeholder():
-    pass
 
 
 class App(tk.Frame):
@@ -16,28 +14,13 @@ class App(tk.Frame):
 
         self.parent_thread = parent_thread
 
-        self.runtime_app = FSMRuntimeApp(self.master)
+        self.runtime_app = FSMRuntimeApp(self.master, self)
         self.runtime_app.grid(row=0, column=0, sticky='nsew')
 
-        self.compile_app = FSMCompileApp(self.master)
+        self.compile_app = FSMCompileApp(self.master, self)
         self.compile_app.grid(row=0, column=0, sticky='nsew')
 
-        self.runtime_app.tkraise()
 
-        menubar = tk.Menu(self.master)
-        filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="New", command=_placeholder)
-        filemenu.add_command(label="Open", command=_placeholder)
-        filemenu.add_command(label="Save", command=_placeholder)
-        filemenu.add_separator()
-        filemenu.add_command(label="Exit", command=self.master.quit)
-        menubar.add_cascade(label="File", menu=filemenu)
-
-        helpmenu = tk.Menu(menubar, tearoff=0)
-        helpmenu.add_command(label="About...", command=_placeholder)
-        menubar.add_cascade(label="Help", menu=helpmenu)
-
-        self.master.config(menu=menubar)
 
     def execute_instruction(self, instr):
         if instr['instruction'] == 'set_timeout':
@@ -63,7 +46,13 @@ class App(tk.Frame):
         self.runtime_app.update_timer(timeout_seconds)
 
     def activate_runtime(self, config):
+        self.runtime_app.tkraise()
         self.runtime_app.activate(config)
+        #self.parent_thread.timer_thread.run()
+
+    def switch_to_compile(self):
+        self.compile_app.tkraise()
+        self.parent_thread.deactivate_runtime()
 
 
 class GuiThread(Thread):
@@ -79,7 +68,6 @@ class GuiThread(Thread):
         self.app.master.minsize(1000, 620)
         self.app.master.maxsize(1000, 620)
 
-        self.timer_thread.start()
         self.app.mainloop()
         #logger.debug('GUI thread ended!')
 
@@ -96,4 +84,8 @@ class GuiThread(Thread):
         self.app.update_timer(timeout_seconds)
 
     def activate_runtime(self, config):
+        #self.timer_thread.start()
         self.app.activate_runtime(config)
+
+    def deactivate_runtime(self):
+        self.timer_thread.stop()

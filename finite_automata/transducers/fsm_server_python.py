@@ -1,6 +1,6 @@
 import argparse
 
-from app.python_server import fsm_server
+from python_server import fsm_server
 
 
 if __name__ == '__main__':

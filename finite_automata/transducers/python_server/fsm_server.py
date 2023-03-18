@@ -9,7 +9,7 @@ import traceback
 import json
 import logging
 
-from app.python_server import event_queue
+from python_server import event_queue
 
 
 ADDRESS = ("127.0.0.1", 12345)

@@ -1,7 +1,20 @@
+import json
 import logging
 import sys
+import time
+import traceback
+import socket
+from threading import Thread
+from _thread import interrupt_main
 import tkinter as tk
 from queue import Queue
+
+from utility import timings
+from runtime_admin_app import timer
+
+
+SERVER_ADDRESS = ("127.0.0.1", 12345)
+MAX_BUFFER_SIZE = 4096
 
 
 logger = logging.getLogger(__name__)
@@ -22,6 +35,48 @@ YELLOW_COLOR = 'yellow'
 GREEN_COLOR = '#30ff30'
 OFF_COLOR = 'black'
 BASE_COLOR = 'gray'
+
+
+def get_instruction_from_server(soc):  # принятие пакета от сервера
+    instruction_json = soc.recv(MAX_BUFFER_SIZE)
+    logger.debug(instruction_json)
+    instruction_dict = json.loads(instruction_json)
+    return instruction_dict
+
+
+def instruction_listening_thread(sock, gui):  # поток, обрабатывающий пакеты с сервера
+    while True:
+        try:
+            instruction_dict = get_instruction_from_server(sock)
+        except ConnectionResetError:
+            logger.info('Server closed')
+            gui.reset()
+            break
+        except:
+            logger.error('Error while getting data from server')
+            traceback.print_exc()
+            break
+        else:
+            logger.debug(f'Instruction received: {instruction_dict}')
+
+            try:
+                gui.execute_instruction(instruction_dict)
+            except:
+                logger.error('Error while data output to gui')
+                traceback.print_exc()
+                break
+
+
+def connecting_thread(sock, gui):
+    while True:
+        try:
+            sock.connect(SERVER_ADDRESS)
+        except ConnectionRefusedError:
+            logger.info('Connecting...')
+            time.sleep(0.1)
+        else:
+            gui.activate()
+            break
 
 
 def _placeholder():
@@ -120,7 +175,31 @@ class FSMRuntimeApp(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
 
+        self.master.title('FSM GUI: Traffic Lights')
+        self.master.minsize(1000, 620)
+        self.master.maxsize(1000, 620)
+        self.master.protocol("WM_DELETE_WINDOW", self.exit)
+
+        menubar = tk.Menu(self.master)
+        filemenu = tk.Menu(menubar, tearoff=0)
+        filemenu.add_command(label="New", command=_placeholder)
+        filemenu.add_command(label="Open", command=_placeholder)
+        filemenu.add_command(label="Save", command=_placeholder)
+        filemenu.add_separator()
+        filemenu.add_command(label="Exit", command=self.exit)
+        menubar.add_cascade(label="File", menu=filemenu)
+
+        helpmenu = tk.Menu(menubar, tearoff=0)
+        helpmenu.add_command(label="About...", command=_placeholder)
+        menubar.add_cascade(label="Help", menu=helpmenu)
+
+        self.master.config(menu=menubar)
+
+        #self.parent_frame = parent_frame
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connected = False
+        self.timer_thread = timer.TimerThread(self)
+        self.timer_thread.daemon = True
 
         col_count, row_count = self.grid_size()
 
@@ -136,6 +215,9 @@ class FSMRuntimeApp(tk.Frame):
 
         self.description_label = tk.Label(self, textvariable=self.description_var)
         self.description_label.grid(row=0, column=1)
+
+        #self.switch_app_button = tk.Button(self, text='Edit', command=self.switch_app)
+        #self.switch_app_button.grid(row=0, column=2)
 
         """ Traffic lights section """
         self.traffic_frame = tk.Frame(self)
@@ -177,22 +259,22 @@ class FSMRuntimeApp(tk.Frame):
 
         """ Buttons section """
         self.buttons_frame = tk.Frame(self)
-        self.input_btn_1 = tk.Button(self.buttons_frame, text='Btn1', command=lambda: self.send_to_master('button1'),
+        self.input_btn_1 = tk.Button(self.buttons_frame, text='Btn1', command=lambda: self.send_event('button1'),
                                      height=5, width=15)
         self.input_btn_1.grid(row=0, column=0, padx=5)
-        self.input_btn_2 = tk.Button(self.buttons_frame, text='Btn2', command=lambda: self.send_to_master('button2'),
+        self.input_btn_2 = tk.Button(self.buttons_frame, text='Btn2', command=lambda: self.send_event('button2'),
                                      height=5, width=15)
         self.input_btn_2.grid(row=0, column=1, padx=5)
-        self.input_btn_3 = tk.Button(self.buttons_frame, text='Btn3', command=lambda: self.send_to_master('button3'),
+        self.input_btn_3 = tk.Button(self.buttons_frame, text='Btn3', command=lambda: self.send_event('button3'),
                                      height=5, width=15)
         self.input_btn_3.grid(row=0, column=2, padx=50)
-        self.input_btn_4 = tk.Button(self.buttons_frame, text='Btn4', command=lambda: self.send_to_master('button4'),
+        self.input_btn_4 = tk.Button(self.buttons_frame, text='Btn4', command=lambda: self.send_event('button4'),
                                      height=5, width=15)
         self.input_btn_4.grid(row=0, column=3, padx=5)
-        self.input_btn_5 = tk.Button(self.buttons_frame, text='Btn5', command=lambda: self.send_to_master('button5'),
+        self.input_btn_5 = tk.Button(self.buttons_frame, text='Btn5', command=lambda: self.send_event('button5'),
                                      height=5, width=15)
         self.input_btn_5.grid(row=0, column=4, padx=5)
-        self.input_btn_6 = tk.Button(self.buttons_frame, text='Btn6', command=lambda: self.send_to_master('button6'),
+        self.input_btn_6 = tk.Button(self.buttons_frame, text='Btn6', command=lambda: self.send_event('button6'),
                                      height=5, width=15)
         self.input_btn_6.grid(row=0, column=5, padx=5)
         self.buttons_frame.grid(row=4, column=0, columnspan=6, pady=5)
@@ -262,17 +344,70 @@ class FSMRuntimeApp(tk.Frame):
             't6_blinking': self.traffic_light_6.set_green_blinking,
         }
 
+        self.after(100, self.connect)
+
     def update_timer(self, timeout_seconds):
         self.timeout_var.set(timeout_seconds)
 
-    def send_to_master(self, event):
+    def send_event(self, event):
         if self.connected:
-            self.queue.put(event)
+            event_dict = {
+                'event': event,
+            }
+            event_json = json.dumps(event_dict)
+            self.sock.send(bytes(event_json, encoding='utf-8'))
+            #self.queue.put(event)
 
-    def button_input1(self):
-        self.send_to_master('button1')
+    def timeout_event(self):
+        self.update_timer(0)
+        self.send_event('timeout')
 
-    def activate(self, config):
+    def reset(self):
+        logger.info(f'App is reset')
+
+    def execute_instruction(self, instr):
+        if instr['instruction'] == 'set_timeout':
+            self.timer_thread.set_timer(instr['parameter'])
+        elif instr['instruction'] in self.instructions_dict:
+            self.instructions_dict[instr['instruction']]()
+            #logger.debug(f'instruction executed: {instr}')
+        else:
+            pass
+
+
+
+    @timings.timeit
+    def connect(self):
+        try:
+            Thread(target=connecting_thread, args=(self.sock, self), daemon=True).start()
+        except:
+            logger.error("Error while starting connecting thread")
+            traceback.print_exc()
+
+    def activate(self):
+        self.timer_thread.start()
         self.connected = True
+        config = {
+            'title': 'test',
+            'description': 'bla bla bla FSM bla bla\nbla bla'
+        }
         self.title_var.set(config['title'])
         self.description_var.set(config['description'])
+        logger.info('Connected to server')
+        try:
+            Thread(target=instruction_listening_thread, args=(self.sock, self), daemon=True).start()
+        except:
+            logger.error("Error while starting listening thread")
+            traceback.print_exc()
+
+
+
+    def exit(self):
+
+        self.master.quit()
+
+
+def start_admin():
+    app = FSMRuntimeApp()
+
+    app.mainloop()
