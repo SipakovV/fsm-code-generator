@@ -4,6 +4,7 @@ import sys
 import time
 import traceback
 import socket
+from subprocess import Popen, PIPE
 from threading import Thread
 from _thread import interrupt_main
 import tkinter as tk
@@ -11,6 +12,8 @@ from queue import Queue
 
 from utility import timings
 from runtime_admin_app import timer
+from runtime_admin_app.traffic_lights_gui_preset import TrafficLight, PedestrianLight, TimerDisplay
+from python_server import fsm_server
 
 
 SERVER_ADDRESS = ("127.0.0.1", 12345)
@@ -24,17 +27,19 @@ handler.setFormatter(logging.Formatter(fmt='[%(asctime)s| %(name)-40s: %(levelna
 logger.addHandler(handler)
 
 
-"""TL sizes"""
-LAMP_SIZE = 40
-PADDING_SIZE = 5
-CANVAS_SIZE = 150
+tl_dimensions = {
+    'lamp_size': 40,
+    'padding': 5,
+    'canvas_size': 150,
+}
 
-"""TL colors"""
-RED_COLOR = 'red'
-YELLOW_COLOR = 'yellow'
-GREEN_COLOR = '#30ff30'
-OFF_COLOR = 'black'
-BASE_COLOR = 'gray'
+tl_colors = {
+    'red': 'red',
+    'yellow': 'yellow',
+    'green': '#30ff30',
+    'off': 'black',
+    'base': 'gray',
+}
 
 
 def get_instruction_from_server(soc):  # принятие пакета от сервера
@@ -83,92 +88,6 @@ def _placeholder():
     pass
 
 
-class TrafficLight:
-    def __init__(self, parent_frame, index):
-        self.canvas = tk.Canvas(parent_frame, bg='white', height=CANVAS_SIZE, width=CANVAS_SIZE)
-        self.canvas.grid(row=0, column=index)
-
-        self.base = self.canvas.create_rectangle(CANVAS_SIZE / 2 - LAMP_SIZE / 2 - PADDING_SIZE,
-                                                 PADDING_SIZE,
-                                                 CANVAS_SIZE / 2 + LAMP_SIZE / 2 + PADDING_SIZE,
-                                                 CANVAS_SIZE - PADDING_SIZE,
-                                                 outline='black', fill=BASE_COLOR)
-        self.red_light = self.canvas.create_oval(CANVAS_SIZE / 2 - LAMP_SIZE / 2,
-                                                 PADDING_SIZE * 2,
-                                                 CANVAS_SIZE / 2 + LAMP_SIZE / 2,
-                                                 PADDING_SIZE * 2 + LAMP_SIZE,
-                                                 fill=OFF_COLOR)
-        self.yellow_light = self.canvas.create_oval(CANVAS_SIZE / 2 - LAMP_SIZE / 2,
-                                                    PADDING_SIZE * 3 + LAMP_SIZE,
-                                                    CANVAS_SIZE / 2 + LAMP_SIZE / 2,
-                                                    PADDING_SIZE * 3 + LAMP_SIZE * 2,
-                                                    fill=OFF_COLOR)
-        self.green_light = self.canvas.create_oval(CANVAS_SIZE / 2 - LAMP_SIZE / 2,
-                                                   PADDING_SIZE * 4 + LAMP_SIZE * 2,
-                                                   CANVAS_SIZE / 2 + LAMP_SIZE / 2,
-                                                   PADDING_SIZE * 4 + LAMP_SIZE * 3,
-                                                   fill=OFF_COLOR)
-
-    def set_red(self):
-        self.canvas.itemconfig(self.red_light, fill=RED_COLOR)
-        self.canvas.itemconfig(self.yellow_light, fill=OFF_COLOR)
-        self.canvas.itemconfig(self.green_light, fill=OFF_COLOR)
-
-    def set_yellow_red(self):
-        self.canvas.itemconfig(self.red_light, fill=RED_COLOR)
-        self.canvas.itemconfig(self.yellow_light, fill=YELLOW_COLOR)
-        self.canvas.itemconfig(self.green_light, fill=OFF_COLOR)
-
-    def set_yellow(self):
-        self.canvas.itemconfig(self.red_light, fill=OFF_COLOR)
-        self.canvas.itemconfig(self.yellow_light, fill=YELLOW_COLOR)
-        self.canvas.itemconfig(self.green_light, fill=OFF_COLOR)
-
-    def set_green(self):
-        self.canvas.itemconfig(self.red_light, fill=OFF_COLOR)
-        self.canvas.itemconfig(self.yellow_light, fill=OFF_COLOR)
-        self.canvas.itemconfig(self.green_light, fill=GREEN_COLOR)
-
-    def set_green_blinking(self):
-        self.canvas.itemconfig(self.red_light, fill=OFF_COLOR)
-        self.canvas.itemconfig(self.yellow_light, fill=OFF_COLOR)
-        self.canvas.itemconfig(self.green_light, fill='cyan')
-
-
-class PedestrianLight:
-    def __init__(self, parent_frame, index):
-        self.canvas = tk.Canvas(parent_frame, bg='white', height=150, width=150)
-        self.canvas.grid(row=1, column=index)
-
-        self.border = self.canvas.create_rectangle(50, 25, 100, 125, outline='black', fill=BASE_COLOR)
-        self.red_light = self.canvas.create_oval(55, 30, 95, 70, fill=OFF_COLOR)
-        self.green_light = self.canvas.create_oval(55, 80, 95, 120, fill=OFF_COLOR)
-
-    def set_red(self):
-        self.canvas.itemconfig(self.red_light, fill=RED_COLOR)
-        self.canvas.itemconfig(self.green_light, fill=OFF_COLOR)
-
-    def set_green(self):
-        self.canvas.itemconfig(self.red_light, fill=OFF_COLOR)
-        self.canvas.itemconfig(self.green_light, fill=GREEN_COLOR)
-
-    def set_green_blinking(self):
-        self.canvas.itemconfig(self.red_light, fill=OFF_COLOR)
-        self.canvas.itemconfig(self.green_light, fill='cyan')
-
-
-class TimerDisplay:
-    def __init__(self, parent_frame, index, timeout_var):
-        #self.canvas = tk.Canvas(parent_frame, bg='white', height=150, width=150)
-        #self.canvas.grid(row=2, column=index)
-
-        #self.border = self.canvas.create_rectangle(50, 25, 100, 125, outline='black')
-        #self.label = self.canvas.create_text(75, 50, fill='black', font='Verdana 15')
-        #self.timeout_var = timeout_var
-        self.label = tk.Label(parent_frame, font='Verdana 15', textvariable=timeout_var)
-        self.label.pack()
-
-
 class FSMRuntimeApp(tk.Frame):
     queue = Queue()
 
@@ -201,6 +120,8 @@ class FSMRuntimeApp(tk.Frame):
         self.timer_thread = timer.TimerThread(self)
         self.timer_thread.daemon = True
 
+        self.server_process = None
+
         col_count, row_count = self.grid_size()
 
         for col in range(col_count):
@@ -222,12 +143,12 @@ class FSMRuntimeApp(tk.Frame):
         """ Traffic lights section """
         self.traffic_frame = tk.Frame(self)
 
-        self.traffic_light_1 = TrafficLight(self.traffic_frame, 0)
-        self.traffic_light_2 = TrafficLight(self.traffic_frame, 1)
-        self.traffic_light_3 = TrafficLight(self.traffic_frame, 2)
-        self.traffic_light_4 = TrafficLight(self.traffic_frame, 3)
-        self.traffic_light_5 = TrafficLight(self.traffic_frame, 4)
-        self.traffic_light_6 = TrafficLight(self.traffic_frame, 5)
+        self.traffic_light_1 = TrafficLight(self.traffic_frame, 0, tl_dimensions, tl_colors)
+        self.traffic_light_2 = TrafficLight(self.traffic_frame, 1, tl_dimensions, tl_colors)
+        self.traffic_light_3 = TrafficLight(self.traffic_frame, 2, tl_dimensions, tl_colors)
+        self.traffic_light_4 = TrafficLight(self.traffic_frame, 3, tl_dimensions, tl_colors)
+        self.traffic_light_5 = TrafficLight(self.traffic_frame, 4, tl_dimensions, tl_colors)
+        self.traffic_light_6 = TrafficLight(self.traffic_frame, 5, tl_dimensions, tl_colors)
 
         self.traffic_frame.grid(row=1, column=0, columnspan=6, pady=5)
         """ === """
@@ -235,12 +156,12 @@ class FSMRuntimeApp(tk.Frame):
         """ Pedestrian lights section """
         self.pedestrian_frame = tk.Frame(self)
 
-        self.pedestrian_light_1 = PedestrianLight(self.pedestrian_frame, 0)
-        self.pedestrian_light_2 = PedestrianLight(self.pedestrian_frame, 1)
-        self.pedestrian_light_3 = PedestrianLight(self.pedestrian_frame, 2)
-        self.pedestrian_light_4 = PedestrianLight(self.pedestrian_frame, 3)
-        self.pedestrian_light_5 = PedestrianLight(self.pedestrian_frame, 4)
-        self.pedestrian_light_6 = PedestrianLight(self.pedestrian_frame, 5)
+        self.pedestrian_light_1 = PedestrianLight(self.pedestrian_frame, 0, tl_dimensions, tl_colors)
+        self.pedestrian_light_2 = PedestrianLight(self.pedestrian_frame, 1, tl_dimensions, tl_colors)
+        self.pedestrian_light_3 = PedestrianLight(self.pedestrian_frame, 2, tl_dimensions, tl_colors)
+        self.pedestrian_light_4 = PedestrianLight(self.pedestrian_frame, 3, tl_dimensions, tl_colors)
+        self.pedestrian_light_5 = PedestrianLight(self.pedestrian_frame, 4, tl_dimensions, tl_colors)
+        self.pedestrian_light_6 = PedestrianLight(self.pedestrian_frame, 5, tl_dimensions, tl_colors)
 
         self.pedestrian_frame.grid(row=2, column=0, columnspan=6, pady=5)
         """ === """
@@ -344,7 +265,7 @@ class FSMRuntimeApp(tk.Frame):
             't6_blinking': self.traffic_light_6.set_green_blinking,
         }
 
-        self.after(100, self.connect)
+        self.after(100, self.load_file)
 
     def update_timer(self, timeout_seconds):
         self.timeout_var.set(timeout_seconds)
@@ -362,9 +283,6 @@ class FSMRuntimeApp(tk.Frame):
         self.update_timer(0)
         self.send_event('timeout')
 
-    def reset(self):
-        logger.info(f'App is reset')
-
     def execute_instruction(self, instr):
         if instr['instruction'] == 'set_timeout':
             self.timer_thread.set_timer(instr['parameter'])
@@ -374,9 +292,19 @@ class FSMRuntimeApp(tk.Frame):
         else:
             pass
 
+    def reset(self):
+        # TODO: reset all elements
+        self.server_process.kill()
+        logger.info(f'App is reset')
 
+    def load_file(self, filename='fsm_TL_4way_1button.py'):
+        self.start_server(filename)
+        self.connect()
 
-    @timings.timeit
+    def start_server(self, filename):
+        self.server_process = Popen(['python', 'fsm_server_python.py', filename], stdout=PIPE, stderr=PIPE, shell=True)
+        #fsm_server.run(filename)
+
     def connect(self):
         try:
             Thread(target=connecting_thread, args=(self.sock, self), daemon=True).start()
@@ -400,14 +328,13 @@ class FSMRuntimeApp(tk.Frame):
             logger.error("Error while starting listening thread")
             traceback.print_exc()
 
-
-
     def exit(self):
-
+        # TODO: kill server on exit
+        if self.server_process:
+            self.server_process.kill()
         self.master.quit()
 
 
 def start_admin():
     app = FSMRuntimeApp()
-
     app.mainloop()
