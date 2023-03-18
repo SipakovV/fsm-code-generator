@@ -302,8 +302,11 @@ class FSMRuntimeApp(tk.Frame):
         self.connect()
 
     def start_server(self, filename):
-        self.server_process = Popen(['python', 'fsm_server_python.py', filename], stdout=PIPE, stderr=PIPE, shell=True)
-        #fsm_server.run(filename)
+        try:
+            self.server_process = Popen(['python', 'fsm_server_python.py', filename])
+            #fsm_server.run(filename)
+        except FileNotFoundError:
+            self.server_process = Popen(['python3', 'fsm_server_python.py', filename])
 
     def connect(self):
         try:
