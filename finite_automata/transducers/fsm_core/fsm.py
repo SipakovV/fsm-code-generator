@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List, Set
 
 import graphviz
 
@@ -54,7 +54,7 @@ class FSM:
             return False
         return True
 
-    def _init(self, alphabet: set[str], instructions_set: set[str], state_set: set[Union[str, int]], initial_state: Union[str, int], initial_instructions: list[Union[str, tuple]], final_states: set[Union[str, int]], transition_map: dict, name: str = 'unnamed_fsm', description: str = None):
+    def _init(self, alphabet: Set[str], instructions_set: Set[str], state_set: Set[Union[str, int]], initial_state: Union[str, int], initial_instructions: List[Union[str, tuple]], final_states: Set[Union[str, int]], transition_map: dict, name: str = 'unnamed_fsm', description: str = None):
         self._name = name
         if description:
             self._description = description
