@@ -2,7 +2,7 @@ from typing import Union
 
 import graphviz
 
-from finite_automata.transducers.fsm_core.code_generator import CodeGeneratorBackend
+from fsm_core.code_generator import CodeGeneratorBackend
 
 
 class FSM:

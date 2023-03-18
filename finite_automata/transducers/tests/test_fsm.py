@@ -1,6 +1,6 @@
 import pytest
 
-from finite_automata.transducers.fsm_core.fsm import FSM
+from fsm_core import fsm
 
 
 def test_FSM_TL_4way_1button():
@@ -27,7 +27,7 @@ def test_FSM_TL_4way_1button():
     assert initial_state in state_set
     assert final_states.issubset(state_set)
 
-    fsm_TL_4way_1button = FSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
+    fsm_TL_4way_1button = fsm.FSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
                               initial_state=initial_state, initial_instructions=initial_instructions,
                               final_states=final_states, transition_map=transition_map,
                               name='fsm_TL_4way_1button')
@@ -64,7 +64,7 @@ def test_FSM_TL_4way_p_and_t():
     assert initial_state in state_set
     assert final_states.issubset(state_set)
 
-    test_FSM_TL_4way_p_and_t = FSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
+    test_FSM_TL_4way_p_and_t = fsm.FSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
                               initial_state=initial_state, initial_instructions=initial_instructions,
                               final_states=final_states, transition_map=transition_map,
                               name='fsm_tl_4way_p_and_t')
