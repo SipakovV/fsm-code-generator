@@ -13,7 +13,7 @@ class TrafficLight:
         self.YELLOW_COLOR = colors['yellow']
         self.GREEN_COLOR = colors['green']
 
-        self.canvas = tk.Canvas(parent_frame, bg='white', height=self.CANVAS_SIZE, width=self.CANVAS_SIZE)
+        self.canvas = tk.Canvas(parent_frame, bg='white', borderwidth=0, height=self.CANVAS_SIZE, width=self.CANVAS_SIZE)
         self.canvas.grid(row=row, column=col)
 
         self.base = self.canvas.create_rectangle(self.CANVAS_SIZE / 2 - self.LAMP_SIZE / 2 - self.PADDING_SIZE,
@@ -74,7 +74,7 @@ class PedestrianLight:
         self.YELLOW_COLOR = colors['yellow']
         self.GREEN_COLOR = colors['green']
 
-        self.canvas = tk.Canvas(parent_frame, bg='white', height=self.CANVAS_SIZE, width=self.CANVAS_SIZE)
+        self.canvas = tk.Canvas(parent_frame, bg='white', borderwidth=0, height=self.CANVAS_SIZE, width=self.CANVAS_SIZE)
         self.canvas.grid(row=row, column=col)
 
         self.base = self.canvas.create_rectangle(self.CANVAS_SIZE / 2 - self.LAMP_SIZE / 2 - self.PADDING_SIZE,
