@@ -1,7 +1,9 @@
 import importlib
 import importlib.util
+import os
 import socket
 import sys
+import shutil
 import time
 from threading import Thread, enumerate
 from _thread import interrupt_main
@@ -98,15 +100,19 @@ def event_listening_thread(conn, ip, port):  # thread for listening at socket fo
     # logging.info('Connection ' + ip + ':' + port + " closed")
 
 
-def run(fsm_code_file):  # запуск сервера
+def run(file_path):  # запуск сервера
     # fsm_module_path = 'generated_automata.' + args.fsm_code_file
-    fsm_module_path = '.' + fsm_code_file
+    fsm_name = os.path.basename(file_path)
+    temp_file_path = os.path.abspath(os.path.dirname(sys.argv[0])).replace('\\', '/') + '/python_server/temp/' + fsm_name
+    shutil.copy(file_path, temp_file_path)
+    #file_path
+    fsm_module_path = '.' + fsm_name
     print(fsm_module_path, fsm_module_path[-3:])
     if fsm_module_path[-3:] == '.py':
         fsm_module_path = fsm_module_path[:-3]
 
     # try:
-    fsm_module = importlib.import_module(fsm_module_path, package='python_fsm_generated')
+    fsm_module = importlib.import_module(fsm_module_path, package='python_server.temp')
     # fsm_module = importlib.import_module('settings', package='..')
     # fsm_module = importlib.import_module(fsm_module_path, package='finite_automata.transducers.app.python_fsm_generated')
 
