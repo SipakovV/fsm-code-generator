@@ -81,7 +81,7 @@ def instruction_listening_thread(sock, gui):  # поток, обрабатыва
             try:
                 gui.execute_instruction(instruction_dict)
             except:
-                logger.error('Error while data output to gui')
+                logger.error('Error while executing instruction')
                 traceback.print_exc()
                 break
 
@@ -361,7 +361,9 @@ class FSMRuntimeApp(tk.Frame):
     def open_file(self):
         init_dir = os.path.abspath(os.path.dirname(sys.argv[0])).replace('\\', '/') + '/python_fsm_generated'
         filename = filedialog.askopenfilename(
-            initialdir=init_dir)
+            initialdir=init_dir,
+            filetypes=(('Python source files', '*.py'),)
+        )
         if filename[-3:] != '.py':
             logger.error(f'File provided is not a Python source file: {filename}')
             # TODO: add error popup
