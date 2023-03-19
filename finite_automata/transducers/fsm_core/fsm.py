@@ -140,8 +140,10 @@ class FSM:
 
         print(dot)
         if not directory:
-            directory = 'doctest-output'
-        dot.render(directory=directory, view=True).replace('\\', '/')
+            directory = 'generated_graph_images'
+        filename = self._name
+        dot.render(filename, directory=directory, format='png').replace('\\', '/')
+        #dot.render(directory=directory).replace('\\', '/')
 
     def generate_code_python(self, file_path: str = None):
         code_gen = CodeGeneratorBackend()
