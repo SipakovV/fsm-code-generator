@@ -369,9 +369,57 @@ class FSMRuntimeApp(tk.Frame):
             logger.info(f'Opening file: {filename}')
             self.load_file(filename)
 
+    def load_image(self, fsm_name):
+        image_filename = 'generated_graph_images/' + fsm_name[:-3]
+
+        try:
+            self.graph_image = Image.open(image_filename + '.png')
+        except FileNotFoundError:
+            try:
+                self.graph_image = Image.open(image_filename + '.jpg')
+            except FileNotFoundError:
+                try:
+                    self.graph_image = Image.open(image_filename + '.svg')
+                except FileNotFoundError:
+                    logger.warning(f'Graph image for {fsm_name[:-3]} not found')
+                    return
+
+        logger.info(f'Graph image {image_filename} found')
+        self.graph_image = self.graph_image.resize((700, 700), Image.ANTIALIAS)
+        self.graph_photoimage = ImageTk.PhotoImage(self.graph_image)
+        if not self.graph_image_lbl:
+            self.graph_image_lbl = ttk.Label(self, image=self.graph_photoimage, style='TLabel')
+            self.graph_image_lbl.grid(row=0, column=6, rowspan=6, columnspan=6)
+        else:
+            self.graph_image_lbl.configure(image=self.graph_photoimage)
+
     def load_file(self, filename):
-        if self.connected:
-            self.reset()
+        fsm_name = os.path.basename(filename)
+
+        #try:
+
+        #except Exception:
+        #    pass
+
+        '''
+        #try:
+        
+
+        graph_image = Image.open('generated_graph_images/fsm_TL_4way_1button.png')
+        #
+        graph_image = graph_image.resize((700, 700), Image.ANTIALIAS)
+        graph_photoimage = ImageTk.PhotoImage(graph_image)
+        if not self.graph_image_lbl:
+            #self.graph_image_lbl = ttk.Label(self.graph_image_frame, image=graph_photoimage)
+            self.graph_image_lbl = ttk.Label(self, image=graph_photoimage, style='TLabel')
+            self.graph_image_lbl.grid(row=0, column=6, rowspan=6, columnspan=6)
+        else:
+            self.graph_image_lbl.configure(image=graph_photoimage)
+        #except:
+        '''
+
+        self.reset()
+        self.load_image(fsm_name)
         self.start_server(filename)
         self.after(1000, self.connect)
 
