@@ -150,7 +150,7 @@ class FSM:
         code_gen.begin(tab='    ')
 
         """Import statements"""
-        code_gen.write("from app.python_server import event_queue")
+        code_gen.write("from python_server import event_queue")
         code_gen.write("")
         code_gen.write("")
 
@@ -196,7 +196,8 @@ class FSM:
         code_gen.dedent()
         code_gen.dedent()
         if not file_path:
-            file_path = self._name + '.py'
+            file_name = self._name + '.py'
+            file_path = 'python_fsm_generated/' + file_name
         f = open(file_path, 'w')
         f.write(code_gen.end())
         f.close()
