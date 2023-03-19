@@ -89,14 +89,13 @@ def run(file_path):  # запуск сервера
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    # logger.info('Socket created')
+    # logger.debug('Socket created')
 
     try:
         sock.bind(ADDRESS)
-        #print('Socket bind complete')
+        # logging.debug('Socket bind complete')
     except socket.error:
         logging.error('Socket bind failed. Error: ' + str(sys.exc_info()))
-        # logging.error('Bind failed. Error: ' + str(sys.exc_info()))
         sys.exit(1)
 
     sock.listen(1)
@@ -125,7 +124,6 @@ def run(file_path):  # запуск сервера
                     fsm_module.run_fsm()
                 except AttributeError:
                     logger.error('Invalid FSM module (run_fsm() not found)')
-                #class_based_fsm.run()
             except socket.timeout:
                 pass
 
@@ -134,7 +132,3 @@ def run(file_path):  # запуск сервера
             conn.close()
 
     logger.info('Server stopped')
-
-
-#if __name__ == '__main__':
-#    run()
