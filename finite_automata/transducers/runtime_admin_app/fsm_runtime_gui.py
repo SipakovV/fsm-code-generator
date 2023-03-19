@@ -28,7 +28,7 @@ MAX_BUFFER_SIZE = 4096
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 handler = logging.StreamHandler(stream=sys.stdout)
-handler.setFormatter(logging.Formatter(fmt='[%(asctime)s: %(levelname)-6s] %(message)s'))
+handler.setFormatter(logging.Formatter(fmt='[%(asctime)s: client %(levelname)-7s] %(message)s'))
 logger.addHandler(handler)
 
 app_colors = {
@@ -55,7 +55,9 @@ tl_colors = {
 
 
 def get_instruction_from_server(soc):  # принятие пакета от сервера
+
     instruction_json = soc.recv(MAX_BUFFER_SIZE)
+
     #logger.debug(instruction_json)
     instruction_dict = json.loads(instruction_json)
     return instruction_dict
@@ -65,7 +67,7 @@ def instruction_listening_thread(sock, gui):  # поток, обрабатыва
     while True:
         try:
             instruction_dict = get_instruction_from_server(sock)
-        except ConnectionResetError:
+        except (ConnectionResetError, ConnectionAbortedError) as exc:
             logger.info('Server closed')
             gui.reset()
             break
@@ -138,16 +140,16 @@ class FSMRuntimeApp(tk.Frame):
 
         menubar = tk.Menu(self.master)
         filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="New", command=_placeholder)
-        filemenu.add_command(label="Open", command=self.open_file)
-        filemenu.add_command(label="Save", command=_placeholder)
+        filemenu.add_command(label='Open', command=self.open_file)
         filemenu.add_separator()
-        filemenu.add_command(label="Exit", command=self.exit)
-        menubar.add_cascade(label="File", menu=filemenu)
+        filemenu.add_command(label='Settings', command=_placeholder)  # TODO: add settings popup window
+        filemenu.add_separator()
+        filemenu.add_command(label='Exit', command=self.exit)
+        menubar.add_cascade(label='File', menu=filemenu)
 
         helpmenu = tk.Menu(menubar, tearoff=0)
-        helpmenu.add_command(label="About...", command=_placeholder)
-        menubar.add_cascade(label="Help", menu=helpmenu)
+        helpmenu.add_command(label='About...', command=_placeholder)  # TODO: add About popup window
+        menubar.add_cascade(label='Help', menu=helpmenu)
 
         self.master.config(menu=menubar)
 
@@ -179,16 +181,15 @@ class FSMRuntimeApp(tk.Frame):
 
         #self.timer_display_default = TimerDisplay(self, 0, self.timeout_var)
         #self.timer_display_default = ttk.Label(self, font='Courier 18 bold',  textvariable=self.timeout_var)
-        self.timer_display_frame = tk.Frame(self, bg='#bbddff')
+        self.timer_display_frame = tk.Frame(self, bg=app_colors['bg'])
         self.timer_display_default = ttk.Label(self.timer_display_frame, textvariable=self.timeout_var, style='Timer.TLabel')
         self.timer_display_default.pack(pady=10, padx=10)
         self.timer_display_frame.grid(row=0, column=5)
 
-        self.graph_image = Image.open('generated_graph_images/fsm_TL_4way_1button.png')
-        self.graph_image = self.graph_image.resize((700, 700), Image.ANTIALIAS)
-        self.graph_photoimage = ImageTk.PhotoImage(self.graph_image)
-        self.graph_image_lbl = ttk.Label(self, image=self.graph_photoimage, style='TLabel')
-        self.graph_image_lbl.grid(row=0, column=6, rowspan=6, columnspan=6)
+        #self.graph_image_frame = ttk.Frame(self, width=900, height=900)
+        self.graph_image_lbl = None
+        #self.graph_image_frame.grid(row=0, column=6, rowspan=6, columnspan=6)
+
         #self.timer_progressbar = ttk.Progressbar()
 
         #self.switch_app_button = tk.Button(self, text='Edit', command=self.switch_app)
@@ -272,8 +273,6 @@ class FSMRuntimeApp(tk.Frame):
             't6_blinking': self.traffic_lights_list[5].set_green_blinking,
         }
 
-        #self.after(100, self.load_file)
-
     def init_tab_traffic(self, tab_control):
         self.tab_traffic = ttk.Frame(tab_control, style='TFrame', width=700, height=700)
 
@@ -286,34 +285,8 @@ class FSMRuntimeApp(tk.Frame):
 
         self.tab_control.add(self.tab_traffic, text='Traffic lights')
 
-        """ Traffic lights section """
-        #self.traffic_frame = tk.Frame(self.tab_traffic)
-
         self.traffic_lights_list = [TrafficLight(self.tab_traffic, 0, i, tl_dimensions, tl_colors) for i in range(6)]
-
-        #self.traffic_light_1 = TrafficLight(self.tab_traffic, 0, 0, tl_dimensions, tl_colors)
-        #self.traffic_light_2 = TrafficLight(self.tab_traffic, 0, 1, tl_dimensions, tl_colors)
-        #self.traffic_light_3 = TrafficLight(self.tab_traffic, 0, 2, tl_dimensions, tl_colors)
-        #self.traffic_light_4 = TrafficLight(self.tab_traffic, 0, 3, tl_dimensions, tl_colors)
-        #self.traffic_light_5 = TrafficLight(self.tab_traffic, 0, 4, tl_dimensions, tl_colors)
-        #self.traffic_light_6 = TrafficLight(self.tab_traffic, 0, 5, tl_dimensions, tl_colors)
-
-        #self.traffic_frame.grid(row=1, column=0, columnspan=6, pady=5)
-        """ === """
-
-        """ Pedestrian lights section """
-        #self.pedestrian_frame = tk.Frame(self.tab_traffic)
-
         self.pedestrian_lights_list = [PedestrianLight(self.tab_traffic, 1, i, tl_dimensions, tl_colors) for i in range(6)]
-        #self.pedestrian_light_1 = PedestrianLight(self.tab_traffic, 1, 0, tl_dimensions, tl_colors)
-        #self.pedestrian_light_2 = PedestrianLight(self.tab_traffic, 1, 1, tl_dimensions, tl_colors)
-        #self.pedestrian_light_3 = PedestrianLight(self.tab_traffic, 1, 2, tl_dimensions, tl_colors)
-        #self.pedestrian_light_4 = PedestrianLight(self.tab_traffic, 1, 3, tl_dimensions, tl_colors)
-        #self.pedestrian_light_5 = PedestrianLight(self.tab_traffic, 1, 4, tl_dimensions, tl_colors)
-        #self.pedestrian_light_6 = PedestrianLight(self.tab_traffic, 1, 5, tl_dimensions, tl_colors)
-
-        #self.pedestrian_frame.grid(row=2, column=0, columnspan=6, pady=5)
-        """ === """
 
         """ Buttons section """
         #self.buttons_frame = tk.Frame(self.tab_traffic)
