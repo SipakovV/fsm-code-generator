@@ -94,6 +94,7 @@ def connecting_thread(sock, gui):
         else:
             gui.activate()
             break
+    logger.info('Disconnected')
 
 
 def _placeholder():
@@ -393,7 +394,10 @@ class FSMRuntimeApp(tk.Frame):
             traceback.print_exc()
 
     def activate(self):
-        self.timer_thread.start()
+        if not self.timer_thread.is_alive():
+            self.timer_thread.start()
+        else:
+            self.timer_thread.set_timer(0)
         self.connected = True
         config = {
             'title': 'test',
