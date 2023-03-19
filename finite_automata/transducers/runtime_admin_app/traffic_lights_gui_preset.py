@@ -2,7 +2,7 @@ import tkinter as tk
 
 
 class TrafficLight:
-    def __init__(self, parent_frame, index, dimensions, colors):
+    def __init__(self, parent_frame, row, col, dimensions, colors):
 
         self.CANVAS_SIZE = dimensions['canvas_size']
         self.LAMP_SIZE = dimensions['lamp_size']
@@ -14,7 +14,7 @@ class TrafficLight:
         self.GREEN_COLOR = colors['green']
 
         self.canvas = tk.Canvas(parent_frame, bg='white', height=self.CANVAS_SIZE, width=self.CANVAS_SIZE)
-        self.canvas.grid(row=0, column=index)
+        self.canvas.grid(row=row, column=col)
 
         self.base = self.canvas.create_rectangle(self.CANVAS_SIZE / 2 - self.LAMP_SIZE / 2 - self.PADDING_SIZE,
                                                  self.PADDING_SIZE,
@@ -64,7 +64,7 @@ class TrafficLight:
 
 
 class PedestrianLight:
-    def __init__(self, parent_frame, index, dimensions, colors):
+    def __init__(self, parent_frame, row, col, dimensions, colors):
         self.CANVAS_SIZE = dimensions['canvas_size']
         self.LAMP_SIZE = dimensions['lamp_size']
         self.PADDING_SIZE = dimensions['padding']
@@ -74,12 +74,24 @@ class PedestrianLight:
         self.YELLOW_COLOR = colors['yellow']
         self.GREEN_COLOR = colors['green']
 
-        self.canvas = tk.Canvas(parent_frame, bg='white', height=150, width=150)
-        self.canvas.grid(row=1, column=index)
+        self.canvas = tk.Canvas(parent_frame, bg='white', height=self.CANVAS_SIZE, width=self.CANVAS_SIZE)
+        self.canvas.grid(row=row, column=col)
 
-        self.border = self.canvas.create_rectangle(50, 25, 100, 125, outline='black', fill=self.BASE_COLOR)
-        self.red_light = self.canvas.create_oval(55, 30, 95, 70, fill=self.OFF_COLOR)
-        self.green_light = self.canvas.create_oval(55, 80, 95, 120, fill=self.OFF_COLOR)
+        self.base = self.canvas.create_rectangle(self.CANVAS_SIZE / 2 - self.LAMP_SIZE / 2 - self.PADDING_SIZE,
+                                                 self.PADDING_SIZE,
+                                                 self.CANVAS_SIZE / 2 + self.LAMP_SIZE / 2 + self.PADDING_SIZE,
+                                                 self.LAMP_SIZE * 2 + self.PADDING_SIZE * 4,
+                                                 outline='black', fill=self.BASE_COLOR)
+        self.red_light = self.canvas.create_oval(self.CANVAS_SIZE / 2 - self.LAMP_SIZE / 2,
+                                                 self.PADDING_SIZE * 2,
+                                                 self.CANVAS_SIZE / 2 + self.LAMP_SIZE / 2,
+                                                 self.PADDING_SIZE * 2 + self.LAMP_SIZE,
+                                                 fill=self.OFF_COLOR)
+        self.green_light = self.canvas.create_oval(self.CANVAS_SIZE / 2 - self.LAMP_SIZE / 2,
+                                                   self.PADDING_SIZE * 3 + self.LAMP_SIZE,
+                                                   self.CANVAS_SIZE / 2 + self.LAMP_SIZE / 2,
+                                                   self.PADDING_SIZE * 3 + self.LAMP_SIZE * 2,
+                                                   fill=self.OFF_COLOR)
 
     def set_red(self):
         self.canvas.itemconfig(self.red_light, fill=self.RED_COLOR)

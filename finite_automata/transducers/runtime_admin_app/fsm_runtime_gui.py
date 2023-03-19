@@ -8,7 +8,9 @@ from subprocess import Popen, PIPE
 from threading import Thread
 from _thread import interrupt_main
 import tkinter as tk
-from queue import Queue
+import tkinter.ttk as ttk
+from PIL import ImageTk, Image
+#from queue import Queue
 
 from utility import timings
 from runtime_admin_app import timer
@@ -28,9 +30,9 @@ logger.addHandler(handler)
 
 
 tl_dimensions = {
-    'lamp_size': 40,
-    'padding': 5,
-    'canvas_size': 150,
+    'lamp_size': 30,
+    'padding': 3,
+    'canvas_size': 110,
 }
 
 tl_colors = {
@@ -89,14 +91,14 @@ def _placeholder():
 
 
 class FSMRuntimeApp(tk.Frame):
-    queue = Queue()
+    #queue = Queue()
 
     def __init__(self, master=None):
         super().__init__(master)
 
         self.master.title('FSM GUI: Traffic Lights')
-        self.master.minsize(1000, 620)
-        self.master.maxsize(1000, 620)
+        self.master.minsize(800, 450)
+        self.master.maxsize(1600, 900)
         self.master.protocol("WM_DELETE_WINDOW", self.exit)
 
         menubar = tk.Menu(self.master)
@@ -125,81 +127,39 @@ class FSMRuntimeApp(tk.Frame):
         col_count, row_count = self.grid_size()
 
         for col in range(col_count):
-            self.grid_columnconfigure(col, minsize=155)
+            self.grid_columnconfigure(col, minsize=tl_dimensions['canvas_size'] + tl_dimensions['padding'])
+
+        for row in range(row_count):
+            self.grid_rowconfigure(row, minsize=tl_dimensions['canvas_size'] + tl_dimensions['padding'])
 
         self.timeout_var = tk.IntVar()
         self.title_var = tk.StringVar()
         self.description_var = tk.StringVar()
 
-        self.title_label = tk.Label(self, textvariable=self.title_var)
+        self.title_label = ttk.Label(self, textvariable=self.title_var)
         self.title_label.grid(row=0, column=0)
 
-        self.description_label = tk.Label(self, textvariable=self.description_var)
-        self.description_label.grid(row=0, column=1)
+        self.description_label = ttk.Label(self, textvariable=self.description_var)
+        self.description_label.grid(row=0, column=1, columnspan=3)
+
+        #self.timer_display_default = TimerDisplay(self, 0, self.timeout_var)
+        self.timer_display_default = ttk.Label(self, font='Courier 18 bold',  textvariable=self.timeout_var)
+        self.timer_display_default.grid(row=0, column=5)
+
+        self.graph_image = Image.open('generated_graph_images/fsm_TL_4way_1button.png')
+        self.graph_image = self.graph_image.resize((700, 700), Image.ANTIALIAS)
+        self.graph_photoimage = ImageTk.PhotoImage(self.graph_image)
+        self.graph_image_lbl = tk.Label(self, image=self.graph_photoimage)
+        self.graph_image_lbl.grid(row=0, column=6, rowspan=6, columnspan=6)
+        #self.timer_progressbar = ttk.Progressbar()
 
         #self.switch_app_button = tk.Button(self, text='Edit', command=self.switch_app)
         #self.switch_app_button.grid(row=0, column=2)
 
-        """ Traffic lights section """
-        self.traffic_frame = tk.Frame(self)
-
-        self.traffic_light_1 = TrafficLight(self.traffic_frame, 0, tl_dimensions, tl_colors)
-        self.traffic_light_2 = TrafficLight(self.traffic_frame, 1, tl_dimensions, tl_colors)
-        self.traffic_light_3 = TrafficLight(self.traffic_frame, 2, tl_dimensions, tl_colors)
-        self.traffic_light_4 = TrafficLight(self.traffic_frame, 3, tl_dimensions, tl_colors)
-        self.traffic_light_5 = TrafficLight(self.traffic_frame, 4, tl_dimensions, tl_colors)
-        self.traffic_light_6 = TrafficLight(self.traffic_frame, 5, tl_dimensions, tl_colors)
-
-        self.traffic_frame.grid(row=1, column=0, columnspan=6, pady=5)
-        """ === """
-
-        """ Pedestrian lights section """
-        self.pedestrian_frame = tk.Frame(self)
-
-        self.pedestrian_light_1 = PedestrianLight(self.pedestrian_frame, 0, tl_dimensions, tl_colors)
-        self.pedestrian_light_2 = PedestrianLight(self.pedestrian_frame, 1, tl_dimensions, tl_colors)
-        self.pedestrian_light_3 = PedestrianLight(self.pedestrian_frame, 2, tl_dimensions, tl_colors)
-        self.pedestrian_light_4 = PedestrianLight(self.pedestrian_frame, 3, tl_dimensions, tl_colors)
-        self.pedestrian_light_5 = PedestrianLight(self.pedestrian_frame, 4, tl_dimensions, tl_colors)
-        self.pedestrian_light_6 = PedestrianLight(self.pedestrian_frame, 5, tl_dimensions, tl_colors)
-
-        self.pedestrian_frame.grid(row=2, column=0, columnspan=6, pady=5)
-        """ === """
-
-        """ Timer displays section """
-        self.timer_display_frame = tk.Frame(self)
-
-        self.timer_display_default = TimerDisplay(self.timer_display_frame, 0, self.timeout_var)
-        # self.timer_display_2 = TimerDisplay(self.timer_display_frame, 1)
-        # self.timer_display_3 = TimerDisplay(self.timer_display_frame, 2)
-        # self.timer_display_4 = TimerDisplay(self.timer_display_frame, 3)
-        # self.timer_display_5 = TimerDisplay(self.timer_display_frame, 4)
-
-        self.timer_display_frame.grid(row=3, column=0, columnspan=6, pady=5)
-        """ === """
-
-        """ Buttons section """
-        self.buttons_frame = tk.Frame(self)
-        self.input_btn_1 = tk.Button(self.buttons_frame, text='Btn1', command=lambda: self.send_event('button1'),
-                                     height=5, width=15)
-        self.input_btn_1.grid(row=0, column=0, padx=5)
-        self.input_btn_2 = tk.Button(self.buttons_frame, text='Btn2', command=lambda: self.send_event('button2'),
-                                     height=5, width=15)
-        self.input_btn_2.grid(row=0, column=1, padx=5)
-        self.input_btn_3 = tk.Button(self.buttons_frame, text='Btn3', command=lambda: self.send_event('button3'),
-                                     height=5, width=15)
-        self.input_btn_3.grid(row=0, column=2, padx=50)
-        self.input_btn_4 = tk.Button(self.buttons_frame, text='Btn4', command=lambda: self.send_event('button4'),
-                                     height=5, width=15)
-        self.input_btn_4.grid(row=0, column=3, padx=5)
-        self.input_btn_5 = tk.Button(self.buttons_frame, text='Btn5', command=lambda: self.send_event('button5'),
-                                     height=5, width=15)
-        self.input_btn_5.grid(row=0, column=4, padx=5)
-        self.input_btn_6 = tk.Button(self.buttons_frame, text='Btn6', command=lambda: self.send_event('button6'),
-                                     height=5, width=15)
-        self.input_btn_6.grid(row=0, column=5, padx=5)
-        self.buttons_frame.grid(row=4, column=0, columnspan=6, pady=5)
-        """ === """
+        self.tab_control = ttk.Notebook(self)
+        self.init_tab_traffic(self.tab_control)
+        #self.init_tab_elevator()
+        self.tab_control.grid(row=1, column=0, rowspan=5, columnspan=6)
 
         self.pack()
 
@@ -267,6 +227,61 @@ class FSMRuntimeApp(tk.Frame):
 
         self.after(100, self.load_file)
 
+    def init_tab_traffic(self, tab_control):
+        self.tab_traffic = ttk.Frame(tab_control)
+
+        col_count, row_count = self.tab_traffic.grid_size()
+        for col in range(col_count):
+            self.grid_columnconfigure(col, minsize=tl_dimensions['canvas_size'] + tl_dimensions['padding'])
+
+        for row in range(row_count):
+            self.grid_rowconfigure(row, minsize=tl_dimensions['canvas_size'] + tl_dimensions['padding'])
+
+        self.tab_control.add(self.tab_traffic, text='Traffic lights')
+
+        """ Traffic lights section """
+        #self.traffic_frame = tk.Frame(self.tab_traffic)
+
+        self.traffic_light_1 = TrafficLight(self.tab_traffic, 0, 0, tl_dimensions, tl_colors)
+        self.traffic_light_2 = TrafficLight(self.tab_traffic, 0, 1, tl_dimensions, tl_colors)
+        self.traffic_light_3 = TrafficLight(self.tab_traffic, 0, 2, tl_dimensions, tl_colors)
+        self.traffic_light_4 = TrafficLight(self.tab_traffic, 0, 3, tl_dimensions, tl_colors)
+        self.traffic_light_5 = TrafficLight(self.tab_traffic, 0, 4, tl_dimensions, tl_colors)
+        self.traffic_light_6 = TrafficLight(self.tab_traffic, 0, 5, tl_dimensions, tl_colors)
+
+        #self.traffic_frame.grid(row=1, column=0, columnspan=6, pady=5)
+        """ === """
+
+        """ Pedestrian lights section """
+        #self.pedestrian_frame = tk.Frame(self.tab_traffic)
+
+        self.pedestrian_light_1 = PedestrianLight(self.tab_traffic, 1, 0, tl_dimensions, tl_colors)
+        self.pedestrian_light_2 = PedestrianLight(self.tab_traffic, 1, 1, tl_dimensions, tl_colors)
+        self.pedestrian_light_3 = PedestrianLight(self.tab_traffic, 1, 2, tl_dimensions, tl_colors)
+        self.pedestrian_light_4 = PedestrianLight(self.tab_traffic, 1, 3, tl_dimensions, tl_colors)
+        self.pedestrian_light_5 = PedestrianLight(self.tab_traffic, 1, 4, tl_dimensions, tl_colors)
+        self.pedestrian_light_6 = PedestrianLight(self.tab_traffic, 1, 5, tl_dimensions, tl_colors)
+
+        #self.pedestrian_frame.grid(row=2, column=0, columnspan=6, pady=5)
+        """ === """
+
+        """ Buttons section """
+        #self.buttons_frame = tk.Frame(self.tab_traffic)
+        self.input_btn_1 = ttk.Button(self.tab_traffic, text='Btn1', command=lambda: self.send_event('button1'))
+        self.input_btn_1.grid(row=2, column=0, padx=5, pady=5)
+        self.input_btn_2 = ttk.Button(self.tab_traffic, text='Btn2', command=lambda: self.send_event('button2'))
+        self.input_btn_2.grid(row=2, column=1, padx=5, pady=5)
+        self.input_btn_3 = ttk.Button(self.tab_traffic, text='Btn3', command=lambda: self.send_event('button3'))
+        self.input_btn_3.grid(row=2, column=2, padx=5, pady=5)
+        self.input_btn_4 = ttk.Button(self.tab_traffic, text='Btn4', command=lambda: self.send_event('button4'))
+        self.input_btn_4.grid(row=2, column=3, padx=5, pady=5)
+        self.input_btn_5 = ttk.Button(self.tab_traffic, text='Btn5', command=lambda: self.send_event('button5'))
+        self.input_btn_5.grid(row=2, column=4, padx=5, pady=5)
+        self.input_btn_6 = ttk.Button(self.tab_traffic, text='Btn6', command=lambda: self.send_event('button6'))
+        self.input_btn_6.grid(row=2, column=5, padx=5, pady=5)
+        #self.buttons_frame.grid(row=3, column=0, columnspan=6, pady=5)
+        """ === """
+
     def update_timer(self, timeout_seconds):
         self.timeout_var.set(timeout_seconds)
 
@@ -332,7 +347,6 @@ class FSMRuntimeApp(tk.Frame):
             traceback.print_exc()
 
     def exit(self):
-        # TODO: kill server on exit
         if self.server_process:
             self.server_process.kill()
         self.master.quit()
