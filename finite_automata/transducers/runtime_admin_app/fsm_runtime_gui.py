@@ -9,6 +9,7 @@ from threading import Thread
 from _thread import interrupt_main
 import tkinter as tk
 import tkinter.ttk as ttk
+from tkinter.font import Font
 from PIL import ImageTk, Image
 #from queue import Queue
 
@@ -42,6 +43,8 @@ tl_colors = {
     'off': 'black',
     'base': 'gray',
 }
+
+
 
 
 def get_instruction_from_server(soc):  # принятие пакета от сервера
@@ -100,6 +103,18 @@ class FSMRuntimeApp(tk.Frame):
         self.master.minsize(800, 450)
         self.master.maxsize(1600, 900)
         self.master.protocol("WM_DELETE_WINDOW", self.exit)
+        self.configure(bg='white')
+
+        self.FONTS = {
+            'oldstyle': Font(family='Adobe Caslon Oldstyle Figures', size=30),
+            'monospace': Font(family='Courier New', size=12),
+            'normal': Font(family='Helvetica', size=12),
+        }
+
+        LABELS_STYLE = ttk.Style()
+        LABELS_STYLE.configure('My.TLabel', foreground='black', background='white', padding=10)
+        FRAMES_STYLE = ttk.Style()
+        FRAMES_STYLE.configure('My.TFrame', background='white')
 
         menubar = tk.Menu(self.master)
         filemenu = tk.Menu(menubar, tearoff=0)
@@ -136,27 +151,30 @@ class FSMRuntimeApp(tk.Frame):
         self.title_var = tk.StringVar()
         self.description_var = tk.StringVar()
 
-        self.title_label = ttk.Label(self, textvariable=self.title_var)
+        self.title_label = ttk.Label(self, textvariable=self.title_var, style='My.TLabel')
         self.title_label.grid(row=0, column=0)
 
-        self.description_label = ttk.Label(self, textvariable=self.description_var)
+        self.description_label = ttk.Label(self, textvariable=self.description_var, style='My.TLabel')
         self.description_label.grid(row=0, column=1, columnspan=3)
 
         #self.timer_display_default = TimerDisplay(self, 0, self.timeout_var)
-        self.timer_display_default = ttk.Label(self, font='Courier 18 bold',  textvariable=self.timeout_var)
-        self.timer_display_default.grid(row=0, column=5)
+        #self.timer_display_default = ttk.Label(self, font='Courier 18 bold',  textvariable=self.timeout_var)
+        self.timer_display_frame = tk.Frame(self, bg='#bbddff')
+        self.timer_display_default = ttk.Label(self.timer_display_frame, font=self.FONTS['oldstyle'], textvariable=self.timeout_var, style='My.TLabel')
+        self.timer_display_default.pack(pady=10, padx=10)
+        self.timer_display_frame.grid(row=0, column=5)
 
         self.graph_image = Image.open('generated_graph_images/fsm_TL_4way_1button.png')
         self.graph_image = self.graph_image.resize((700, 700), Image.ANTIALIAS)
         self.graph_photoimage = ImageTk.PhotoImage(self.graph_image)
-        self.graph_image_lbl = tk.Label(self, image=self.graph_photoimage)
+        self.graph_image_lbl = ttk.Label(self, image=self.graph_photoimage, style='My.TLabel')
         self.graph_image_lbl.grid(row=0, column=6, rowspan=6, columnspan=6)
         #self.timer_progressbar = ttk.Progressbar()
 
         #self.switch_app_button = tk.Button(self, text='Edit', command=self.switch_app)
         #self.switch_app_button.grid(row=0, column=2)
 
-        self.tab_control = ttk.Notebook(self)
+        self.tab_control = ttk.Notebook(self, style='My.TFrame')
         self.init_tab_traffic(self.tab_control)
         #self.init_tab_elevator()
         self.tab_control.grid(row=1, column=0, rowspan=5, columnspan=6)
@@ -228,7 +246,7 @@ class FSMRuntimeApp(tk.Frame):
         self.after(100, self.load_file)
 
     def init_tab_traffic(self, tab_control):
-        self.tab_traffic = ttk.Frame(tab_control)
+        self.tab_traffic = ttk.Frame(tab_control, style='My.TFrame')
 
         col_count, row_count = self.tab_traffic.grid_size()
         for col in range(col_count):
