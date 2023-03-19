@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import sys
 import time
 import traceback
@@ -8,8 +9,9 @@ from subprocess import Popen, PIPE
 from threading import Thread
 from _thread import interrupt_main
 import tkinter as tk
-import tkinter.ttk as ttk
+from tkinter import filedialog
 from tkinter.font import Font
+import tkinter.ttk as ttk
 from PIL import ImageTk, Image
 #from queue import Queue
 
@@ -137,7 +139,7 @@ class FSMRuntimeApp(tk.Frame):
         menubar = tk.Menu(self.master)
         filemenu = tk.Menu(menubar, tearoff=0)
         filemenu.add_command(label="New", command=_placeholder)
-        filemenu.add_command(label="Open", command=_placeholder)
+        filemenu.add_command(label="Open", command=self.open_file)
         filemenu.add_command(label="Save", command=_placeholder)
         filemenu.add_separator()
         filemenu.add_command(label="Exit", command=self.exit)
@@ -150,7 +152,7 @@ class FSMRuntimeApp(tk.Frame):
         self.master.config(menu=menubar)
 
         #self.parent_frame = parent_frame
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = None
         self.connected = False
         self.timer_thread = timer.TimerThread(self)
         self.timer_thread.daemon = True
@@ -261,7 +263,7 @@ class FSMRuntimeApp(tk.Frame):
             't6_blinking': self.traffic_light_6.set_green_blinking,
         }
 
-        self.after(100, self.load_file)
+        #self.after(100, self.load_file)
 
     def init_tab_traffic(self, tab_control):
         self.tab_traffic = ttk.Frame(tab_control, style='TFrame', width=700, height=700)
@@ -358,11 +360,22 @@ class FSMRuntimeApp(tk.Frame):
     def reset(self):
         # TODO: reset all elements
         self.server_process.kill()
+        self.sock.close()
+        self.sock = None
         logger.info(f'App is reset')
 
-    def load_file(self, filename='fsm_without_button.py'):
+    def open_file(self):
+        init_dir = os.path.abspath(os.path.dirname(sys.argv[0])).replace('\\', '/') + '/python_fsm_generated'
+        filename = filedialog.askopenfilename(
+            initialdir=init_dir)
+        logger.info(f'Opening file: {filename}')
+        self.load_file(filename)
+
+    def load_file(self, filename):
+        if self.connected:
+            self.reset()
         self.start_server(filename)
-        self.connect()
+        self.after(1000, self.connect)
 
     def start_server(self, filename):
         try:
@@ -372,6 +385,7 @@ class FSMRuntimeApp(tk.Frame):
             self.server_process = Popen(['python3', 'fsm_server_python.py', filename])
 
     def connect(self):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             Thread(target=connecting_thread, args=(self.sock, self), daemon=True).start()
         except:
