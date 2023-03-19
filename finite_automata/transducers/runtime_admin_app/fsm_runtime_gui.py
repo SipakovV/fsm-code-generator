@@ -421,7 +421,7 @@ class FSMRuntimeApp(tk.Frame):
         self.reset()
         self.load_image(fsm_name)
         self.start_server(filename)
-        self.after(1000, self.connect)
+        self.after(300, self.connect)
 
     def start_server(self, filename):
         try:
