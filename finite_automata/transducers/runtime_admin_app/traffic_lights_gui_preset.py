@@ -37,6 +37,11 @@ class TrafficLight:
                                                    self.PADDING_SIZE * 4 + self.LAMP_SIZE * 3,
                                                    fill=self.OFF_COLOR)
 
+    def reset(self):
+        self.canvas.itemconfig(self.red_light, fill=self.OFF_COLOR)
+        self.canvas.itemconfig(self.yellow_light, fill=self.OFF_COLOR)
+        self.canvas.itemconfig(self.green_light, fill=self.OFF_COLOR)
+
     def set_red(self):
         self.canvas.itemconfig(self.red_light, fill=self.RED_COLOR)
         self.canvas.itemconfig(self.yellow_light, fill=self.OFF_COLOR)
@@ -92,6 +97,10 @@ class PedestrianLight:
                                                    self.CANVAS_SIZE / 2 + self.LAMP_SIZE / 2,
                                                    self.PADDING_SIZE * 3 + self.LAMP_SIZE * 2,
                                                    fill=self.OFF_COLOR)
+
+    def reset(self):
+        self.canvas.itemconfig(self.red_light, fill=self.OFF_COLOR)
+        self.canvas.itemconfig(self.green_light, fill=self.OFF_COLOR)
 
     def set_red(self):
         self.canvas.itemconfig(self.red_light, fill=self.RED_COLOR)
