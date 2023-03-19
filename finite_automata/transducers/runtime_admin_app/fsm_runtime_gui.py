@@ -343,15 +343,20 @@ class FSMRuntimeApp(tk.Frame):
             pass
 
     def reset(self):
-        self.server_process.kill()
-        for widget in (self.traffic_lights_list + self.pedestrian_lights_list):
-            widget.reset()
-        if self.sock:
-            self.sock.close()
-            self.sock = None
-        self.timer_thread.reset_timer()
-        self.timeout_var.set(0)
-        logger.info(f'App is reset')
+        if self.connected:
+            self.connected = False
+            self.server_process.kill()
+            for widget in (self.traffic_lights_list + self.pedestrian_lights_list):
+                widget.reset()
+            if self.graph_image_lbl:
+                self.graph_image_lbl.destroy()
+                self.graph_image_lbl = None
+            if self.sock:
+                self.sock.close()
+                self.sock = None
+            self.timer_thread.reset_timer()
+            self.timeout_var.set(0)
+            logger.info(f'App is reset')
 
     def open_file(self):
         init_dir = os.path.abspath(os.path.dirname(sys.argv[0])).replace('\\', '/') + '/python_fsm_generated'
