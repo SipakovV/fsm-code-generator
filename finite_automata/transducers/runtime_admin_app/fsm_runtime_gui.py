@@ -362,8 +362,12 @@ class FSMRuntimeApp(tk.Frame):
         init_dir = os.path.abspath(os.path.dirname(sys.argv[0])).replace('\\', '/') + '/python_fsm_generated'
         filename = filedialog.askopenfilename(
             initialdir=init_dir)
-        logger.info(f'Opening file: {filename}')
-        self.load_file(filename)
+        if filename[-3:] != '.py':
+            logger.error(f'File provided is not a Python source file: {filename}')
+            # TODO: add error popup
+        else:
+            logger.info(f'Opening file: {filename}')
+            self.load_file(filename)
 
     def load_file(self, filename):
         if self.connected:
