@@ -371,8 +371,11 @@ class FSMRuntimeApp(tk.Frame):
 
     def reset(self):
         self.server_process.kill()
-        self.sock.close()
-        self.sock = None
+        for widget in (self.traffic_lights_list + self.pedestrian_lights_list):
+            widget.reset()
+        if self.sock:
+            self.sock.close()
+            self.sock = None
         self.timer_thread.reset_timer()
         self.timeout_var.set(0)
         logger.info(f'App is reset')
