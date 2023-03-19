@@ -31,5 +31,5 @@ if __name__ == '__main__':
                               name='fsm_TL_4way_1button')
     print()
     print(fsm_TL_4way_1button)
-    #fsm_TL_4way_1button.visualize()
+    fsm_TL_4way_1button.visualize()
     fsm_TL_4way_1button.generate_code_python()
