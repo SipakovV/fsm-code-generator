@@ -35,5 +35,8 @@ class TimerThread(Thread):
         #self.seconds_remaining = 0
         #self.is_active = False
 
-    def stopped(self):
+    def stopped(self) -> bool:
         return self._stop_event.is_set()
+
+    def is_active(self) -> bool:
+        return self.is_active
