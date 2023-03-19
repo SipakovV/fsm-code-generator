@@ -20,7 +20,7 @@ MAX_BUFFER_SIZE = 4096
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(stream=sys.stdout)
-handler.setFormatter(logging.Formatter(fmt='[%(asctime)s: %(levelname)-6s] %(message)s'))
+handler.setFormatter(logging.Formatter(fmt='[%(asctime)s: server %(levelname)-7s] %(message)s'))
 logger.addHandler(handler)
 
 fsm_module = None
@@ -76,9 +76,7 @@ def run(file_path):  # запуск сервера
 
     temp_file_path = os.path.abspath(os.path.dirname(sys.argv[0])).replace('\\', '/') + '/python_server/temp/' + fsm_name
     shutil.copy(file_path, temp_file_path)
-    #file_path
     fsm_module_path = '.' + fsm_name
-    #print(fsm_module_path, fsm_module_path[-3:])
     fsm_module_path = fsm_module_path[:-3]
 
     try:

@@ -7,7 +7,7 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(stream=sys.stdout)
-handler.setFormatter(logging.Formatter(fmt='[%(asctime)s: %(levelname)-6s] %(message)s'))
+handler.setFormatter(logging.Formatter(fmt='[%(asctime)s: server %(levelname)-7s] %(message)s'))
 logger.addHandler(handler)
 
 
