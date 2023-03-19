@@ -26,9 +26,9 @@ MAX_BUFFER_SIZE = 4096
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 handler = logging.StreamHandler(stream=sys.stdout)
-handler.setFormatter(logging.Formatter(fmt='[%(asctime)s| %(name)-40s: %(levelname)s] %(message)s'))
+handler.setFormatter(logging.Formatter(fmt='[%(asctime)s: %(levelname)-6s] %(message)s'))
 logger.addHandler(handler)
 
 app_colors = {
@@ -56,7 +56,7 @@ tl_colors = {
 
 def get_instruction_from_server(soc):  # принятие пакета от сервера
     instruction_json = soc.recv(MAX_BUFFER_SIZE)
-    logger.debug(instruction_json)
+    #logger.debug(instruction_json)
     instruction_dict = json.loads(instruction_json)
     return instruction_dict
 
@@ -94,7 +94,6 @@ def connecting_thread(sock, gui):
         else:
             gui.activate()
             break
-    logger.info('Disconnected')
 
 
 def _placeholder():
@@ -371,7 +370,6 @@ class FSMRuntimeApp(tk.Frame):
             pass
 
     def reset(self):
-        # TODO: reset all elements
         self.server_process.kill()
         self.sock.close()
         self.sock = None
