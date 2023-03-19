@@ -202,66 +202,75 @@ class FSMRuntimeApp(tk.Frame):
 
         self.pack()
 
+        self.widgets_dict = {
+            'p1': self.pedestrian_lights_list[0],
+            'p2': self.pedestrian_lights_list[1],
+            'p3': self.pedestrian_lights_list[2],
+            'p4': self.pedestrian_lights_list[3],
+            'p5': self.pedestrian_lights_list[4],
+            'p6': self.pedestrian_lights_list[5],
+        }
+
         self.instructions_dict = {
-            'p1_red': self.pedestrian_light_1.set_red,
-            'p1_green': self.pedestrian_light_1.set_green,
-            'p1_blinking': self.pedestrian_light_1.set_green_blinking,
+            'p1_red': self.pedestrian_lights_list[0].set_red,
+            'p1_green': self.pedestrian_lights_list[0].set_green,
+            'p1_blinking': self.pedestrian_lights_list[0].set_green_blinking,
 
-            'p2_red': self.pedestrian_light_2.set_red,
-            'p2_green': self.pedestrian_light_2.set_green,
-            'p2_blinking': self.pedestrian_light_2.set_green_blinking,
+            'p2_red': self.pedestrian_lights_list[1].set_red,
+            'p2_green': self.pedestrian_lights_list[1].set_green,
+            'p2_blinking': self.pedestrian_lights_list[1].set_green_blinking,
 
-            'p3_red': self.pedestrian_light_3.set_red,
-            'p3_green': self.pedestrian_light_3.set_green,
-            'p3_blinking': self.pedestrian_light_3.set_green_blinking,
+            'p3_red': self.pedestrian_lights_list[2].set_red,
+            'p3_green': self.pedestrian_lights_list[2].set_green,
+            'p3_blinking': self.pedestrian_lights_list[2].set_green_blinking,
 
-            'p4_red': self.pedestrian_light_4.set_red,
-            'p4_green': self.pedestrian_light_4.set_green,
-            'p4_blinking': self.pedestrian_light_4.set_green_blinking,
+            'p4_red': self.pedestrian_lights_list[3].set_red,
+            'p4_green': self.pedestrian_lights_list[3].set_green,
+            'p4_blinking': self.pedestrian_lights_list[3].set_green_blinking,
 
-            'p5_red': self.pedestrian_light_5.set_red,
-            'p5_green': self.pedestrian_light_5.set_green,
-            'p5_blinking': self.pedestrian_light_5.set_green_blinking,
+            'p5_red': self.pedestrian_lights_list[4].set_red,
+            'p5_green': self.pedestrian_lights_list[4].set_green,
+            'p5_blinking': self.pedestrian_lights_list[4].set_green_blinking,
 
-            'p6_red': self.pedestrian_light_6.set_red,
-            'p6_green': self.pedestrian_light_6.set_green,
-            'p6_blinking': self.pedestrian_light_6.set_green_blinking,
+            'p6_red': self.pedestrian_lights_list[5].set_red,
+            'p6_green': self.pedestrian_lights_list[5].set_green,
+            'p6_blinking': self.pedestrian_lights_list[5].set_green_blinking,
 
-            't1_red': self.traffic_light_1.set_red,
-            't1_yellow_red': self.traffic_light_1.set_yellow_red,
-            't1_yellow': self.traffic_light_1.set_yellow,
-            't1_green': self.traffic_light_1.set_green,
-            't1_blinking': self.traffic_light_1.set_green_blinking,
+            't1_red': self.traffic_lights_list[0].set_red,
+            't1_yellow_red': self.traffic_lights_list[0].set_yellow_red,
+            't1_yellow': self.traffic_lights_list[0].set_yellow,
+            't1_green': self.traffic_lights_list[0].set_green,
+            't1_blinking': self.traffic_lights_list[0].set_green_blinking,
 
-            't2_red': self.traffic_light_2.set_red,
-            't2_yellow_red': self.traffic_light_2.set_yellow_red,
-            't2_yellow': self.traffic_light_2.set_yellow,
-            't2_green': self.traffic_light_2.set_green,
-            't2_blinking': self.traffic_light_2.set_green_blinking,
+            't2_red': self.traffic_lights_list[1].set_red,
+            't2_yellow_red': self.traffic_lights_list[1].set_yellow_red,
+            't2_yellow': self.traffic_lights_list[1].set_yellow,
+            't2_green': self.traffic_lights_list[1].set_green,
+            't2_blinking': self.traffic_lights_list[1].set_green_blinking,
 
-            't3_red': self.traffic_light_3.set_red,
-            't3_yellow_red': self.traffic_light_3.set_yellow_red,
-            't3_yellow': self.traffic_light_3.set_yellow,
-            't3_green': self.traffic_light_3.set_green,
-            't3_blinking': self.traffic_light_3.set_green_blinking,
+            't3_red': self.traffic_lights_list[2].set_red,
+            't3_yellow_red': self.traffic_lights_list[2].set_yellow_red,
+            't3_yellow': self.traffic_lights_list[2].set_yellow,
+            't3_green': self.traffic_lights_list[2].set_green,
+            't3_blinking': self.traffic_lights_list[2].set_green_blinking,
 
-            't4_red': self.traffic_light_4.set_red,
-            't4_yellow_red': self.traffic_light_4.set_yellow_red,
-            't4_yellow': self.traffic_light_4.set_yellow,
-            't4_green': self.traffic_light_4.set_green,
-            't4_blinking': self.traffic_light_4.set_green_blinking,
+            't4_red': self.traffic_lights_list[3].set_red,
+            't4_yellow_red': self.traffic_lights_list[3].set_yellow_red,
+            't4_yellow': self.traffic_lights_list[3].set_yellow,
+            't4_green': self.traffic_lights_list[3].set_green,
+            't4_blinking': self.traffic_lights_list[3].set_green_blinking,
 
-            't5_red': self.traffic_light_5.set_red,
-            't5_yellow_red': self.traffic_light_5.set_yellow_red,
-            't5_yellow': self.traffic_light_5.set_yellow,
-            't5_green': self.traffic_light_5.set_green,
-            't5_blinking': self.traffic_light_5.set_green_blinking,
+            't5_red': self.traffic_lights_list[4].set_red,
+            't5_yellow_red': self.traffic_lights_list[4].set_yellow_red,
+            't5_yellow': self.traffic_lights_list[4].set_yellow,
+            't5_green': self.traffic_lights_list[4].set_green,
+            't5_blinking': self.traffic_lights_list[4].set_green_blinking,
 
-            't6_red': self.traffic_light_6.set_red,
-            't6_yellow_red': self.traffic_light_6.set_yellow_red,
-            't6_yellow': self.traffic_light_6.set_yellow,
-            't6_green': self.traffic_light_6.set_green,
-            't6_blinking': self.traffic_light_6.set_green_blinking,
+            't6_red': self.traffic_lights_list[5].set_red,
+            't6_yellow_red': self.traffic_lights_list[5].set_yellow_red,
+            't6_yellow': self.traffic_lights_list[5].set_yellow,
+            't6_green': self.traffic_lights_list[5].set_green,
+            't6_blinking': self.traffic_lights_list[5].set_green_blinking,
         }
 
         #self.after(100, self.load_file)
@@ -281,12 +290,14 @@ class FSMRuntimeApp(tk.Frame):
         """ Traffic lights section """
         #self.traffic_frame = tk.Frame(self.tab_traffic)
 
-        self.traffic_light_1 = TrafficLight(self.tab_traffic, 0, 0, tl_dimensions, tl_colors)
-        self.traffic_light_2 = TrafficLight(self.tab_traffic, 0, 1, tl_dimensions, tl_colors)
-        self.traffic_light_3 = TrafficLight(self.tab_traffic, 0, 2, tl_dimensions, tl_colors)
-        self.traffic_light_4 = TrafficLight(self.tab_traffic, 0, 3, tl_dimensions, tl_colors)
-        self.traffic_light_5 = TrafficLight(self.tab_traffic, 0, 4, tl_dimensions, tl_colors)
-        self.traffic_light_6 = TrafficLight(self.tab_traffic, 0, 5, tl_dimensions, tl_colors)
+        self.traffic_lights_list = [TrafficLight(self.tab_traffic, 0, i, tl_dimensions, tl_colors) for i in range(6)]
+
+        #self.traffic_light_1 = TrafficLight(self.tab_traffic, 0, 0, tl_dimensions, tl_colors)
+        #self.traffic_light_2 = TrafficLight(self.tab_traffic, 0, 1, tl_dimensions, tl_colors)
+        #self.traffic_light_3 = TrafficLight(self.tab_traffic, 0, 2, tl_dimensions, tl_colors)
+        #self.traffic_light_4 = TrafficLight(self.tab_traffic, 0, 3, tl_dimensions, tl_colors)
+        #self.traffic_light_5 = TrafficLight(self.tab_traffic, 0, 4, tl_dimensions, tl_colors)
+        #self.traffic_light_6 = TrafficLight(self.tab_traffic, 0, 5, tl_dimensions, tl_colors)
 
         #self.traffic_frame.grid(row=1, column=0, columnspan=6, pady=5)
         """ === """
@@ -294,12 +305,13 @@ class FSMRuntimeApp(tk.Frame):
         """ Pedestrian lights section """
         #self.pedestrian_frame = tk.Frame(self.tab_traffic)
 
-        self.pedestrian_light_1 = PedestrianLight(self.tab_traffic, 1, 0, tl_dimensions, tl_colors)
-        self.pedestrian_light_2 = PedestrianLight(self.tab_traffic, 1, 1, tl_dimensions, tl_colors)
-        self.pedestrian_light_3 = PedestrianLight(self.tab_traffic, 1, 2, tl_dimensions, tl_colors)
-        self.pedestrian_light_4 = PedestrianLight(self.tab_traffic, 1, 3, tl_dimensions, tl_colors)
-        self.pedestrian_light_5 = PedestrianLight(self.tab_traffic, 1, 4, tl_dimensions, tl_colors)
-        self.pedestrian_light_6 = PedestrianLight(self.tab_traffic, 1, 5, tl_dimensions, tl_colors)
+        self.pedestrian_lights_list = [PedestrianLight(self.tab_traffic, 1, i, tl_dimensions, tl_colors) for i in range(6)]
+        #self.pedestrian_light_1 = PedestrianLight(self.tab_traffic, 1, 0, tl_dimensions, tl_colors)
+        #self.pedestrian_light_2 = PedestrianLight(self.tab_traffic, 1, 1, tl_dimensions, tl_colors)
+        #self.pedestrian_light_3 = PedestrianLight(self.tab_traffic, 1, 2, tl_dimensions, tl_colors)
+        #self.pedestrian_light_4 = PedestrianLight(self.tab_traffic, 1, 3, tl_dimensions, tl_colors)
+        #self.pedestrian_light_5 = PedestrianLight(self.tab_traffic, 1, 4, tl_dimensions, tl_colors)
+        #self.pedestrian_light_6 = PedestrianLight(self.tab_traffic, 1, 5, tl_dimensions, tl_colors)
 
         #self.pedestrian_frame.grid(row=2, column=0, columnspan=6, pady=5)
         """ === """
@@ -363,6 +375,8 @@ class FSMRuntimeApp(tk.Frame):
         self.server_process.kill()
         self.sock.close()
         self.sock = None
+        self.timer_thread.reset_timer()
+        self.timeout_var.set(0)
         logger.info(f'App is reset')
 
     def open_file(self):
@@ -396,8 +410,6 @@ class FSMRuntimeApp(tk.Frame):
     def activate(self):
         if not self.timer_thread.is_alive():
             self.timer_thread.start()
-        else:
-            self.timer_thread.set_timer(0)
         self.connected = True
         config = {
             'title': 'test',
