@@ -185,9 +185,10 @@ class FSM:
                 code_gen.write(f"event_queue.put_instruction('{instr}')")
             else:
                 raise TypeError('Unknown instruction type')
-
+        code_gen.write("event_queue.put_state(state)")
         code_gen.write("while True:")
         code_gen.indent()
+        code_gen.write("old_state = state")
         code_gen.write("event = event_queue.get_next_event()")
         i = 0
         for state in self.transition_map:
@@ -210,6 +211,10 @@ class FSM:
                         raise TypeError('Unknown instruction type')
                 code_gen.write(f"state = '{target_state}'")
                 code_gen.dedent()
+            code_gen.write("if old_state != state:")
+            code_gen.indent()
+            code_gen.write("event_queue.put_state(state)")
+            code_gen.dedent()
             code_gen.dedent()
             i += 1
 
