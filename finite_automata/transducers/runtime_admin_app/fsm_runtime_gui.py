@@ -12,7 +12,7 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter.font import Font
 import tkinter.ttk as ttk
-from PIL import ImageTk, Image
+#from PIL import ImageTk, Image
 #from queue import Queue
 
 from utility import timings
@@ -56,10 +56,13 @@ tl_colors = {
 
 def load_image(path):
     try:
-        graph_image = Image.open(path)
+        #graph_image = Image.open(path)
+        #.replace('\\', '/')
+        graph_image = tk.PhotoImage(path)
     except Exception as exc:
         print(exc)
-    return graph_image
+    else:
+        return graph_image
 
 
 def get_instruction_from_server(soc):  # принятие пакета от сервера
@@ -199,7 +202,8 @@ class FSMRuntimeApp(tk.Frame):
         self.timer_display_frame.grid(row=0, column=5)
 
         #self.graph_image_frame = ttk.Frame(self, width=900, height=900)
-        self.graph_image_lbl = None
+        self.graph_image_lbl = ttk.Label(self, style='TLabel')
+        self.graph_image_lbl.grid(row=0, column=6, rowspan=6, columnspan=6)
         #self.graph_image_frame.grid(row=0, column=6, rowspan=6, columnspan=6)
 
         #self.timer_progressbar = ttk.Progressbar()
@@ -348,7 +352,7 @@ class FSMRuntimeApp(tk.Frame):
     def execute_instruction(self, instr: tuple):
         if instr[0] == 'state':
             logger.debug(f'GUI: state changed to {instr[1]}')
-            self.change_graph_image(instr[1])
+            self.switch_graph_image(instr[1])
         elif instr[0] == 'set_timeout':
             self.timer_thread.set_timer(instr[1])
         elif instr[0] in self.instructions_dict:
@@ -371,8 +375,9 @@ class FSMRuntimeApp(tk.Frame):
             self.timer_thread.reset_timer()
             self.timeout_var.set(0)
             if self.graph_image_lbl:
-                self.graph_image_lbl.destroy()
-                self.graph_image_lbl = None
+                self.graph_image_lbl.configure(image=None)
+                #self.graph_image_lbl.destroy()
+                #self.graph_image_lbl = None
             self.dynamic_visualization = False
             logger.info(f'App is reset')
 
@@ -412,38 +417,55 @@ class FSMRuntimeApp(tk.Frame):
                         base_graph_found = True
                         logger.debug(f'Base graph image found')
                     try:
-                        self.graph_images[filename[:-4]] = load_image(image_path)
+                        #self.graph_images[filename[:-4]] = load_image(image_path)
+                        self.graph_images[filename[:-4]] = tk.PhotoImage(file=image_path)
                     except Exception as exc:
                         logger.warning(f'Couldn\'t open graph image {filename[:-4]}')
                         #print(exc)
                     else:
                         logger.debug(f'Graph image for state {filename[:-4]} added')
-
+            print(self.graph_images)
             if not base_graph_found:
                 logger.warning(f'Base graph image for {fsm_name} found')
         else:
             logger.warning(f'Graph images directory for {fsm_name[:-3]} not found')
             logger.warning(f'Tried: {images_dir}')
 
-    def change_graph_image(self, state_name):
-        base_flag = False
+    def switch_graph_image(self, state_name):
+        #base_flag = False
+        '''
         if state_name in self.graph_images:
-            current_image = self.graph_images[state_name].resize((700, 700), Image.ANTIALIAS)
+            #current_image = self.graph_images[state_name].resize((700, 700), Image.ANTIALIAS)
+            current_image = self.graph_images[state_name]
         elif '_base' in self.graph_images:
             base_flag = True
-            current_image = self.graph_images['_base'].resize((700, 700), Image.ANTIALIAS)
+            #current_image = self.graph_images['_base'].resize((700, 700), Image.ANTIALIAS)
+            current_image = self.graph_images['_base']
         else:
             return
-        self.graph_photoimage = ImageTk.PhotoImage(current_image)
-        if not self.graph_image_lbl:
+        '''
+        #self.graph_photoimage = ImageTk.PhotoImage(current_image)
+        #img = tk.PhotoImage()
+        '''if not self.graph_image_lbl:
             self.graph_image_lbl = ttk.Label(self, image=self.graph_photoimage, style='TLabel')
             self.graph_image_lbl.grid(row=0, column=6, rowspan=6, columnspan=6)
+        else:'''
+        #self.graph_image_lbl.configure(image=current_image)
+        #path = 'D:\\Slava\\Study_projects\\fsm-code-generator\\finite_automata\\transducers\\generated_graph_images\\fsm_with_button\\_base.png'
+        #self.img = tk.PhotoImage(file=path)
+        path = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), 'generated_graph_images', 'fsm_with_button', '_base.png')
+        #self.img = load_image(path)
+        #self.img = tk.PhotoImage(file=path)
+        #print(self.img, type(self.img))
+
+        if state_name in self.graph_images:
+            img = self.graph_images[state_name]
+            logger.debug(f'GUI: graph image switched to {state_name}')
         else:
-            self.graph_image_lbl.configure(image=self.graph_photoimage)
-        if not base_flag:
-            logger.info(f'GUI: graph image changed')
-        else:
-            logger.info(f'GUI: graph defalted to base')
+            img = self.graph_images['_base']
+            logger.debug(f'GUI: graph defaulted to base')
+
+        self.graph_image_lbl.configure(image=img)
 
     def load_file(self, filename):
         fsm_name = os.path.basename(filename)
@@ -501,7 +523,7 @@ class FSMRuntimeApp(tk.Frame):
         self.title_var.set(config['title'])
         self.description_var.set(config['description'])
         self.load_images(self.fsm_filename)
-        self.change_graph_image('_base')
+        self.switch_graph_image('_base')
         logger.info('Connected to server')
         try:
             Thread(target=instruction_listening_thread, args=(self.sock, self), daemon=True).start()
