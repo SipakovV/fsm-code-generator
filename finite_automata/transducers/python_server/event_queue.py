@@ -47,4 +47,4 @@ def put_instruction(instr: str, value: int = 0):
 
 def put_state(state: str):
     output_queue.put(('state', state))
-    logger.info(f'== State: {state}')
+    logger.info(f'==       State: {state}')

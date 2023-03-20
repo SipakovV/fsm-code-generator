@@ -123,7 +123,7 @@ def run(file_path, visual: bool = False):  # запуск сервера
                 logger.info('Accepting connection from ' + ip + ':' + port)
                 try:
                     Thread(target=event_listening_thread, args=(conn, ip, port), daemon=True).start()
-                    Thread(target=instruction_listening_thread, args=(conn,), daemon=True).start()
+                    Thread(target=instruction_listening_thread, args=(conn, visual), daemon=True).start()
                     #for thread in enumerate():
                         #print(f'Hello from thread {thread}')
                         # logging.debug(f'Hello from thread {thread}')
