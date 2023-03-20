@@ -31,7 +31,7 @@ def generate_fsm_with_button():
                                   name='fsm_with_button')
     print()
     print(fsm_TL_4way_1button)
-    fsm_TL_4way_1button.visualize()
+    fsm_TL_4way_1button.visualize(all_states=True)
     fsm_TL_4way_1button.generate_code_python()
 
 
@@ -67,7 +67,7 @@ def generate_fsm_without_button():
                                        name='fsm_without_button')
     print()
     print(test_FSM_TL_4way_p_and_t)
-    test_FSM_TL_4way_p_and_t.visualize()
+    test_FSM_TL_4way_p_and_t.visualize(all_states=True)
     test_FSM_TL_4way_p_and_t.generate_code_python()
 
 

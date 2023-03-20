@@ -1,3 +1,4 @@
+import os
 from typing import Union, List, Set
 
 import graphviz
@@ -109,13 +110,16 @@ class FSM:
                     state = target_state
                     print(f'== State change: {old_state} -{event}-> {state}')
 
-    def visualize(self, directory: str = None):
-        dot = graphviz.Digraph(self._name, comment=self._description)
+    def _generate_graph(self, selected_state: str = '') -> graphviz.Digraph:
+        dot = graphviz.Digraph(self._name, comment=self._name + ': ' + self._description)
 
         dot.node('START')
 
         for state in self.state_set:
-            dot.node(state)
+            if state == selected_state:
+                dot.node(state, fillcolor='yellow', style='filled')
+            else:
+                dot.node(state)
 
         for state in self.transition_map:
             print('state:', state)
@@ -138,12 +142,28 @@ class FSM:
                 label += ' | <' + instr[0] + ', ' + str(instr[1]) + '>'
         dot.edge('START', self.init_state, label=label)
 
-        print(dot)
+        return dot
+
+    def visualize(self, directory: str = None, all_states: bool = False):
+
         if not directory:
             directory = 'generated_graph_images'
-        filename = self._name
-        dot.render(filename, directory=directory, format='png').replace('\\', '/')
-        #dot.render(directory=directory).replace('\\', '/')
+
+        path = os.path.join(directory, self._name)
+        #print(path)
+        try:
+            os.mkdir(path)
+        except FileExistsError as exc:
+            pass
+
+        base_graph = self._generate_graph()
+        base_graph.render('_base', directory=path, format='png').replace('\\', '/')
+
+        if all_states:
+            for state in self.state_set:
+                dot = self._generate_graph(state)
+                filename = state
+                dot.render(filename, directory=path, format='png').replace('\\', '/')
 
     def generate_code_python(self, file_path: str = None):
         code_gen = CodeGeneratorBackend()
