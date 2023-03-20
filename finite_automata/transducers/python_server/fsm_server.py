@@ -26,17 +26,26 @@ logger.addHandler(handler)
 fsm_module = None
 
 
-def instruction_listening_thread(conn):  # thread for listening at queue for instructions
+def instruction_listening_thread(conn, publish_state: bool = False):  # thread for listening at queue for instructions
     while True:
+        instruction = event_queue.get_next_instruction()
+        if instruction[0] == 'state':
+            if not publish_state:
+                continue
+
+        #instruction_dict = {
+        #    'instruction': instruction[0],
+        #    'parameter': instruction[1],
+        #}
         try:
-            instruction = event_queue.get_next_instruction()
-            instruction_dict = {
-                'instruction': instruction[0],
-                'parameter': instruction[1],
-            }
-            instruction_json = json.dumps(instruction_dict)
+            instruction_json = json.dumps(instruction)
+        except TypeError as exc:
+            logger.error(f'Invalid instruction: {instruction}')
+            print(exc)
+            continue
+        try:
             conn.sendall(bytes(instruction_json, encoding="utf-8"))
-        except:
+        except socket.error:
             traceback.print_exc()
             break
         time.sleep(0.01)
@@ -75,6 +84,8 @@ def run(file_path, visual: bool = False):  # запуск сервера
 
     if fsm_name[-3:] != '.py':
         logger.error(f'File provided is not a Python source file: {fsm_name}')
+
+    # TODO: Make temp a caching folder, don't copy if file exists (check hash). Make cleaning of it possible
 
     temp_file_path = os.path.abspath(os.path.dirname(sys.argv[0])).replace('\\', '/') + '/python_server/temp/' + fsm_name
     shutil.copy(file_path, temp_file_path)

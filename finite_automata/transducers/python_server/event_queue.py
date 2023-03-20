@@ -44,3 +44,7 @@ def put_instruction(instr: str, value: int = 0):
     else:
         logger.info(f'-- Instruction: {instr}')
 
+
+def put_state(state: str):
+    output_queue.put(('state', state))
+    logger.info(f'== State: {state}')

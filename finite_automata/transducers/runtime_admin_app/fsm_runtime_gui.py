@@ -62,14 +62,14 @@ def get_instruction_from_server(soc):  # принятие пакета от се
     #print(instruction_json)
     #for json_obj in instruction_json:
     # TODO: split multiple jsons received (or handle otherwise)
-    instruction_dict = json.loads(instruction_json)
-    return instruction_dict
+    instruction_tuple = json.loads(instruction_json)
+    return instruction_tuple
 
 
 def instruction_listening_thread(sock, gui):  # поток, обрабатывающий пакеты с сервера
     while True:
         try:
-            instruction_dict = get_instruction_from_server(sock)
+            instruction_tuple = get_instruction_from_server(sock)
         except (ConnectionResetError, ConnectionAbortedError) as exc:
             logger.info('Server closed')
             gui.reset()
@@ -82,7 +82,7 @@ def instruction_listening_thread(sock, gui):  # поток, обрабатыва
             #logger.debug(f'Instruction received: {instruction_dict}')
 
             try:
-                gui.execute_instruction(instruction_dict)
+                gui.execute_instruction(instruction_tuple)
             except:
                 logger.error('Error while executing instruction')
                 traceback.print_exc()
@@ -341,11 +341,13 @@ class FSMRuntimeApp(tk.Frame):
         self.update_timer(0)
         self.send_event('timeout')
 
-    def execute_instruction(self, instr):
-        if instr['instruction'] == 'set_timeout':
-            self.timer_thread.set_timer(instr['parameter'])
-        elif instr['instruction'] in self.instructions_dict:
-            self.instructions_dict[instr['instruction']]()
+    def execute_instruction(self, instr: tuple):
+        if instr[0] == 'state':
+            self.change_state_viz(instr[1])
+        elif instr[0] == 'set_timeout':
+            self.timer_thread.set_timer(instr[1])
+        elif instr[0] in self.instructions_dict:
+            self.instructions_dict[instr[0]]()
             #logger.debug(f'instruction executed: {instr}')
         else:
             pass
@@ -405,6 +407,9 @@ class FSMRuntimeApp(tk.Frame):
             self.graph_image_lbl.grid(row=0, column=6, rowspan=6, columnspan=6)
         else:
             self.graph_image_lbl.configure(image=self.graph_photoimage)
+
+    def change_state_viz(self, state_name):
+        logger.info(f'GUI: state changed to {state_name}')
 
     def load_file(self, filename):
         self.fsm_name = os.path.basename(filename)
