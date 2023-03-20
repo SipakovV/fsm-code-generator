@@ -122,8 +122,10 @@ def run(file_path, visual: bool = False):  # запуск сервера
                 ip, port = str(addr[0]), str(addr[1])
                 logger.info('Accepting connection from ' + ip + ':' + port)
                 try:
-                    Thread(target=event_listening_thread, args=(conn, ip, port), daemon=True).start()
-                    Thread(target=instruction_listening_thread, args=(conn, visual), daemon=True).start()
+                    event_thread = Thread(target=event_listening_thread, args=(conn, ip, port), daemon=True)
+                    instruction_thread = Thread(target=instruction_listening_thread, args=(conn, visual), daemon=True)
+                    event_thread.start()
+                    instruction_thread.start()
                     #for thread in enumerate():
                         #print(f'Hello from thread {thread}')
                         # logging.debug(f'Hello from thread {thread}')
@@ -135,6 +137,7 @@ def run(file_path, visual: bool = False):  # запуск сервера
                     fsm_module.run_fsm()
                 except AttributeError:
                     logger.error('Invalid FSM module (run_fsm() not found)')
+                    sys.exit(1)
             except socket.timeout:
                 pass
 
