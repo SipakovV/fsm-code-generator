@@ -377,12 +377,13 @@ class FSMRuntimeApp(tk.Frame):
             initialdir=init_dir,
             filetypes=(('Python source files', '*.py'),)
         )
-        if filename[-3:] != '.py':
-            logger.error(f'File provided is not a Python source file: {filename}')
-            # TODO: add error popup
-        else:
-            logger.info(f'Opening file: {filename}')
-            self.load_file(filename)
+        if filename:
+            if filename[-3:] != '.py':
+                logger.error(f'File provided is not a Python source file: {filename}')
+                # TODO: add error popup
+            else:
+                logger.info(f'Opening file: {filename}')
+                self.load_file(filename)
 
     def load_image(self, fsm_name):
         image_filename = 'generated_graph_images/' + fsm_name[:-3]
@@ -412,7 +413,8 @@ class FSMRuntimeApp(tk.Frame):
         logger.info(f'GUI: state changed to {state_name}')
 
     def load_file(self, filename):
-        self.fsm_name = os.path.basename(filename)
+        fsm_name = os.path.basename(filename)
+        logger.debug(fsm_name)
 
         #try:
 
@@ -435,10 +437,11 @@ class FSMRuntimeApp(tk.Frame):
             self.graph_image_lbl.configure(image=graph_photoimage)
         #except:
         '''
-
-        self.reset()
-        self.start_server(filename)
-        self.after(300, self.connect)
+        if fsm_name:
+            self.reset()
+            self.fsm_name = fsm_name
+            self.start_server(filename)
+            self.after(300, self.connect)
 
     def start_server(self, filename):
         #test_process = subprocess.Popen(['ls', '--help'])
