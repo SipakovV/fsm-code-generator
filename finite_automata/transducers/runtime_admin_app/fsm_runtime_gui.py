@@ -5,7 +5,7 @@ import sys
 import time
 import traceback
 import socket
-from subprocess import Popen, PIPE
+import subprocess
 from threading import Thread
 from _thread import interrupt_main
 import tkinter as tk
@@ -26,7 +26,7 @@ MAX_BUFFER_SIZE = 4096
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(stream=sys.stdout)
 handler.setFormatter(logging.Formatter(fmt='[%(asctime)s: client %(levelname)-7s] %(message)s'))
 logger.addHandler(handler)
@@ -59,6 +59,9 @@ def get_instruction_from_server(soc):  # принятие пакета от се
     instruction_json = soc.recv(MAX_BUFFER_SIZE)
 
     #logger.debug(instruction_json)
+    #print(instruction_json)
+    #for json_obj in instruction_json:
+    # TODO: split multiple jsons received (or handle otherwise)
     instruction_dict = json.loads(instruction_json)
     return instruction_dict
 
@@ -76,7 +79,7 @@ def instruction_listening_thread(sock, gui):  # поток, обрабатыва
             traceback.print_exc()
             break
         else:
-            logger.debug(f'Instruction received: {instruction_dict}')
+            #logger.debug(f'Instruction received: {instruction_dict}')
 
             try:
                 gui.execute_instruction(instruction_dict)
@@ -87,15 +90,18 @@ def instruction_listening_thread(sock, gui):  # поток, обрабатыва
 
 
 def connecting_thread(sock, gui):
-    while True:
+    for _ in range(3):
         try:
             sock.connect(SERVER_ADDRESS)
         except ConnectionRefusedError:
             logger.info('Connecting...')
-            time.sleep(0.1)
+            time.sleep(0.01)
         else:
             gui.activate()
             break
+    else:
+        logger.error('Couldn\'t connect to server')
+        gui.reset()
 
 
 def _placeholder():
@@ -155,7 +161,9 @@ class FSMRuntimeApp(tk.Frame):
 
         #self.parent_frame = parent_frame
         self.sock = None
+        self.fsm_name = None
         self.connected = False
+        self.dynamic_visualization = False
         self.timer_thread = timer.TimerThread(self)
         self.timer_thread.daemon = True
 
@@ -343,19 +351,22 @@ class FSMRuntimeApp(tk.Frame):
             pass
 
     def reset(self):
+        #logger.info('Reset called')
         if self.connected:
+            self.fsm_name = None
             self.connected = False
             self.server_process.kill()
             for widget in (self.traffic_lights_list + self.pedestrian_lights_list):
                 widget.reset()
-            if self.graph_image_lbl:
-                self.graph_image_lbl.destroy()
-                self.graph_image_lbl = None
             if self.sock:
                 self.sock.close()
                 self.sock = None
             self.timer_thread.reset_timer()
             self.timeout_var.set(0)
+            if self.graph_image_lbl:
+                self.graph_image_lbl.destroy()
+                self.graph_image_lbl = None
+            self.dynamic_visualization = False
             logger.info(f'App is reset')
 
     def open_file(self):
@@ -396,7 +407,7 @@ class FSMRuntimeApp(tk.Frame):
             self.graph_image_lbl.configure(image=self.graph_photoimage)
 
     def load_file(self, filename):
-        fsm_name = os.path.basename(filename)
+        self.fsm_name = os.path.basename(filename)
 
         #try:
 
@@ -421,16 +432,18 @@ class FSMRuntimeApp(tk.Frame):
         '''
 
         self.reset()
-        self.load_image(fsm_name)
         self.start_server(filename)
         self.after(300, self.connect)
 
     def start_server(self, filename):
+        #test_process = subprocess.Popen(['ls', '--help'])
+        logger.debug(f"Command: {['python', 'fsm_server_python.py', '--visual', filename]}")
+
         try:
-            self.server_process = Popen(['python', 'fsm_server_python.py', filename])
+            self.server_process = subprocess.Popen(['python', 'fsm_server_python.py', '--visual', filename])
             #fsm_server.run(filename)
         except FileNotFoundError:
-            self.server_process = Popen(['python3', 'fsm_server_python.py', filename])
+            self.server_process = subprocess.Popen(['python3', 'fsm_server_python.py', '--visual', filename])
 
     def connect(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -441,6 +454,7 @@ class FSMRuntimeApp(tk.Frame):
             traceback.print_exc()
 
     def activate(self):
+        #logger.debug('App activated')
         if not self.timer_thread.is_alive():
             self.timer_thread.start()
         self.connected = True
@@ -450,6 +464,7 @@ class FSMRuntimeApp(tk.Frame):
         }
         self.title_var.set(config['title'])
         self.description_var.set(config['description'])
+        self.load_image(self.fsm_name)
         logger.info('Connected to server')
         try:
             Thread(target=instruction_listening_thread, args=(self.sock, self), daemon=True).start()
@@ -459,7 +474,8 @@ class FSMRuntimeApp(tk.Frame):
 
     def exit(self):
         if self.server_process:
-            self.server_process.kill()
+            if type(self.server_process) is not subprocess.CompletedProcess:
+                self.server_process.kill()
         self.master.quit()
 
 

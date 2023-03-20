@@ -39,7 +39,7 @@ def instruction_listening_thread(conn):  # thread for listening at queue for ins
         except:
             traceback.print_exc()
             break
-        time.sleep(0.001)
+        time.sleep(0.01)
 
 
 def event_listening_thread(conn, ip, port):  # thread for listening at socket for events
@@ -67,8 +67,10 @@ def event_listening_thread(conn, ip, port):  # thread for listening at socket fo
     # logging.info('Connection ' + ip + ':' + port + " closed")
 
 
-def run(file_path):  # запуск сервера
+def run(file_path, visual: bool = False):  # запуск сервера
     # fsm_module_path = 'generated_automata.' + args.fsm_code_file
+    if visual:
+        logger.debug('Visual=True')
     fsm_name = os.path.basename(file_path)
 
     if fsm_name[-3:] != '.py':
@@ -117,7 +119,7 @@ def run(file_path):  # запуск сервера
                 except:
                     logger.error('Error while starting threads')
                     traceback.print_exc()
-
+                time.sleep(1)
                 try:
                     fsm_module.run_fsm()
                 except AttributeError:
