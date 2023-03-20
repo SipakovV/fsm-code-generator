@@ -54,6 +54,14 @@ tl_colors = {
 }
 
 
+def load_image(path):
+    try:
+        graph_image = Image.open(path)
+    except Exception as exc:
+        print(exc)
+    return graph_image
+
+
 def get_instruction_from_server(soc):  # принятие пакета от сервера
 
     instruction_json = soc.recv(MAX_BUFFER_SIZE)
@@ -141,9 +149,6 @@ class FSMRuntimeApp(tk.Frame):
                        background=[('selected', 'white'), ],
                        focuscolor=[('selected', 'white'), ])
 
-        #NOTEBOOK_STYLE.configure('My.TNotebook.Tab', background='green3')
-        #NOTEBOOK_STYLE.map('My.TNotebook', background=[('selected', 'green3')])
-
         menubar = tk.Menu(self.master)
         filemenu = tk.Menu(menubar, tearoff=0)
         filemenu.add_command(label='Open', command=self.open_file)
@@ -159,14 +164,13 @@ class FSMRuntimeApp(tk.Frame):
 
         self.master.config(menu=menubar)
 
-        #self.parent_frame = parent_frame
         self.sock = None
-        self.fsm_name = None
+        self.fsm_filename = None
         self.connected = False
         self.dynamic_visualization = False
+        self.graph_images = dict()
         self.timer_thread = timer.TimerThread(self)
         self.timer_thread.daemon = True
-
         self.server_process = None
 
         col_count, row_count = self.grid_size()
@@ -343,7 +347,8 @@ class FSMRuntimeApp(tk.Frame):
 
     def execute_instruction(self, instr: tuple):
         if instr[0] == 'state':
-            self.change_state_viz(instr[1])
+            logger.debug(f'GUI: state changed to {instr[1]}')
+            self.change_graph_image(instr[1])
         elif instr[0] == 'set_timeout':
             self.timer_thread.set_timer(instr[1])
         elif instr[0] in self.instructions_dict:
@@ -355,7 +360,7 @@ class FSMRuntimeApp(tk.Frame):
     def reset(self):
         #logger.info('Reset called')
         if self.connected:
-            self.fsm_name = None
+            self.fsm_filename = None
             self.connected = False
             self.server_process.kill()
             for widget in (self.traffic_lights_list + self.pedestrian_lights_list):
@@ -385,41 +390,64 @@ class FSMRuntimeApp(tk.Frame):
                 logger.info(f'Opening file: {filename}')
                 self.load_file(filename)
 
-    def load_image(self, fsm_name):
-        image_filename = 'generated_graph_images/' + fsm_name[:-3]
+    def load_images(self, fsm_name):
+        images_dir = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), 'generated_graph_images', fsm_name[:-3])
 
-        try:
-            self.graph_image = Image.open(image_filename + '.png')
-        except FileNotFoundError:
-            try:
-                self.graph_image = Image.open(image_filename + '.jpg')
-            except FileNotFoundError:
-                try:
-                    self.graph_image = Image.open(image_filename + '.svg')
-                except FileNotFoundError:
-                    logger.warning(f'Graph image for {fsm_name[:-3]} not found')
-                    return
+        base_graph_found = False
 
-        logger.info(f'Graph image {image_filename} found')
-        self.graph_image = self.graph_image.resize((700, 700), Image.ANTIALIAS)
-        self.graph_photoimage = ImageTk.PhotoImage(self.graph_image)
+        if os.path.exists(images_dir):
+            # try:
+            #     self.graph_images['_base'] = self.load_image(os.path.join(images_dir, '_base'))
+            # except FileNotFoundError:
+            #     logger.warning(f'Graph images for {fsm_name} not found')
+            #     return
+            # else:
+            for filename in os.listdir(images_dir):
+                ext = os.path.splitext(filename)[-1].lower()
+                if ext in {'.png', '.jpg', '.svg'}:
+                    image_path = os.path.join(images_dir, filename)
+                    print(image_path)
+                    if filename[:-4] == '_base':
+                        #self.graph_images['_base'] = self.load_image(filename)
+                        base_graph_found = True
+                        logger.debug(f'Base graph image found')
+                    try:
+                        self.graph_images[filename[:-4]] = load_image(image_path)
+                    except Exception as exc:
+                        logger.warning(f'Couldn\'t open graph image {filename[:-4]}')
+                        #print(exc)
+                    else:
+                        logger.debug(f'Graph image for state {filename[:-4]} added')
+
+            if not base_graph_found:
+                logger.warning(f'Base graph image for {fsm_name} found')
+        else:
+            logger.warning(f'Graph images directory for {fsm_name[:-3]} not found')
+            logger.warning(f'Tried: {images_dir}')
+
+    def change_graph_image(self, state_name):
+        base_flag = False
+        if state_name in self.graph_images:
+            current_image = self.graph_images[state_name].resize((700, 700), Image.ANTIALIAS)
+        elif '_base' in self.graph_images:
+            base_flag = True
+            current_image = self.graph_images['_base'].resize((700, 700), Image.ANTIALIAS)
+        else:
+            return
+        self.graph_photoimage = ImageTk.PhotoImage(current_image)
         if not self.graph_image_lbl:
             self.graph_image_lbl = ttk.Label(self, image=self.graph_photoimage, style='TLabel')
             self.graph_image_lbl.grid(row=0, column=6, rowspan=6, columnspan=6)
         else:
             self.graph_image_lbl.configure(image=self.graph_photoimage)
-
-    def change_state_viz(self, state_name):
-        logger.info(f'GUI: state changed to {state_name}')
+        if not base_flag:
+            logger.info(f'GUI: graph image changed')
+        else:
+            logger.info(f'GUI: graph defalted to base')
 
     def load_file(self, filename):
         fsm_name = os.path.basename(filename)
         logger.debug(fsm_name)
-
-        #try:
-
-        #except Exception:
-        #    pass
 
         '''
         #try:
@@ -439,7 +467,7 @@ class FSMRuntimeApp(tk.Frame):
         '''
         if fsm_name:
             self.reset()
-            self.fsm_name = fsm_name
+            self.fsm_filename = fsm_name
             self.start_server(filename)
             self.after(300, self.connect)
 
@@ -472,7 +500,8 @@ class FSMRuntimeApp(tk.Frame):
         }
         self.title_var.set(config['title'])
         self.description_var.set(config['description'])
-        self.load_image(self.fsm_name)
+        self.load_images(self.fsm_filename)
+        self.change_graph_image('_base')
         logger.info('Connected to server')
         try:
             Thread(target=instruction_listening_thread, args=(self.sock, self), daemon=True).start()
