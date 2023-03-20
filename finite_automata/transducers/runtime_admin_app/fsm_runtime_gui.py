@@ -18,7 +18,7 @@ import tkinter.ttk as ttk
 from utility import timings
 from runtime_admin_app import timer
 from runtime_admin_app.traffic_lights_gui_preset import TrafficLight, PedestrianLight, TimerDisplay
-from python_server import fsm_server
+#from python_server import fsm_server
 
 
 SERVER_ADDRESS = ("127.0.0.1", 12345)
@@ -169,7 +169,7 @@ class FSMRuntimeApp(tk.Frame):
 
         self.sock = None
         self.fsm_filename = None
-        self.connected = False
+        self.active = False
         self.dynamic_visualization = False
         self.graph_images = dict()
         self.timer_thread = timer.TimerThread(self)
@@ -337,7 +337,7 @@ class FSMRuntimeApp(tk.Frame):
         self.timeout_var.set(timeout_seconds)
 
     def send_event(self, event):
-        if self.connected:
+        if self.active:
             event_dict = {
                 'event': event,
             }
@@ -357,15 +357,14 @@ class FSMRuntimeApp(tk.Frame):
             self.timer_thread.set_timer(instr[1])
         elif instr[0] in self.instructions_dict:
             self.instructions_dict[instr[0]]()
-            #logger.debug(f'instruction executed: {instr}')
         else:
             pass
 
     def reset(self):
-        #logger.info('Reset called')
-        if self.connected:
+        logger.debug('Reset called')
+        if self.active:
             self.fsm_filename = None
-            self.connected = False
+            self.active = False
             self.server_process.kill()
             for widget in (self.traffic_lights_list + self.pedestrian_lights_list):
                 widget.reset()
@@ -374,10 +373,8 @@ class FSMRuntimeApp(tk.Frame):
                 self.sock = None
             self.timer_thread.reset_timer()
             self.timeout_var.set(0)
-            if self.graph_image_lbl:
-                self.graph_image_lbl.configure(image=None)
-                #self.graph_image_lbl.destroy()
-                #self.graph_image_lbl = None
+            self.graph_image_lbl.configure(image='')
+            self.graph_images = dict()
             self.dynamic_visualization = False
             logger.info(f'App is reset')
 
@@ -401,17 +398,10 @@ class FSMRuntimeApp(tk.Frame):
         base_graph_found = False
 
         if os.path.exists(images_dir):
-            # try:
-            #     self.graph_images['_base'] = self.load_image(os.path.join(images_dir, '_base'))
-            # except FileNotFoundError:
-            #     logger.warning(f'Graph images for {fsm_name} not found')
-            #     return
-            # else:
             for filename in os.listdir(images_dir):
                 ext = os.path.splitext(filename)[-1].lower()
                 if ext in {'.png', '.jpg', '.svg'}:
                     image_path = os.path.join(images_dir, filename)
-                    print(image_path)
                     if filename[:-4] == '_base':
                         #self.graph_images['_base'] = self.load_image(filename)
                         base_graph_found = True
@@ -424,7 +414,6 @@ class FSMRuntimeApp(tk.Frame):
                         #print(exc)
                     else:
                         logger.debug(f'Graph image for state {filename[:-4]} added')
-            print(self.graph_images)
             if not base_graph_found:
                 logger.warning(f'Base graph image for {fsm_name} found')
         else:
@@ -432,61 +421,20 @@ class FSMRuntimeApp(tk.Frame):
             logger.warning(f'Tried: {images_dir}')
 
     def switch_graph_image(self, state_name):
-        #base_flag = False
-        '''
-        if state_name in self.graph_images:
-            #current_image = self.graph_images[state_name].resize((700, 700), Image.ANTIALIAS)
-            current_image = self.graph_images[state_name]
-        elif '_base' in self.graph_images:
-            base_flag = True
-            #current_image = self.graph_images['_base'].resize((700, 700), Image.ANTIALIAS)
-            current_image = self.graph_images['_base']
-        else:
-            return
-        '''
-        #self.graph_photoimage = ImageTk.PhotoImage(current_image)
-        #img = tk.PhotoImage()
-        '''if not self.graph_image_lbl:
-            self.graph_image_lbl = ttk.Label(self, image=self.graph_photoimage, style='TLabel')
-            self.graph_image_lbl.grid(row=0, column=6, rowspan=6, columnspan=6)
-        else:'''
-        #self.graph_image_lbl.configure(image=current_image)
-        #path = 'D:\\Slava\\Study_projects\\fsm-code-generator\\finite_automata\\transducers\\generated_graph_images\\fsm_with_button\\_base.png'
-        #self.img = tk.PhotoImage(file=path)
-        path = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), 'generated_graph_images', 'fsm_with_button', '_base.png')
-        #self.img = load_image(path)
-        #self.img = tk.PhotoImage(file=path)
-        #print(self.img, type(self.img))
+        if self.active:
+            if state_name in self.graph_images:
+                img = self.graph_images[state_name]
+                logger.debug(f'GUI: graph image switched to {state_name}')
+            else:
+                img = self.graph_images['_base']
+                logger.debug(f'GUI: graph defaulted to base')
 
-        if state_name in self.graph_images:
-            img = self.graph_images[state_name]
-            logger.debug(f'GUI: graph image switched to {state_name}')
-        else:
-            img = self.graph_images['_base']
-            logger.debug(f'GUI: graph defaulted to base')
-
-        self.graph_image_lbl.configure(image=img)
+            self.graph_image_lbl.configure(image=img)
 
     def load_file(self, filename):
         fsm_name = os.path.basename(filename)
-        logger.debug(fsm_name)
+        # logger.debug(fsm_name)
 
-        '''
-        #try:
-        
-
-        graph_image = Image.open('generated_graph_images/fsm_TL_4way_1button.png')
-        #
-        graph_image = graph_image.resize((700, 700), Image.ANTIALIAS)
-        graph_photoimage = ImageTk.PhotoImage(graph_image)
-        if not self.graph_image_lbl:
-            #self.graph_image_lbl = ttk.Label(self.graph_image_frame, image=graph_photoimage)
-            self.graph_image_lbl = ttk.Label(self, image=graph_photoimage, style='TLabel')
-            self.graph_image_lbl.grid(row=0, column=6, rowspan=6, columnspan=6)
-        else:
-            self.graph_image_lbl.configure(image=graph_photoimage)
-        #except:
-        '''
         if fsm_name:
             self.reset()
             self.fsm_filename = fsm_name
@@ -494,12 +442,11 @@ class FSMRuntimeApp(tk.Frame):
             self.after(300, self.connect)
 
     def start_server(self, filename):
-        #test_process = subprocess.Popen(['ls', '--help'])
-        logger.debug(f"Command: {['python', 'fsm_server_python.py', '--visual', filename]}")
+        # test_process = subprocess.Popen(['ls', '--help'])
+        # logger.debug(f"Command: {['python', 'fsm_server_python.py', '--visual', filename]}")
 
         try:
             self.server_process = subprocess.Popen(['python', 'fsm_server_python.py', '--visual', filename])
-            #fsm_server.run(filename)
         except FileNotFoundError:
             self.server_process = subprocess.Popen(['python3', 'fsm_server_python.py', '--visual', filename])
 
@@ -513,23 +460,25 @@ class FSMRuntimeApp(tk.Frame):
 
     def activate(self):
         #logger.debug('App activated')
-        if not self.timer_thread.is_alive():
-            self.timer_thread.start()
-        self.connected = True
-        config = {
-            'title': 'test',
-            'description': 'bla bla bla FSM bla bla\nbla bla'
-        }
-        self.title_var.set(config['title'])
-        self.description_var.set(config['description'])
-        self.load_images(self.fsm_filename)
-        self.switch_graph_image('_base')
-        logger.info('Connected to server')
-        try:
-            Thread(target=instruction_listening_thread, args=(self.sock, self), daemon=True).start()
-        except:
-            logger.error("Error while starting listening thread")
-            traceback.print_exc()
+        if self.server_process:
+            if not self.timer_thread.is_alive():
+                self.timer_thread.start()
+            self.active = True
+            config = {
+                'title': 'test',
+                'description': 'bla bla bla FSM bla bla\nbla bla'
+            }
+            self.title_var.set(config['title'])
+            self.description_var.set(config['description'])
+            self.load_images(self.fsm_filename)
+            if self.graph_images:
+                self.switch_graph_image('_base')
+            logger.info('Connected to server')
+            try:
+                Thread(target=instruction_listening_thread, args=(self.sock, self), daemon=True).start()
+            except:
+                logger.error("Error while starting listening thread")
+                traceback.print_exc()
 
     def exit(self):
         if self.server_process:
