@@ -70,14 +70,14 @@ def load_image(path):
 def get_instruction_from_server(soc):
     instruction_json = soc.recv(MAX_BUFFER_SIZE)
     # TODO: split multiple jsons received (or handle otherwise)
-    instruction_tuple = json.loads(instruction_json)
-    return instruction_tuple
+    instruction = json.loads(instruction_json)
+    return instruction
 
 
 def instruction_listening_thread(sock, gui):
     while True:
         try:
-            instruction_tuple = get_instruction_from_server(sock)
+            instruction = get_instruction_from_server(sock)
         except (ConnectionResetError, ConnectionAbortedError, JSONDecodeError) as exc:
             logger.info('Server closed')
             gui.reset()
@@ -87,12 +87,15 @@ def instruction_listening_thread(sock, gui):
             traceback.print_exc()
             break
         else:
-            try:
-                gui.execute_instruction(instruction_tuple)
-            except:
-                logger.error('Error while executing instruction')
-                traceback.print_exc()
-                break
+            if type(instruction) is dict:
+                gui.set_fsm_info(instruction)
+            else:
+                try:
+                    gui.execute_instruction(instruction)
+                except:
+                    logger.error('Error while executing instruction')
+                    traceback.print_exc()
+                    break
 
 
 def connecting_thread(sock, gui):
@@ -452,18 +455,31 @@ class FSMRuntimeApp(tk.Frame):
             logger.error("Error while starting connecting thread")
             traceback.print_exc()
 
+    def set_fsm_info(self, config):
+        if 'title' in config:
+            self.title_var.set(config['title'])
+        if 'description' in config:
+            self.description_var.set(config['description'])
+        if 'instructions_set' in config:
+            # TODO: disable unused widgets
+            pass
+        if 'events_set' in config:
+            # TODO: disable unused buttons
+            pass
+            #config['instructions_set']
+
     def activate(self):
         #logger.debug('App activated')
         if self.server_process:
             if not self.timer_thread.is_alive():
                 self.timer_thread.start()
             self.active = True
-            config = {
-                'title': 'test',
-                'description': 'bla bla bla FSM bla bla\nbla bla'
-            }
-            self.title_var.set(config['title'])
-            self.description_var.set(config['description'])
+            #config = {
+            #    'title': 'test',
+            #    'description': 'bla bla bla FSM bla bla\nbla bla'
+            #}
+            self.title_var.set(self.fsm_filename)
+            #self.description_var.set(config['description'])
             self.load_images(self.fsm_filename)
             if self.graph_images:
                 self.switch_graph_image('_base')
