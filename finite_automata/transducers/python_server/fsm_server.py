@@ -32,11 +32,14 @@ def instruction_listening_thread(conn, publish_state: bool = False):  # thread f
         if instruction[0] == 'state':
             if not publish_state:
                 continue
+        elif instruction[0] == 'config':
+            if publish_state:
+                instruction = instruction[1]
 
-        #instruction_dict = {
-        #    'instruction': instruction[0],
-        #    'parameter': instruction[1],
-        #}
+        # instruction_dict = {
+        #     'instruction': instruction[0],
+        #     'parameter': instruction[1],
+        # }
         try:
             instruction_json = json.dumps(instruction)
         except TypeError as exc:
