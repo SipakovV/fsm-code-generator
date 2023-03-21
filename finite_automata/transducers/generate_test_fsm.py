@@ -28,7 +28,9 @@ def generate_fsm_with_button():
     fsm_TL_4way_1button = fsm.FSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
                                   initial_state=initial_state, initial_instructions=initial_instructions,
                                   final_states=final_states, transition_map=transition_map,
-                                  name='fsm_with_button')
+                                  name='fsm_with_button',
+                                  title='FSM with button',
+                                  description='FSM for testing the buttons')
     print()
     print(fsm_TL_4way_1button)
     fsm_TL_4way_1button.visualize(all_states=True)
@@ -64,7 +66,9 @@ def generate_fsm_without_button():
     test_FSM_TL_4way_p_and_t = fsm.FSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
                                        initial_state=initial_state, initial_instructions=initial_instructions,
                                        final_states=final_states, transition_map=transition_map,
-                                       name='fsm_without_button')
+                                       name='fsm_without_button',
+                                       title='FSM without button',
+                                       description='FSM for testing the timeouts')
     print()
     print(test_FSM_TL_4way_p_and_t)
     test_FSM_TL_4way_p_and_t.visualize(all_states=True)
