@@ -187,6 +187,7 @@ class FSM:
         code_gen.write("def run_fsm():")
         code_gen.indent()
         code_gen.write(f"state = '{self.init_state}'")
+        code_gen.write(f"event_queue.put_config(config)")
         for instr in self.init_instructions:
             if type(instr) is tuple:
                 code_gen.write(f"event_queue.put_instruction('{instr[0]}', {str(instr[1])})")
