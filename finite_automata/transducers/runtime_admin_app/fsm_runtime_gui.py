@@ -50,8 +50,10 @@ tl_colors = {
     'red': 'red',
     'yellow': 'yellow',
     'green': '#30ff30',
-    'off': 'black',
-    'base': 'gray',
+    'off_active': 'black',
+    'off_disabled': 'gray',
+    'base_active': 'gray',
+    'base_disabled': 'light gray',
 }
 
 
@@ -230,6 +232,13 @@ class FSMRuntimeApp(tk.Frame):
             'p4': self.pedestrian_lights_list[3],
             'p5': self.pedestrian_lights_list[4],
             'p6': self.pedestrian_lights_list[5],
+
+            't1': self.traffic_lights_list[0],
+            't2': self.traffic_lights_list[1],
+            't3': self.traffic_lights_list[2],
+            't4': self.traffic_lights_list[3],
+            't5': self.traffic_lights_list[4],
+            't6': self.traffic_lights_list[5],
         }
 
         self.instructions_dict = {
@@ -470,9 +479,12 @@ class FSMRuntimeApp(tk.Frame):
         if 'description' in config:
             self.description_var.set(config['description'])
         if 'instructions_set' in config:
-            # TODO: disable unused widgets
-            # config['instructions_set']
-            pass
+            logger.debug(f'GUI got instructions set:')
+            for instruction in config['instructions_set']:
+                logger.debug(f'instruction: {instruction}')
+                if instruction[:2] in self.widgets_dict:
+                    self.widgets_dict[instruction[:2]].activate()
+                    logger.debug(f'{instruction[:2]} - canvas hidden')
         if 'events_set' in config:
             logger.debug(f'GUI got events set:')
             for event in config['events_set']:

@@ -7,8 +7,10 @@ class TrafficLight:
         self.CANVAS_SIZE = dimensions['canvas_size']
         self.LAMP_SIZE = dimensions['lamp_size']
         self.PADDING_SIZE = dimensions['padding']
-        self.BASE_COLOR = colors['base']
-        self.OFF_COLOR = colors['off']
+        self.BASE_COLOR = colors['base_active']
+        self.BASE_DISABLED_COLOR = colors['base_disabled']
+        self.OFF_COLOR = colors['off_active']
+        self.OFF_DISABLED_COLOR = colors['off_disabled']
         self.RED_COLOR = colors['red']
         self.YELLOW_COLOR = colors['yellow']
         self.GREEN_COLOR = colors['green']
@@ -36,6 +38,19 @@ class TrafficLight:
                                                    self.CANVAS_SIZE / 2 + self.LAMP_SIZE / 2,
                                                    self.PADDING_SIZE * 4 + self.LAMP_SIZE * 3,
                                                    fill=self.OFF_COLOR)
+        self.disable()
+
+    def disable(self):
+        self.canvas.itemconfig(self.base, fill=self.BASE_DISABLED_COLOR)
+        self.canvas.itemconfig(self.red_light, fill=self.OFF_DISABLED_COLOR)
+        self.canvas.itemconfig(self.yellow_light, fill=self.OFF_DISABLED_COLOR)
+        self.canvas.itemconfig(self.green_light, fill=self.OFF_DISABLED_COLOR)
+
+    def activate(self):
+        self.canvas.itemconfig(self.base, fill=self.BASE_COLOR)
+        self.canvas.itemconfig(self.red_light, fill=self.OFF_COLOR)
+        self.canvas.itemconfig(self.yellow_light, fill=self.OFF_COLOR)
+        self.canvas.itemconfig(self.green_light, fill=self.OFF_COLOR)
 
     def reset(self):
         self.canvas.itemconfig(self.red_light, fill=self.OFF_COLOR)
@@ -73,8 +88,10 @@ class PedestrianLight:
         self.CANVAS_SIZE = dimensions['canvas_size']
         self.LAMP_SIZE = dimensions['lamp_size']
         self.PADDING_SIZE = dimensions['padding']
-        self.BASE_COLOR = colors['base']
-        self.OFF_COLOR = colors['off']
+        self.BASE_COLOR = colors['base_active']
+        self.BASE_DISABLED_COLOR = colors['base_disabled']
+        self.OFF_COLOR = colors['off_active']
+        self.OFF_DISABLED_COLOR = colors['off_disabled']
         self.RED_COLOR = colors['red']
         self.YELLOW_COLOR = colors['yellow']
         self.GREEN_COLOR = colors['green']
@@ -97,6 +114,19 @@ class PedestrianLight:
                                                    self.CANVAS_SIZE / 2 + self.LAMP_SIZE / 2,
                                                    self.PADDING_SIZE * 3 + self.LAMP_SIZE * 2,
                                                    fill=self.OFF_COLOR)
+
+        self.disable()
+
+    def disable(self):
+        self.canvas.itemconfig(self.base, fill=self.BASE_DISABLED_COLOR)
+        self.canvas.itemconfig(self.red_light, fill=self.OFF_DISABLED_COLOR)
+        self.canvas.itemconfig(self.green_light, fill=self.OFF_DISABLED_COLOR)
+        # self.canvas.configure(state='disabled')
+
+    def activate(self):
+        self.canvas.itemconfig(self.base, fill=self.BASE_COLOR)
+        self.canvas.itemconfig(self.red_light, fill=self.OFF_COLOR)
+        self.canvas.itemconfig(self.green_light, fill=self.OFF_COLOR)
 
     def reset(self):
         self.canvas.itemconfig(self.red_light, fill=self.OFF_COLOR)
