@@ -124,7 +124,7 @@ class FSMRuntimeApp(tk.Frame):
         super().__init__(master)
 
         self.master.title('FSM GUI: Traffic Lights')
-        self.master.minsize(800, 450)
+        self.master.minsize(700, 450)
         self.master.maxsize(1600, 900)
         self.master.protocol("WM_DELETE_WINDOW", self.exit)
         self.configure(bg='white')
@@ -173,6 +173,7 @@ class FSMRuntimeApp(tk.Frame):
         self.timer_thread = timer.TimerThread(self)
         self.timer_thread.daemon = True
         self.server_process = None
+        self.config_is_set = False
 
         col_count, row_count = self.grid_size()
 
@@ -212,7 +213,7 @@ class FSMRuntimeApp(tk.Frame):
         self.tab_control = ttk.Notebook(self, style='TNotebook')
         self.init_tab_traffic(self.tab_control)
         self.init_tab_elevator(self.tab_control)
-        self.tab_control.grid(row=1, column=0, rowspan=5, columnspan=6, padx=10, pady=10)
+        self.tab_control.grid(row=1, column=0, rowspan=4, columnspan=6, padx=0, pady=0)
 
         self.pack()
 
@@ -304,7 +305,7 @@ class FSMRuntimeApp(tk.Frame):
         }
 
     def init_tab_traffic(self, tab_control):
-        self.tab_traffic = ttk.Frame(tab_control, style='TFrame', width=700, height=700)
+        self.tab_traffic = ttk.Frame(tab_control, style='TFrame', width=700, height=500)
 
         col_count, row_count = self.tab_traffic.grid_size()
         for col in range(col_count):
@@ -336,7 +337,7 @@ class FSMRuntimeApp(tk.Frame):
         """ === """
 
     def init_tab_elevator(self, tab_control):
-        self.tab_elevator = ttk.Frame(tab_control, style='TFrame', width=700, height=700)
+        self.tab_elevator = ttk.Frame(tab_control, style='TFrame', width=700, height=500)
 
         col_count, row_count = self.tab_elevator.grid_size()
         for col in range(col_count):
@@ -364,6 +365,10 @@ class FSMRuntimeApp(tk.Frame):
         self.send_event('timeout')
 
     def execute_instruction(self, instr: tuple):
+        if not self.config_is_set:
+            self.switch_all_widgets(True)
+            self.switch_all_buttons(True)
+            self.config_is_set = True
         if instr[0] == 'state':
             logger.debug(f'GUI: state changed to {instr[1]}')
             self.switch_graph_image(instr[1])
@@ -387,9 +392,14 @@ class FSMRuntimeApp(tk.Frame):
                 self.sock = None
             self.timer_thread.reset_timer()
             self.timeout_var.set(0)
+            self.title_var.set('')
+            self.description_var.set('')
             self.graph_image_lbl.configure(image='')
             self.graph_images = dict()
             self.dynamic_visualization = False
+            self.switch_all_widgets(False)
+            self.switch_all_buttons(False)
+            self.config_is_set = False
             logger.info(f'App is reset')
 
     def open_file(self):
@@ -473,7 +483,26 @@ class FSMRuntimeApp(tk.Frame):
             logger.error("Error while starting connecting thread")
             traceback.print_exc()
 
+    def switch_all_widgets(self, active: bool):
+        if active:
+            for instruction in self.widgets_dict:
+                self.widgets_dict[instruction].activate()
+        else:
+            for instruction in self.widgets_dict:
+                self.widgets_dict[instruction].disable()
+
+    def switch_all_buttons(self, active: bool):
+        if active:
+            for event in self.buttons_dict:
+                button = self.buttons_dict[event]
+                button.configure(state=tk.NORMAL)
+        else:
+            for event in self.buttons_dict:
+                button = self.buttons_dict[event]
+                button.configure(state=tk.DISABLED)
+
     def set_fsm_info(self, config):
+        self.config_is_set = True
         if 'title' in config:
             self.title_var.set(config['title'])
         if 'description' in config:
@@ -485,6 +514,9 @@ class FSMRuntimeApp(tk.Frame):
                 if instruction[:2] in self.widgets_dict:
                     self.widgets_dict[instruction[:2]].activate()
                     logger.debug(f'{instruction[:2]} - canvas hidden')
+        else:
+            logger.debug(f'No instructions set provided:')
+            self.switch_all_widgets(True)
         if 'events_set' in config:
             logger.debug(f'GUI got events set:')
             for event in config['events_set']:
@@ -496,9 +528,8 @@ class FSMRuntimeApp(tk.Frame):
                         button = self.buttons_dict[event]
                         button.configure(state=tk.NORMAL)
         else:
-            for event in self.buttons_dict:
-                button = self.buttons_dict[event]
-                button.configure(state=tk.NORMAL)
+            logger.debug(f'No events set provided:')
+            self.switch_all_buttons(True)
 
     def activate(self):
         #logger.debug('App activated')
