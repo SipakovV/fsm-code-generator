@@ -178,8 +178,9 @@ class FSM:
         code_gen.write("from python_server import event_queue")
         code_gen.write("")
         code_gen.write("")
-        conf_string = f"'title': '{self._title}', 'description': '{self._description}', 'instructions_set': {self.instructions_set}, 'events_set': {self.alphabet}"
-        code_gen.write(f"config = {conf_string}")
+        conf_string = f"'title': '{self._title}', 'description': '{self._description}', " \
+                      f"'instructions_set': {list(self.instructions_set)}, 'events_set': {list(self.alphabet)}"
+        code_gen.write("config = {" + conf_string + "}")
         code_gen.write("")
         code_gen.write("")
 
