@@ -1,4 +1,5 @@
 import json
+from json.decoder import JSONDecodeError
 import logging
 import os
 import sys
@@ -12,7 +13,7 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter.font import Font
 import tkinter.ttk as ttk
-#from PIL import ImageTk, Image
+from PIL import ImageTk, Image
 #from queue import Queue
 
 from utility import timings
@@ -56,32 +57,28 @@ tl_colors = {
 
 def load_image(path):
     try:
-        #graph_image = Image.open(path)
-        #.replace('\\', '/')
-        graph_image = tk.PhotoImage(path)
+        img = Image.open(path)
+        img_resized = img.resize((700, 700), Image.ANTIALIAS)
+        photoimg = ImageTk.PhotoImage(img_resized)
+        #photoimg = tk.PhotoImage(path)
     except Exception as exc:
         print(exc)
     else:
-        return graph_image
+        return photoimg
 
 
-def get_instruction_from_server(soc):  # принятие пакета от сервера
-
+def get_instruction_from_server(soc):
     instruction_json = soc.recv(MAX_BUFFER_SIZE)
-
-    #logger.debug(instruction_json)
-    #print(instruction_json)
-    #for json_obj in instruction_json:
     # TODO: split multiple jsons received (or handle otherwise)
     instruction_tuple = json.loads(instruction_json)
     return instruction_tuple
 
 
-def instruction_listening_thread(sock, gui):  # поток, обрабатывающий пакеты с сервера
+def instruction_listening_thread(sock, gui):
     while True:
         try:
             instruction_tuple = get_instruction_from_server(sock)
-        except (ConnectionResetError, ConnectionAbortedError) as exc:
+        except (ConnectionResetError, ConnectionAbortedError, JSONDecodeError) as exc:
             logger.info('Server closed')
             gui.reset()
             break
@@ -90,8 +87,6 @@ def instruction_listening_thread(sock, gui):  # поток, обрабатыва
             traceback.print_exc()
             break
         else:
-            #logger.debug(f'Instruction received: {instruction_dict}')
-
             try:
                 gui.execute_instruction(instruction_tuple)
             except:
@@ -120,8 +115,6 @@ def _placeholder():
 
 
 class FSMRuntimeApp(tk.Frame):
-    #queue = Queue()
-
     def __init__(self, master=None):
         super().__init__(master)
 
@@ -407,8 +400,9 @@ class FSMRuntimeApp(tk.Frame):
                         base_graph_found = True
                         logger.debug(f'Base graph image found')
                     try:
-                        #self.graph_images[filename[:-4]] = load_image(image_path)
-                        self.graph_images[filename[:-4]] = tk.PhotoImage(file=image_path)
+                        self.graph_images[filename[:-4]] = load_image(image_path)
+
+                        #self.graph_images[filename[:-4]] = tk.PhotoImage(file=image_path)
                     except Exception as exc:
                         logger.warning(f'Couldn\'t open graph image {filename[:-4]}')
                         #print(exc)
