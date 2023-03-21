@@ -214,6 +214,15 @@ class FSMRuntimeApp(tk.Frame):
 
         self.pack()
 
+        self.buttons_dict = {
+            'button1': self.input_btn_1,
+            'button2': self.input_btn_2,
+            'button3': self.input_btn_3,
+            'button4': self.input_btn_4,
+            'button5': self.input_btn_5,
+            'button6': self.input_btn_6,
+        }
+
         self.widgets_dict = {
             'p1': self.pedestrian_lights_list[0],
             'p2': self.pedestrian_lights_list[1],
@@ -302,17 +311,17 @@ class FSMRuntimeApp(tk.Frame):
 
         """ Buttons section """
         #self.buttons_frame = tk.Frame(self.tab_traffic)
-        self.input_btn_1 = ttk.Button(self.tab_traffic, text='Btn1', command=lambda: self.send_event('button1'), style='TButton')
+        self.input_btn_1 = ttk.Button(self.tab_traffic, state=tk.DISABLED, text='button1', command=lambda: self.send_event('button1'), style='TButton')
         self.input_btn_1.grid(row=2, column=0, padx=5, pady=5)
-        self.input_btn_2 = ttk.Button(self.tab_traffic, text='Btn2', command=lambda: self.send_event('button2'), style='TButton')
+        self.input_btn_2 = ttk.Button(self.tab_traffic, state=tk.DISABLED, text='button2', command=lambda: self.send_event('button2'), style='TButton')
         self.input_btn_2.grid(row=2, column=1, padx=5, pady=5)
-        self.input_btn_3 = ttk.Button(self.tab_traffic, text='Btn3', command=lambda: self.send_event('button3'), style='TButton')
+        self.input_btn_3 = ttk.Button(self.tab_traffic, state=tk.DISABLED, text='button3', command=lambda: self.send_event('button3'), style='TButton')
         self.input_btn_3.grid(row=2, column=2, padx=5, pady=5)
-        self.input_btn_4 = ttk.Button(self.tab_traffic, text='Btn4', command=lambda: self.send_event('button4'), style='TButton')
+        self.input_btn_4 = ttk.Button(self.tab_traffic, state=tk.DISABLED, text='button4', command=lambda: self.send_event('button4'), style='TButton')
         self.input_btn_4.grid(row=2, column=3, padx=5, pady=5)
-        self.input_btn_5 = ttk.Button(self.tab_traffic, text='Btn5', command=lambda: self.send_event('button5'), style='TButton')
+        self.input_btn_5 = ttk.Button(self.tab_traffic, state=tk.DISABLED, text='button5', command=lambda: self.send_event('button5'), style='TButton')
         self.input_btn_5.grid(row=2, column=4, padx=5, pady=5)
-        self.input_btn_6 = ttk.Button(self.tab_traffic, text='Btn6', command=lambda: self.send_event('button6'), style='TButton')
+        self.input_btn_6 = ttk.Button(self.tab_traffic, state=tk.DISABLED, text='button6', command=lambda: self.send_event('button6'), style='TButton')
         self.input_btn_6.grid(row=2, column=5, padx=5, pady=5)
         #self.buttons_frame.grid(row=3, column=0, columnspan=6, pady=5)
         """ === """
@@ -462,11 +471,22 @@ class FSMRuntimeApp(tk.Frame):
             self.description_var.set(config['description'])
         if 'instructions_set' in config:
             # TODO: disable unused widgets
+            # config['instructions_set']
             pass
         if 'events_set' in config:
-            # TODO: disable unused buttons
-            pass
-            #config['instructions_set']
+            logger.debug(f'GUI got events set:')
+            for event in config['events_set']:
+                logger.debug(f'event: {event}')
+                if event == 'timeout':
+                    continue
+                elif event.startswith('button'):
+                    if event in self.buttons_dict:
+                        button = self.buttons_dict[event]
+                        button.configure(state=tk.NORMAL)
+        else:
+            for event in self.buttons_dict:
+                button = self.buttons_dict[event]
+                button.configure(state=tk.NORMAL)
 
     def activate(self):
         #logger.debug('App activated')
