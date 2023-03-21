@@ -14,10 +14,10 @@ class FSM:
             self._init(alphabet=orig.alphabet,
                        state_set=orig.state_set,
                        instructions_set=orig.instructions_set,
-                       init_state=orig.init_state,
-                       init_instructions=orig.init_instructions,
+                       initial_state=orig.init_state,
+                       initial_instructions=orig.init_instructions,
                        final_states=orig.final_states,
-                       transition_map=orig.transition_map)
+                       transition_map=orig.transition_map,)
         else:
             self._init(**kwargs)
 
@@ -55,8 +55,12 @@ class FSM:
             return False
         return True
 
-    def _init(self, alphabet: Set[str], instructions_set: Set[str], state_set: Set[Union[str, int]], initial_state: Union[str, int], initial_instructions: List[Union[str, tuple]], final_states: Set[Union[str, int]], transition_map: dict, name: str = 'unnamed_fsm', description: str = None):
+    def _init(self, alphabet: Set[str], instructions_set: Set[str], state_set: Set[Union[str, int]],
+              initial_state: Union[str, int], initial_instructions: List[Union[str, tuple]],
+              final_states: Set[Union[str, int]], transition_map: dict,
+              name: str = 'unnamed_fsm', title: str = 'Unnamed', description: str = '',):
         self._name = name
+        self._title = title
         if description:
             self._description = description
         else:
@@ -111,7 +115,8 @@ class FSM:
                     print(f'== State change: {old_state} -{event}-> {state}')
 
     def _generate_graph(self, selected_state: str = '') -> graphviz.Digraph:
-        dot = graphviz.Digraph(self._name, comment=self._name + ': ' + self._description)
+        #dot = graphviz.Digraph(self._name, comment=self._title + ': ' + self._description)
+        dot = graphviz.Digraph(self._name, comment=self._name)
 
         dot.node('START')
 
@@ -171,6 +176,10 @@ class FSM:
 
         """Import statements"""
         code_gen.write("from python_server import event_queue")
+        code_gen.write("")
+        code_gen.write("")
+        conf_string = f"'title': '{self._title}', 'description': '{self._description}', 'instructions_set': {self.instructions_set}, 'events_set': {self.alphabet}"
+        code_gen.write(f"config = {conf_string}")
         code_gen.write("")
         code_gen.write("")
 
