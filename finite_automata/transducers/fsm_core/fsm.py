@@ -178,6 +178,8 @@ class FSM:
         code_gen.write("from python_server import event_queue")
         code_gen.write("")
         code_gen.write("")
+
+        """Metadata config (for GUI)"""
         conf_string = f"'title': '{self._title}', 'description': '{self._description}', " \
                       f"'instructions_set': {list(self.instructions_set)}, 'events_set': {list(self.alphabet)}"
         code_gen.write("config = {" + conf_string + "}")
