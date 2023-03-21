@@ -141,8 +141,9 @@ class FSMRuntimeApp(tk.Frame):
         self.style.configure('TLabel', foreground='black', background=app_colors['bg'], padding=10, font=self.FONTS['normal'])
         self.style.configure('Header.TLabel', foreground='black', background=app_colors['bg'], padding=10,
                                      font=self.FONTS['heading'])
-        self.style.configure('Timer.TLabel', foreground='black', background=app_colors['bg'], padding=10, font=self.FONTS['oldstyle'])
+        self.style.configure('Timer.TLabel', foreground='black', background=app_colors['bg'], justify=tk.RIGHT, width=2, height=1, padding=10, font=self.FONTS['oldstyle'])
         self.style.configure('TFrame', background=app_colors['bg'])
+        self.style.configure('Thick.TFrame', background=app_colors['warning'], borderwidth=2)
         self.style.configure('TButton', background=app_colors['primary'], foreground='black', padding=10, font=self.FONTS['normal'])
         self.style.configure('TNotebook.Tab', background='light blue', focuscolor=self.style.configure('.')['background'])
         self.style.configure('TNotebook', background='white')
@@ -187,23 +188,33 @@ class FSMRuntimeApp(tk.Frame):
         self.title_var = tk.StringVar()
         self.description_var = tk.StringVar()
 
-        self.title_label = ttk.Label(self, textvariable=self.title_var, style='Header.TLabel')
-        self.title_label.grid(row=0, column=0)
+        self.title_frame = tk.Frame(self, borderwidth=2, relief=tk.RIDGE, width=500, height=500, bg='blue')
+        self.title_label = ttk.Label(self.title_frame, textvariable=self.title_var, style='Header.TLabel')
+        #self.title_label.grid(row=0, column=0)
+        self.title_label.pack()
+        self.title_frame.grid(row=0, column=0)
 
-        self.description_label = ttk.Label(self, textvariable=self.description_var)
-        self.description_label.grid(row=0, column=1, columnspan=3)
+        self.description_frame = tk.Frame(self, borderwidth=2, relief=tk.RIDGE, width=500, height=500, bg='green')
+        self.description_label = ttk.Label(self.description_frame, textvariable=self.description_var)
+        #self.description_label.grid(row=0, column=1, columnspan=3)
+        self.description_label.pack()
+        self.description_frame.grid(row=0, column=1, columnspan=3)
 
         #self.timer_display_default = TimerDisplay(self, 0, self.timeout_var)
         #self.timer_display_default = ttk.Label(self, font='Courier 18 bold',  textvariable=self.timeout_var)
-        self.timer_display_frame = tk.Frame(self, bg=app_colors['bg'])
+        #self.timer_display_frame = ttk.Frame(self, borderwidth=2, width=300, height=300, style='Thick.TFrame')
+        self.timer_display_frame = tk.Frame(self, borderwidth=2, relief=tk.RIDGE, width=500, height=500, bg='yellow')
         self.timer_display_default = ttk.Label(self.timer_display_frame, textvariable=self.timeout_var, style='Timer.TLabel')
-        self.timer_display_default.pack(pady=10, padx=10)
+        self.timer_display_default.pack(pady=20, padx=20)
         self.timer_display_frame.grid(row=0, column=5)
+        #self.timer_display_frame.configure(height=self.timer_display_frame["height"], width=self.timer_display_frame["width"])
+        self.timer_display_frame.grid_propagate(0)
 
-        #self.graph_image_frame = ttk.Frame(self, width=900, height=900)
-        self.graph_image_lbl = ttk.Label(self, style='TLabel')
-        self.graph_image_lbl.grid(row=0, column=6, rowspan=6, columnspan=6)
-        #self.graph_image_frame.grid(row=0, column=6, rowspan=6, columnspan=6)
+        self.graph_image_frame = ttk.Frame(self, width=700, height=700, style='TFrame')
+        self.graph_image_lbl = ttk.Label(self.graph_image_frame, style='TLabel')
+        #self.graph_image_lbl.grid(row=0, column=6, rowspan=6, columnspan=6)
+        self.graph_image_lbl.pack()
+        self.graph_image_frame.grid(row=0, column=6, rowspan=6, columnspan=6)
 
         #self.timer_progressbar = ttk.Progressbar()
 
@@ -214,6 +225,9 @@ class FSMRuntimeApp(tk.Frame):
         self.init_tab_traffic(self.tab_control)
         self.init_tab_elevator(self.tab_control)
         self.tab_control.grid(row=1, column=0, rowspan=4, columnspan=6, padx=0, pady=0)
+
+        self.output_console_frame = ttk.Frame(self, style='TFrame')
+        self.output_console_frame.grid(row=5, column=0, rowspan=2, columnspan=6, padx=0, pady=0)
 
         self.pack()
 
