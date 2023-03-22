@@ -14,7 +14,7 @@ from tkinter import filedialog
 from tkinter.font import Font
 import tkinter.ttk as ttk
 from PIL import ImageTk, Image
-#from queue import Queue
+from queue import Queue
 
 from utility import timings
 from runtime_admin_app import timer
@@ -24,7 +24,6 @@ from runtime_admin_app.traffic_lights_gui_preset import TrafficLight, Pedestrian
 
 SERVER_ADDRESS = ("127.0.0.1", 12345)
 MAX_BUFFER_SIZE = 4096
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -69,8 +68,8 @@ def load_image(path):
         return photoimg
 
 
-def get_instruction_from_server(soc):
-    instruction_json = soc.recv(MAX_BUFFER_SIZE)
+def get_instruction_from_server(sock):
+    instruction_json = sock.recv(MAX_BUFFER_SIZE)
     # TODO: split multiple jsons received (or handle otherwise)
 
     #dict_list = [d.strip() for d in instruction_json.splitlines()]
@@ -81,13 +80,13 @@ def get_instruction_from_server(soc):
 
 
 def instruction_listening_thread(sock, gui):
-    #time.sleep(0.9)
     while True:
         try:
             instruction = get_instruction_from_server(sock)
         except (ConnectionResetError, ConnectionAbortedError) as exc:
             logger.info('Server closed')
-            gui.reset()
+            #gui.reset()
+            gui.event_generate('<<AppReset>>')
             break
         except JSONDecodeError as exc:
             traceback.print_exc()
@@ -98,10 +97,13 @@ def instruction_listening_thread(sock, gui):
             break
         else:
             if type(instruction) is dict:
-                gui.set_fsm_info(instruction)
+                #gui.set_fsm_info(instruction)
+                gui.save_config(instruction)
             else:
                 try:
-                    gui.execute_instruction(instruction)
+                    #gui.execute_instruction(instruction)
+                    gui.instruction_queue.put(instruction)
+                    gui.event_generate('<<instruction>>')
                 except:
                     logger.error('Error while executing instruction')
                     traceback.print_exc()
@@ -116,7 +118,8 @@ def connecting_thread(sock, gui):
             logger.info('Connecting...')
             time.sleep(0.01)
         else:
-            gui.activate()
+            #gui.activate()
+            gui.event_generate('<<activate>>')
             break
     else:
         logger.error('Couldn\'t connect to server')
@@ -136,6 +139,11 @@ class FSMRuntimeApp(tk.Frame):
         self.master.maxsize(1600, 900)
         self.master.protocol("WM_DELETE_WINDOW", self.exit)
         self.configure(bg='white')
+
+        self.bind('<<app_reset>>', self.reset)
+        self.bind('<<set_config>>', self.set_fsm_info)
+        self.bind('<<activate>>', self.activate)
+        self.bind('<<instruction>>', self.execute_instruction)
 
         self.FONTS = {
             'oldstyle': Font(family='Adobe Caslon Oldstyle Figures', size=30),
@@ -159,21 +167,22 @@ class FSMRuntimeApp(tk.Frame):
                        background=[('selected', 'white'), ],
                        focuscolor=[('selected', 'white'), ])
 
-        menubar = tk.Menu(self.master)
-        filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label='Open', command=self.open_file)
-        filemenu.add_separator()
-        filemenu.add_command(label='Settings', command=_placeholder)  # TODO: add settings popup window
-        filemenu.add_separator()
-        filemenu.add_command(label='Exit', command=self.exit)
-        menubar.add_cascade(label='File', menu=filemenu)
+        menu_bar = tk.Menu(self.master)
+        file_menu = tk.Menu(menu_bar, tearoff=0)
+        file_menu.add_command(label='Open', command=self.open_file)
+        file_menu.add_separator()
+        file_menu.add_command(label='Settings', command=_placeholder)  # TODO: add settings popup window
+        file_menu.add_separator()
+        file_menu.add_command(label='Exit', command=self.exit)
+        menu_bar.add_cascade(label='File', menu=file_menu)
 
-        helpmenu = tk.Menu(menubar, tearoff=0)
+        helpmenu = tk.Menu(menu_bar, tearoff=0)
         helpmenu.add_command(label='About...', command=_placeholder)  # TODO: add About popup window
-        menubar.add_cascade(label='Help', menu=helpmenu)
+        menu_bar.add_cascade(label='Help', menu=helpmenu)
 
-        self.master.config(menu=menubar)
+        self.master.config(menu=menu_bar)
 
+        self.instruction_queue = Queue()
         self.sock = None
         self.fsm_filename = None
         self.active = False
@@ -386,7 +395,8 @@ class FSMRuntimeApp(tk.Frame):
         self.update_timer(0)
         self.send_event('timeout')
 
-    def execute_instruction(self, instr: tuple):
+    def execute_instruction(self, event):
+        instr = self.instruction_queue.get()
         if not self.config_is_set:
             self.switch_all_widgets(True)
             self.switch_all_buttons(True)
@@ -399,7 +409,7 @@ class FSMRuntimeApp(tk.Frame):
         elif instr[0] in self.instructions_dict:
             self.instructions_dict[instr[0]]()
         else:
-            pass
+            logger.debug(f'GUI: unknown instruction: {instr[0]}')
 
     def reset(self):
         logger.debug('Reset called')
@@ -421,6 +431,7 @@ class FSMRuntimeApp(tk.Frame):
             self.dynamic_visualization = False
             self.switch_all_widgets(False)
             self.switch_all_buttons(False)
+            self.fsm_config = None
             self.config_is_set = False
             logger.info(f'App is reset')
 
@@ -523,15 +534,19 @@ class FSMRuntimeApp(tk.Frame):
                 button = self.buttons_dict[event]
                 button.configure(state=tk.DISABLED)
 
-    def set_fsm_info(self, config):
+    def save_config(self, config):
+        self.fsm_config = config
+        self.event_generate('<<set_config>>')
+
+    def set_fsm_info(self, event):
         self.config_is_set = True
-        if 'title' in config:
-            self.title_var.set(config['title'])
-        if 'description' in config:
-            self.description_var.set(config['description'])
-        if 'instructions_set' in config:
+        if 'title' in self.fsm_config:
+            self.title_var.set(self.fsm_config['title'])
+        if 'description' in self.fsm_config:
+            self.description_var.set(self.fsm_config['description'])
+        if 'instructions_set' in self.fsm_config:
             logger.debug(f'GUI got instructions set:')
-            for instruction in config['instructions_set']:
+            for instruction in self.fsm_config['instructions_set']:
                 logger.debug(f'instruction: {instruction}')
                 if instruction[:2] in self.widgets_dict:
                     self.widgets_dict[instruction[:2]].activate()
@@ -539,9 +554,9 @@ class FSMRuntimeApp(tk.Frame):
         else:
             logger.debug(f'No instructions set provided:')
             self.switch_all_widgets(True)
-        if 'events_set' in config:
+        if 'events_set' in self.fsm_config:
             logger.debug(f'GUI got events set:')
-            for event in config['events_set']:
+            for event in self.fsm_config['events_set']:
                 logger.debug(f'event: {event}')
                 if event == 'timeout':
                     continue
@@ -553,7 +568,7 @@ class FSMRuntimeApp(tk.Frame):
             logger.debug(f'No events set provided:')
             self.switch_all_buttons(True)
 
-    def activate(self):
+    def activate(self, event):
         #logger.debug('App activated')
         if self.server_process:
             if not self.timer_thread.is_alive():
@@ -574,7 +589,6 @@ class FSMRuntimeApp(tk.Frame):
             if self.graph_images:
                 self.switch_graph_image('_base')
             logger.info('Available images loaded')
-
 
     def exit(self):
         if self.server_process:
