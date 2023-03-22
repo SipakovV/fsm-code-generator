@@ -491,6 +491,7 @@ class FSMRuntimeApp(tk.Frame):
         else:
             logger.warning(f'Graph images directory for {fsm_name[:-3]} not found')
             logger.warning(f'Tried: {images_dir}')
+        logger.debug('Available images loaded')
 
     def switch_graph_image(self, state_name):
         if self.active:
@@ -585,7 +586,6 @@ class FSMRuntimeApp(tk.Frame):
                 traceback.print_exc()
             logger.info('Connected to server')
             self.active = True
-            logger.info('Available images loaded')
 
     def exit(self):
         if self.server_process:
