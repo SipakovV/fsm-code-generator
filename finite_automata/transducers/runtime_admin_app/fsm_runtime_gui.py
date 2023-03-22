@@ -192,6 +192,7 @@ class FSMRuntimeApp(tk.Frame):
         self.timer_thread.daemon = True
         self.server_process = None
         self.config_is_set = False
+        self.fsm_config = None
 
         col_count, row_count = self.grid_size()
 
@@ -457,7 +458,10 @@ class FSMRuntimeApp(tk.Frame):
             self.reset()
             self.fsm_filename = fsm_name
             self.start_server(filename)
-            self.after(300, self.connect)
+            self.load_images(self.fsm_filename)
+            if self.graph_images:
+                self.switch_graph_image('_base')
+            self.after(10, self.connect)
 
     def load_images(self, fsm_name):
         images_dir = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), 'generated_graph_images', fsm_name[:-3])
@@ -573,11 +577,6 @@ class FSMRuntimeApp(tk.Frame):
         if self.server_process:
             if not self.timer_thread.is_alive():
                 self.timer_thread.start()
-            self.active = True
-            #config = {
-            #    'title': 'test',
-            #    'description': 'bla bla bla FSM bla bla\nbla bla'
-            #}
             self.title_var.set(self.fsm_filename)
             try:
                 Thread(target=instruction_listening_thread, args=(self.sock, self), daemon=True).start()
@@ -585,9 +584,7 @@ class FSMRuntimeApp(tk.Frame):
                 logger.error("Error while starting listening thread")
                 traceback.print_exc()
             logger.info('Connected to server')
-            self.load_images(self.fsm_filename)
-            if self.graph_images:
-                self.switch_graph_image('_base')
+            self.active = True
             logger.info('Available images loaded')
 
     def exit(self):
