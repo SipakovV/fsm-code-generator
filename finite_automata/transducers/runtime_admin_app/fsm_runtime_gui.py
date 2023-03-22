@@ -90,7 +90,8 @@ def instruction_listening_thread(sock, gui):
             break
         except JSONDecodeError as exc:
             traceback.print_exc()
-            continue
+            gui.event_generate('<<app_reset>>')
+            break
         except:
             logger.error('Error while getting data from server')
             traceback.print_exc()
