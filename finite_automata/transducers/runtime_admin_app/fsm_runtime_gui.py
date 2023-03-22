@@ -111,12 +111,12 @@ def instruction_listening_thread(sock, gui):
 
 
 def connecting_thread(sock, gui):
-    for _ in range(3):
+    for _ in range(10):
         try:
             sock.connect(SERVER_ADDRESS)
         except ConnectionRefusedError:
             logger.info('Connecting...')
-            time.sleep(0.01)
+            time.sleep(0.1)
         else:
             #gui.activate()
             gui.event_generate('<<activate>>')
