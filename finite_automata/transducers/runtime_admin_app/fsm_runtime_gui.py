@@ -72,18 +72,26 @@ def load_image(path):
 def get_instruction_from_server(soc):
     instruction_json = soc.recv(MAX_BUFFER_SIZE)
     # TODO: split multiple jsons received (or handle otherwise)
+
+    #dict_list = [d.strip() for d in instruction_json.splitlines()]
+    #for d in dict_list:
     instruction = json.loads(instruction_json)
+    logger.debug(instruction)
     return instruction
 
 
 def instruction_listening_thread(sock, gui):
+    #time.sleep(0.9)
     while True:
         try:
             instruction = get_instruction_from_server(sock)
-        except (ConnectionResetError, ConnectionAbortedError, JSONDecodeError) as exc:
+        except (ConnectionResetError, ConnectionAbortedError) as exc:
             logger.info('Server closed')
             gui.reset()
             break
+        except JSONDecodeError as exc:
+            traceback.print_exc()
+            continue
         except:
             logger.error('Error while getting data from server')
             traceback.print_exc()
@@ -430,6 +438,16 @@ class FSMRuntimeApp(tk.Frame):
                 logger.info(f'Opening file: {filename}')
                 self.load_file(filename)
 
+    def load_file(self, filename):
+        fsm_name = os.path.basename(filename)
+        # logger.debug(fsm_name)
+
+        if fsm_name:
+            self.reset()
+            self.fsm_filename = fsm_name
+            self.start_server(filename)
+            self.after(300, self.connect)
+
     def load_images(self, fsm_name):
         images_dir = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), 'generated_graph_images', fsm_name[:-3])
 
@@ -469,16 +487,6 @@ class FSMRuntimeApp(tk.Frame):
                 logger.debug(f'GUI: graph defaulted to base')
 
             self.graph_image_lbl.configure(image=img)
-
-    def load_file(self, filename):
-        fsm_name = os.path.basename(filename)
-        # logger.debug(fsm_name)
-
-        if fsm_name:
-            self.reset()
-            self.fsm_filename = fsm_name
-            self.start_server(filename)
-            self.after(300, self.connect)
 
     def start_server(self, filename):
         # test_process = subprocess.Popen(['ls', '--help'])
@@ -556,16 +564,17 @@ class FSMRuntimeApp(tk.Frame):
             #    'description': 'bla bla bla FSM bla bla\nbla bla'
             #}
             self.title_var.set(self.fsm_filename)
-            #self.description_var.set(config['description'])
-            self.load_images(self.fsm_filename)
-            if self.graph_images:
-                self.switch_graph_image('_base')
-            logger.info('Connected to server')
             try:
                 Thread(target=instruction_listening_thread, args=(self.sock, self), daemon=True).start()
             except:
                 logger.error("Error while starting listening thread")
                 traceback.print_exc()
+            logger.info('Connected to server')
+            self.load_images(self.fsm_filename)
+            if self.graph_images:
+                self.switch_graph_image('_base')
+            logger.info('Available images loaded')
+
 
     def exit(self):
         if self.server_process:
