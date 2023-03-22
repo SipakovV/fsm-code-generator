@@ -86,7 +86,7 @@ def instruction_listening_thread(sock, gui):
         except (ConnectionResetError, ConnectionAbortedError) as exc:
             logger.info('Server closed')
             #gui.reset()
-            gui.event_generate('<<AppReset>>')
+            gui.event_generate('<<app_reset>>')
             break
         except JSONDecodeError as exc:
             traceback.print_exc()
@@ -412,7 +412,7 @@ class FSMRuntimeApp(tk.Frame):
         else:
             logger.debug(f'GUI: unknown instruction: {instr[0]}')
 
-    def reset(self):
+    def reset(self, event=None):
         logger.debug('Reset called')
         if self.active:
             self.fsm_filename = None
