@@ -27,6 +27,7 @@ fsm_module = None
 
 
 def instruction_listening_thread(conn, publish_state: bool = False):  # thread for listening at queue for instructions
+    time.sleep(0.1)
     while True:
         instruction = event_queue.get_next_instruction()
         if instruction[0] == 'state':
@@ -70,7 +71,7 @@ def event_listening_thread(conn, ip, port):  # thread for listening at socket fo
             event_dict = json.loads(event_json)
             event_queue.put_event(event_dict['event'])
         except:
-            # traceback.print_exc()
+            traceback.print_exc()
             break
 
     conn.close()
