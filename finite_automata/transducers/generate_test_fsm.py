@@ -9,7 +9,6 @@ def generate_fsm_with_button():
                  'p_go', 'p_stopping', 'traffic_ready'}
     initial_state = 'traffic_go'
     initial_instructions = [('set_timeout', 30), 't1_green', 'p1_red']
-    final_states = set()
     transition_map = {
         'traffic_go': {'timeout': ('traffic_go_ready', []), 'button1': ('traffic_go_change', [])},
         'traffic_go_ready': {'button1': ('traffic_stopping1', [('set_timeout', 3), 't1_blinking'])},
@@ -23,11 +22,9 @@ def generate_fsm_with_button():
 
     assert (row in state_set for row in transition_map)
     assert initial_state in state_set
-    assert final_states.issubset(state_set)
 
     fsm_TL_4way_1button = fsm.FSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
-                                  initial_state=initial_state, initial_instructions=initial_instructions,
-                                  final_states=final_states, transition_map=transition_map,
+                                  initial_state=initial_state, initial_instructions=initial_instructions, transition_map=transition_map,
                                   name='fsm_with_button',
                                   title='FSM with button',
                                   description='FSM for testing the buttons')
@@ -75,6 +72,51 @@ def generate_fsm_without_button():
     test_FSM_TL_4way_p_and_t.generate_code_python()
 
 
+def generate_fsm_microwave():
+    alphabet = {'timeout', 'door_open', 'door_close', 'button_run', 'button_reset'}
+    instructions_set = {'set_timeout', 'add_timeout',
+                        'pause_timer', 'resume_timer',
+                        'power_on', 'power_off',
+                        'lamp_on', 'lamp_off',
+                        'beeping_on', 'beeping_off'}
+    state_set = {'door_closed', 'door_open',
+                 'cooking', 'cooking_completed', 'cooking_interrupted'}
+    initial_state = 'door_closed'
+    initial_instructions = ['power_off', 'lamp_off', 'beeping_off']
+    transition_map = {
+        'door_closed': {
+            'door_open': ('door_open', ['lamp_on']),
+            'button_run': ('cooking', [('set_timeout', 30), 'lamp_on', 'power_on'])},
+        'door_open': {
+            'door_close': ('door_closed', ['lamp_off'])},
+        'cooking': {
+            'button_reset': ('door_closed', [('set_timeout', 0), 'lamp_off', 'power_off']),
+            'button_run': ('cooking', [('add_timeout', 30)]),
+            'door_open': ('cooking_interrupted', ['pause_timer', 'power_off']),
+            'timeout': ('cooking_completed', ['power_off', 'beeping_on'])},
+        'cooking_interrupted': {
+            'door_close': ('cooking', ['resume_timer', 'lamp_off'])},
+        'cooking_completed': {
+            'door_open': ('door_open', ['beeping_off']),
+            'button_reset': ('door_closed', ['lamp_off', 'beeping_off'])},
+    }
+
+    assert (row in state_set for row in transition_map)
+    assert initial_state in state_set
+
+    microwave_fsm = fsm.FSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
+                                       initial_state=initial_state, initial_instructions=initial_instructions,
+                                       transition_map=transition_map,
+                                       name='microwave_fsm',
+                                       title='FSM for microwave',
+                                       description='FSM for testing the microwave widgets')
+    print()
+    print(microwave_fsm)
+    microwave_fsm.visualize(all_states=True)
+    microwave_fsm.generate_code_python()
+
+
 if __name__ == '__main__':
+    generate_fsm_microwave()
     generate_fsm_with_button()
     generate_fsm_without_button()
