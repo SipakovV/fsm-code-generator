@@ -19,6 +19,7 @@ from queue import Queue
 from utility import timings
 from runtime_admin_app import timer
 from runtime_admin_app.traffic_lights_gui_preset import TrafficLight, PedestrianLight, TimerDisplay
+from runtime_admin_app.microwave_gui_preset import PowerLamp
 #from python_server import fsm_server
 
 
@@ -53,6 +54,18 @@ tl_colors = {
     'off_disabled': 'gray',
     'base_active': 'gray',
     'base_disabled': 'light gray',
+}
+
+mw_dimensions = {
+    'lamp_size': 80,
+    'padding': 15,
+    'canvas_size': 110,
+}
+
+mw_colors = {
+    'off_active': 'black',
+    'off_disabled': 'gray',
+    'on_active': 'yellow',
 }
 
 
@@ -248,6 +261,7 @@ class FSMRuntimeApp(tk.Frame):
         self.tab_control = ttk.Notebook(self, style='TNotebook')
         self.init_tab_traffic(self.tab_control)
         self.init_tab_elevator(self.tab_control)
+        self.init_tab_microwave(self.tab_control)
         self.tab_control.grid(row=1, column=0, rowspan=4, columnspan=6, padx=0, pady=0)
 
         self.output_console_frame = ttk.Frame(self, style='TFrame')
@@ -262,6 +276,11 @@ class FSMRuntimeApp(tk.Frame):
             'button4': self.input_btn_4,
             'button5': self.input_btn_5,
             'button6': self.input_btn_6,
+
+            'button_run': self.button_run,
+            'button_reset': self.button_reset,
+            'door_close': self.door,
+            'door_open': self.door,
         }
 
         self.widgets_dict = {
@@ -278,9 +297,15 @@ class FSMRuntimeApp(tk.Frame):
             't4': self.traffic_lights_list[3],
             't5': self.traffic_lights_list[4],
             't6': self.traffic_lights_list[5],
+
+            'power': self.mw_power,
+            'lamp': self.mw_lamp,
+            'beeping': self.mw_beep,
         }
 
         self.instructions_dict = {
+            # traffic lights instructions
+
             'p1_red': self.pedestrian_lights_list[0].set_red,
             'p1_green': self.pedestrian_lights_list[0].set_green,
             'p1_blinking': self.pedestrian_lights_list[0].set_green_blinking,
@@ -340,6 +365,15 @@ class FSMRuntimeApp(tk.Frame):
             't6_yellow': self.traffic_lights_list[5].set_yellow,
             't6_green': self.traffic_lights_list[5].set_green,
             't6_blinking': self.traffic_lights_list[5].set_green_blinking,
+
+            # microwave instructions
+
+            'lamp_on': self.mw_lamp.turn_on,
+            'lamp_off': self.mw_lamp.turn_off,
+            'power_on': self.mw_power.turn_on,
+            'power_off': self.mw_power.turn_off,
+            'beeping_on': self.mw_beep.turn_on,
+            'beeping_off': self.mw_beep.turn_off,
         }
 
     def init_tab_traffic(self, tab_control):
@@ -386,6 +420,42 @@ class FSMRuntimeApp(tk.Frame):
 
         self.tab_control.add(self.tab_elevator, text='Elevator')
 
+    def init_tab_microwave(self, tab_control):
+        self.tab_microwave = ttk.Frame(tab_control, style='TFrame', width=700, height=500)
+
+        col_count, row_count = self.tab_microwave.grid_size()
+        for col in range(col_count):
+            self.grid_columnconfigure(col, minsize=mw_dimensions['canvas_size'] + mw_dimensions['padding'])
+
+        for row in range(row_count):
+            self.grid_rowconfigure(row, minsize=mw_dimensions['canvas_size'] + mw_dimensions['padding'])
+
+        self.mw_power = PowerLamp(self.tab_microwave, 0, 0, mw_dimensions, mw_colors)
+        self.mw_lamp = PowerLamp(self.tab_microwave, 0, 1, mw_dimensions, mw_colors)
+        self.mw_beep = PowerLamp(self.tab_microwave, 0, 2, mw_dimensions, mw_colors)
+
+        self.button_run = ttk.Button(self.tab_microwave, state=tk.DISABLED, text='Run',
+                                      command=lambda: self.send_event('button_run'), style='TButton')
+        self.button_run.grid(row=1, column=0, padx=5, pady=5)
+        self.button_reset = ttk.Button(self.tab_microwave, state=tk.DISABLED, text='Reset',
+                                      command=lambda: self.send_event('button_reset'), style='TButton')
+        self.button_reset.grid(row=1, column=1, padx=5, pady=5)
+
+        self.door = tk.Scale(self.tab_microwave, from_=0, to=1, label='Closed', showvalue=False, command=self.switch_door, orient=tk.HORIZONTAL, length=230)
+        self.door.grid(row=1, column=2, columnspan=2, padx=5, pady=5)
+
+        self.tab_control.add(self.tab_microwave, text='Microwave')
+
+    def switch_door(self, val):
+        if val == '1':
+            self.door['label'] = 'Open'
+            if self.active:
+                self.send_event('door_open')
+        else:
+            self.door['label'] = 'Closed'
+            if self.active:
+                self.send_event('door_close')
+
     def update_timer(self, timeout_seconds):
         self.timeout_var.set(timeout_seconds)
 
@@ -411,11 +481,17 @@ class FSMRuntimeApp(tk.Frame):
         if instr[0] == 'state':
             logger.debug(f'GUI: state changed to {instr[1]}')
             self.switch_graph_image(instr[1])
-        elif instr[0] == 'set_timeout':
+        elif instr[0] == 'timer_set':
             if instr[1] == 0:
                 self.timer_thread.reset_timer()
             else:
                 self.timer_thread.set_timer(instr[1])
+        elif instr[0] == 'timer_add':
+            self.timer_thread.add_timer(instr[1])
+        elif instr[0] == 'timer_pause':
+            self.timer_thread.pause_timer()
+        elif instr[0] == 'timer_resume':
+            self.timer_thread.resume_timer()
         elif instr[0] in self.instructions_dict:
             self.instructions_dict[instr[0]]()
         else:
@@ -563,9 +639,14 @@ class FSMRuntimeApp(tk.Frame):
             logger.debug(f'GUI got instructions set:')
             for instruction in self.fsm_config['instructions_set']:
                 logger.debug(f'instruction: {instruction}')
-                if instruction[:2] in self.widgets_dict:
-                    self.widgets_dict[instruction[:2]].activate()
-                    logger.debug(f'{instruction[:2]} - canvas hidden')
+                widget = instruction.split('_')[0]
+                if widget == 'timer':
+                    pass
+                elif widget in self.widgets_dict:
+                    self.widgets_dict[widget].activate()
+                    logger.debug(f'{widget} - widget active')
+                else:
+                    logger.debug(f'{widget} - widget unknown')
         else:
             logger.debug(f'No instructions set provided:')
             self.switch_all_widgets(True)
