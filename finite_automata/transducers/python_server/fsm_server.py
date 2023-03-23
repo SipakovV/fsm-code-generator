@@ -27,7 +27,7 @@ fsm_module = None
 
 
 def instruction_listening_thread(conn, publish_state: bool = False):  # thread for listening at queue for instructions
-    time.sleep(1)
+    #time.sleep(1)
     while True:
         instruction = event_queue.get_next_instruction()
         if instruction[0] == 'state':
@@ -54,7 +54,6 @@ def instruction_listening_thread(conn, publish_state: bool = False):  # thread f
         except socket.error:
             traceback.print_exc()
             break
-        time.sleep(0.01)
 
 
 def event_listening_thread(conn, ip, port):  # thread for listening at socket for events
@@ -138,7 +137,7 @@ def run(file_path, visual: bool = False):  # запуск сервера
                 except:
                     logger.error('Error while starting threads')
                     traceback.print_exc()
-                time.sleep(1)
+                #time.sleep(1)
                 try:
                     fsm_module.run_fsm()
                 except AttributeError:
