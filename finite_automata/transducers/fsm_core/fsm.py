@@ -25,13 +25,17 @@ class FSM:
         if not initial_instructions:
             self.final_states = list()
         else:
+            assert all(instr in instructions_set if type(instr) is str else instr[0] in instructions_set for instr in initial_instructions)
             self.init_instructions = initial_instructions
 
         if not final_states:
             self.final_states = set()
         else:
+            assert final_states.issubset(state_set)
             self.final_states = final_states
         self.transition_map = transition_map
+
+
 
         assert initial_state in state_set
         assert all(instr in instructions_set or type(instr) is tuple and instr[0] in instructions_set for instr in
@@ -114,8 +118,10 @@ class FSM:
     def _generate_graph(self, selected_state: str = '') -> graphviz.Digraph:
         #dot = graphviz.Digraph(self._name, comment=self._title + ': ' + self._description)
         dot = graphviz.Digraph(self._name, comment=self._name)
+        #size='15,16',
+        dot.attr(pad='0.5', nodesep='1', ranksep='0')
 
-        dot.node('START')
+        dot.node('START', shape='diamond')
 
         for state in self.state_set:
             if state == selected_state:
@@ -128,20 +134,22 @@ class FSM:
             for event in self.transition_map[state]:
                 print('event:', event)
                 target_state, instruction_list = self.transition_map[state][event]
-                label = event
+                label = '<<b>' + event + '</b><br/>'
                 for instr in instruction_list:
                     if type(instr) is str:
-                        label += ' | <' + instr + '>'
+                        label += '<i>' + instr + '</i><br/>'
                     else:
-                        label += ' | <' + instr[0] + ', ' + str(instr[1]) + '>'
+                        label += '<i>' + instr[0] + ' ' + str(instr[1]) + '</i><br/>'
+                label += '>'
                 dot.edge(state, target_state, label=label)
 
-        label = ''
+        label = '<'
         for instr in self.init_instructions:
             if type(instr) is str:
-                label += ' | <' + instr + '>'
+                label += '<i>' + instr + '</i><br/>'
             else:
-                label += ' | <' + instr[0] + ', ' + str(instr[1]) + '>'
+                label += '<i>' + instr[0] + ', ' + str(instr[1]) + '</i><br/>'
+        label += '>'
         dot.edge('START', self.init_state, label=label)
 
         return dot
