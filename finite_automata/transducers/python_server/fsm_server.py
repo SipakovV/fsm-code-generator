@@ -50,7 +50,7 @@ def instruction_listening_thread(conn, publish_state: bool = False):  # thread f
 
         logger.debug(f'Sending: {instruction_json}')
         try:
-            conn.sendall(bytes(instruction_json, encoding="utf-8"))
+            conn.sendall(bytes(instruction_json + '\n', encoding="utf-8"))
         except socket.error:
             traceback.print_exc()
             break
