@@ -504,10 +504,11 @@ class FSMRuntimeApp(tk.Frame):
             if state_name in self.graph_images:
                 img = self.graph_images[state_name]
                 logger.debug(f'GUI: graph image switched to {state_name}')
-            else:
+            elif '_base' in self.graph_images:
                 img = self.graph_images['_base']
                 logger.debug(f'GUI: graph defaulted to base')
-
+            else:
+                return
             self.graph_image_lbl.configure(image=img)
 
     def start_server(self, filename):
