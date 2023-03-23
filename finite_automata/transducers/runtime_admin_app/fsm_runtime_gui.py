@@ -59,7 +59,10 @@ tl_colors = {
 def load_image(path):
     try:
         img = Image.open(path)
-        img_resized = img.resize((700, 700), Image.ANTIALIAS)
+        width, height = img.size
+
+        #img_resized = img.thumbnail((700, 700), Image.Resampling.LANCZOS)
+        img_resized = img.resize((round(0.7*width), round(0.7*height)), Image.ANTIALIAS)
         photoimg = ImageTk.PhotoImage(img_resized)
         #photoimg = tk.PhotoImage(path)
     except Exception as exc:
