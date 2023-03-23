@@ -464,10 +464,10 @@ class FSMRuntimeApp(tk.Frame):
             self.reset()
             self.fsm_filename = fsm_name
             self.start_server(filename)
+            self.connect()
             self.load_images(self.fsm_filename)
             if self.graph_images:
                 self.switch_graph_image('_base')
-            self.after(10, self.connect)
 
     def load_images(self, fsm_name):
         images_dir = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), 'generated_graph_images', fsm_name[:-3])
