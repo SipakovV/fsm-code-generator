@@ -409,7 +409,10 @@ class FSMRuntimeApp(tk.Frame):
             logger.debug(f'GUI: state changed to {instr[1]}')
             self.switch_graph_image(instr[1])
         elif instr[0] == 'set_timeout':
-            self.timer_thread.set_timer(instr[1])
+            if instr[1] == 0:
+                self.timer_thread.reset_timer()
+            else:
+                self.timer_thread.set_timer(instr[1])
         elif instr[0] in self.instructions_dict:
             self.instructions_dict[instr[0]]()
         else:
