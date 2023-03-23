@@ -86,7 +86,7 @@ class FSM:
         self.final_states = final_states
         self.transition_map = transition_map
 
-    def send_instruction(self, instruction, queue):
+    def _send_instruction(self, instruction, queue):
         if type(instruction) is tuple:
             queue.put_instruction(instruction[0], instruction[1])
         else:
@@ -95,7 +95,7 @@ class FSM:
     def run(self, event_queue):
         state = self.init_state
         for instr in self.init_instructions:
-            self.send_instruction(instr, event_queue)
+            self._send_instruction(instr, event_queue)
 
         while True:
             if state in self.final_states:
@@ -110,7 +110,7 @@ class FSM:
                 if event in transitions_available:
                     target_state, instruction_list = transitions_available[event]
                     for instr in instruction_list:
-                        self.send_instruction(instr, event_queue)
+                        self._send_instruction(instr, event_queue)
                     state = target_state
                     print(f'== State change: {old_state} -{event}-> {state}')
 
@@ -150,9 +150,13 @@ class FSM:
         return dot
 
     def visualize(self, directory: str = None, all_states: bool = False):
-
         if not directory:
             directory = 'generated_graph_images'
+
+        try:
+            os.mkdir(directory)
+        except FileExistsError as exc:
+            pass
 
         path = os.path.join(directory, self._name)
         #print(path)
@@ -224,13 +228,12 @@ class FSM:
                         raise TypeError('Unknown instruction type')
                 code_gen.write(f"state = '{target_state}'")
                 code_gen.dedent()
-            code_gen.write("if old_state != state:")
-            code_gen.indent()
-            code_gen.write("event_queue.put_state(state)")
-            code_gen.dedent()
             code_gen.dedent()
             i += 1
-
+        code_gen.write("if old_state != state:")
+        code_gen.indent()
+        code_gen.write("event_queue.put_state(state)")
+        code_gen.dedent()
         code_gen.dedent()
         code_gen.dedent()
         if not file_path:
