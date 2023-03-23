@@ -14,9 +14,21 @@ class TimerThread(Thread):
     def reset_timer(self):
         self.seconds_remaining = 0
         self.is_active = False
+        self.parent.update_timer(0)
 
     def set_timer(self, timeout_seconds):
         self.seconds_remaining = timeout_seconds
+        self.is_active = True
+        self.parent.update_timer(self.seconds_remaining)
+
+    def add_timer(self, timeout_seconds):
+        self.seconds_remaining += timeout_seconds
+        self.parent.update_timer(self.seconds_remaining)
+
+    def pause_timer(self):
+        self.is_active = False
+
+    def resume_timer(self):
         self.is_active = True
 
     def run(self):
