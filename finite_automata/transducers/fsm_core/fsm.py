@@ -7,19 +7,47 @@ from fsm_core.code_generator import CodeGeneratorBackend
 
 
 class FSM:
-    def __init__(self, **kwargs):
-        if 'fsm' in kwargs:
-            orig = kwargs['fsm']
-            assert isinstance(orig, FSM), "can only copy instances of FSM"
-            self._init(alphabet=orig.alphabet,
-                       state_set=orig.state_set,
-                       instructions_set=orig.instructions_set,
-                       initial_state=orig.init_state,
-                       initial_instructions=orig.init_instructions,
-                       final_states=orig.final_states,
-                       transition_map=orig.transition_map,)
+    def __init__(self, alphabet: Set[str], instructions_set: Set[str], state_set: Set[Union[str, int]],
+              initial_state: Union[str, int], transition_map: dict,
+              initial_instructions: List[Union[str, tuple]] = None, final_states: Set[Union[str, int]] = None,
+              name: str = 'unnamed_fsm', title: str = 'Unnamed', description: str = '',):
+        self._name = name
+        self._title = title
+        if description:
+            self._description = description
         else:
-            self._init(**kwargs)
+            self._description = self._name
+
+        self.alphabet = alphabet
+        self.instructions_set = instructions_set
+        self.state_set = state_set
+        self.init_state = initial_state
+        if not initial_instructions:
+            self.final_states = list()
+        else:
+            self.init_instructions = initial_instructions
+
+        if not final_states:
+            self.final_states = set()
+        else:
+            self.final_states = final_states
+        self.transition_map = transition_map
+
+        assert initial_state in state_set
+        assert all(instr in instructions_set or type(instr) is tuple and instr[0] in instructions_set for instr in
+                   self.init_instructions)
+
+        assert all(state in state_set for state in transition_map), \
+            'Transition map contains states not in state set'
+        assert all(all(transition_map[state][event][0] in state_set for event in transition_map[state]) for state in
+                   transition_map), \
+            'Transition map contains target states not in state set'
+        assert all(all(event in alphabet for event in transition_map[state]) for state in transition_map), \
+            'Transition map contains events not in alphabet'
+        assert all(all(all(
+            instr in instructions_set or (type(instr) is tuple and instr[0] in instructions_set) for instr in
+            transition_map[state][event][1]) for event in transition_map[state]) for state in transition_map), \
+            'Transition map contains instructions not in instructions set'
 
     def __repr__(self):
         try:
@@ -54,37 +82,6 @@ class FSM:
             print(other.transition_map)
             return False
         return True
-
-    def _init(self, alphabet: Set[str], instructions_set: Set[str], state_set: Set[Union[str, int]],
-              initial_state: Union[str, int], initial_instructions: List[Union[str, tuple]],
-              final_states: Set[Union[str, int]], transition_map: dict,
-              name: str = 'unnamed_fsm', title: str = 'Unnamed', description: str = '',):
-        self._name = name
-        self._title = title
-        if description:
-            self._description = description
-        else:
-            self._description = self._name
-
-        assert initial_state in state_set
-        assert all(instr in instructions_set or type(instr) is tuple and instr[0] in instructions_set for instr in initial_instructions)
-
-        assert all(state in state_set for state in transition_map), \
-            'Transition map contains states not in state set'
-        assert all(all(transition_map[state][event][0] in state_set for event in transition_map[state]) for state in transition_map), \
-            'Transition map contains target states not in state set'
-        assert all(all(event in alphabet for event in transition_map[state]) for state in transition_map), \
-            'Transition map contains events not in alphabet'
-        assert all(all(all(instr in instructions_set or (type(instr) is tuple and instr[0] in instructions_set) for instr in transition_map[state][event][1]) for event in transition_map[state]) for state in transition_map), \
-            'Transition map contains instructions not in instructions set'
-
-        self.alphabet = alphabet
-        self.instructions_set = instructions_set
-        self.state_set = state_set
-        self.init_state = initial_state
-        self.init_instructions = initial_instructions
-        self.final_states = final_states
-        self.transition_map = transition_map
 
     def _send_instruction(self, instruction, queue):
         if type(instruction) is tuple:
