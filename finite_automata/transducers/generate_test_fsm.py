@@ -93,7 +93,7 @@ def generate_fsm_microwave():
             'door_open': ('cooking_interrupted', ['timer_pause', 'power_off']),
             'timeout': ('cooking_completed', ['power_off', 'beeping_on'])},
         'cooking_interrupted': {
-            'door_close': ('cooking', ['timer_resume', 'lamp_off'])},
+            'door_close': ('cooking', ['timer_resume', 'power_on'])},
         'cooking_completed': {
             'door_open': ('door_open', ['beeping_off']),
             'button_reset': ('door_closed', ['lamp_off', 'beeping_off'])},
