@@ -19,7 +19,7 @@ from queue import Queue
 from utility import timings
 from runtime_admin_app import timer
 from runtime_admin_app.traffic_lights_gui_preset import TrafficLight, PedestrianLight, TimerDisplay
-from runtime_admin_app.microwave_gui_preset import PowerLamp
+from runtime_admin_app.microwave_gui_preset import PowerIndicator, LampIndicator, BeepIndicator
 #from python_server import fsm_server
 
 
@@ -63,7 +63,7 @@ mw_dimensions = {
 }
 
 mw_colors = {
-    'off_active': 'black',
+    'off_active': 'light gray',
     'off_disabled': 'gray',
     'on_active': 'yellow',
 }
@@ -75,7 +75,7 @@ def load_image(path):
         width, height = img.size
 
         #img_resized = img.thumbnail((700, 700), Image.Resampling.LANCZOS)
-        img_resized = img.resize((round(0.7*width), round(0.7*height)), Image.ANTIALIAS)
+        img_resized = img.resize((round(0.7*width), round(0.7*height)), Image.LANCZOS)
         photoimg = ImageTk.PhotoImage(img_resized)
         #photoimg = tk.PhotoImage(path)
     except Exception as exc:
@@ -430,9 +430,9 @@ class FSMRuntimeApp(tk.Frame):
         for row in range(row_count):
             self.grid_rowconfigure(row, minsize=mw_dimensions['canvas_size'] + mw_dimensions['padding'])
 
-        self.mw_power = PowerLamp(self.tab_microwave, 0, 0, mw_dimensions, mw_colors)
-        self.mw_lamp = PowerLamp(self.tab_microwave, 0, 1, mw_dimensions, mw_colors)
-        self.mw_beep = PowerLamp(self.tab_microwave, 0, 2, mw_dimensions, mw_colors)
+        self.mw_power = PowerIndicator(self.tab_microwave, 0, 0, mw_dimensions, mw_colors)
+        self.mw_lamp = LampIndicator(self.tab_microwave, 0, 1, mw_dimensions, mw_colors)
+        self.mw_beep = BeepIndicator(self.tab_microwave, 0, 2, mw_dimensions, mw_colors)
 
         self.button_run = ttk.Button(self.tab_microwave, state=tk.DISABLED, text='Run',
                                       command=lambda: self.send_event('button_run'), style='TButton')
@@ -556,7 +556,7 @@ class FSMRuntimeApp(tk.Frame):
         if os.path.exists(images_dir):
             for filename in os.listdir(images_dir):
                 ext = os.path.splitext(filename)[-1].lower()
-                if ext in {'.png', '.jpg', '.svg'}:
+                if ext in {'.png', '.jpg'}:
                     image_path = os.path.join(images_dir, filename)
                     if filename[:-4] == '_base':
                         #self.graph_images['_base'] = self.load_image(filename)
