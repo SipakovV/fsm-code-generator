@@ -441,7 +441,7 @@ class FSMRuntimeApp(tk.Frame):
                                       command=lambda: self.send_event('button_reset'), style='TButton')
         self.button_reset.grid(row=1, column=1, padx=5, pady=5)
 
-        self.door = tk.Scale(self.tab_microwave, from_=0, to=1, label='Closed', showvalue=False, command=self.switch_door, orient=tk.HORIZONTAL, length=230)
+        self.door = tk.Scale(self.tab_microwave, from_=0, to=1, label='Closed', showvalue=False, command=self.switch_door, state=tk.DISABLED, orient=tk.HORIZONTAL, length=230)
         self.door.grid(row=1, column=2, columnspan=2, padx=5, pady=5)
 
         self.tab_control.add(self.tab_microwave, text='Microwave')
@@ -620,10 +620,12 @@ class FSMRuntimeApp(tk.Frame):
             for event in self.buttons_dict:
                 button = self.buttons_dict[event]
                 button.configure(state=tk.NORMAL)
+                logger.debug(f'Enabled: {event}')
         else:
             for event in self.buttons_dict:
                 button = self.buttons_dict[event]
                 button.configure(state=tk.DISABLED)
+                logger.debug(f'Disabled: {event}')
 
     def save_config(self, config):
         self.fsm_config = config
@@ -656,7 +658,7 @@ class FSMRuntimeApp(tk.Frame):
                 logger.debug(f'event: {event}')
                 if event == 'timeout':
                     continue
-                elif event.startswith('button'):
+                elif event.startswith('button') or event.startswith('door'):
                     if event in self.buttons_dict:
                         button = self.buttons_dict[event]
                         button.configure(state=tk.NORMAL)
