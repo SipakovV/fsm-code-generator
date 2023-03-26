@@ -4,11 +4,12 @@ from fsm_core import fsm
 def generate_fsm_with_button():
     alphabet = {'timeout', 'button1'}
     instructions_set = {'timer_set', 'p1_red', 'p1_green', 'p1_blinking',
-                        't1_red', 't1_yellow_red', 't1_yellow', 't1_green', 't1_blinking'}
+                        't1_red', 't1_yellow_red', 't1_yellow', 't1_green', 't1_blinking',
+                        't1_display_timer'}
     state_set = {'traffic_go', 'traffic_go_ready', 'traffic_go_change', 'traffic_stopping1', 'traffic_stopping2',
                  'p_go', 'p_stopping', 'traffic_ready'}
     initial_state = 'traffic_go'
-    initial_instructions = [('timer_set', 30), 't1_green', 'p1_red']
+    initial_instructions = [('timer_set', 30), 't1_green', 'p1_red', ('t1_display_timer', 30)]
     transition_map = {
         'traffic_go': {'timeout': ('traffic_go_ready', []), 'button1': ('traffic_go_change', [])},
         'traffic_go_ready': {'button1': ('traffic_stopping1', [('timer_set', 3), 't1_blinking'])},
@@ -17,7 +18,7 @@ def generate_fsm_with_button():
         'traffic_stopping2': {'timeout': ('p_go', [('timer_set', 20), 't1_red', 'p1_green'])},
         'p_go': {'timeout': ('p_stopping', [('timer_set', 3), 'p1_blinking'])},
         'p_stopping': {'timeout': ('traffic_ready', [('timer_set', 3), 't1_yellow_red', 'p1_red'])},
-        'traffic_ready': {'timeout': ('traffic_go', [('timer_set', 30), 't1_green'])},
+        'traffic_ready': {'timeout': ('traffic_go', [('timer_set', 30), 't1_green', ('t1_display_timer', 30)])},
     }
 
     assert (row in state_set for row in transition_map)
