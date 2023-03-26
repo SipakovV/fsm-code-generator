@@ -163,6 +163,7 @@ class FSMRuntimeApp(tk.Frame):
         self.bind('<<set_config>>', self.set_fsm_info)
         self.bind('<<activate>>', self.activate)
         self.bind('<<instruction>>', self.execute_instruction)
+        self.bind('<<timeout>>', self.timeout_event)
 
         self.FONTS = {
             'oldstyle': Font(family='Adobe Caslon Oldstyle Figures', size=30),
@@ -468,7 +469,7 @@ class FSMRuntimeApp(tk.Frame):
             self.sock.send(bytes(event_json, encoding='utf-8'))
             #self.queue.put(event)
 
-    def timeout_event(self):
+    def timeout_event(self, event):
         self.update_timer(0)
         self.send_event('timeout')
 
