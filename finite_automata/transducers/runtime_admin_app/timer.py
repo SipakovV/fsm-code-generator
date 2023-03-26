@@ -1,6 +1,8 @@
 from threading import Thread, Event
 import time
 
+# TODO: timer rework to interact with displays and count from abs timeout time
+
 
 class TimerThread(Thread):
     def __init__(self, parent):

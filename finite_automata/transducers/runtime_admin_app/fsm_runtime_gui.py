@@ -142,7 +142,8 @@ def connecting_thread(sock, gui):
             break
     else:
         logger.error('Couldn\'t connect to server')
-        gui.reset()
+        gui.event_generate('<<app_reset>>')
+        #gui.reset()
 
 
 def _placeholder():
@@ -304,6 +305,22 @@ class FSMRuntimeApp(tk.Frame):
             'beeping': self.mw_beep,
         }
 
+        self.displays_dict = {
+            'p1': self.pedestrian_lights_list[0],
+            'p2': self.pedestrian_lights_list[1],
+            'p3': self.pedestrian_lights_list[2],
+            'p4': self.pedestrian_lights_list[3],
+            'p5': self.pedestrian_lights_list[4],
+            'p6': self.pedestrian_lights_list[5],
+
+            't1': self.traffic_lights_list[0],
+            't2': self.traffic_lights_list[1],
+            't3': self.traffic_lights_list[2],
+            't4': self.traffic_lights_list[3],
+            't5': self.traffic_lights_list[4],
+            't6': self.traffic_lights_list[5],
+        }
+
         self.instructions_dict = {
             # traffic lights instructions
 
@@ -336,36 +353,78 @@ class FSMRuntimeApp(tk.Frame):
             't1_yellow': self.traffic_lights_list[0].set_yellow,
             't1_green': self.traffic_lights_list[0].set_green,
             't1_blinking': self.traffic_lights_list[0].set_green_blinking,
+            't1_right_arrow_on': self.traffic_lights_list[0].turn_rightarrow_on,
+            't1_left_arrow_on': self.traffic_lights_list[0].turn_leftarrow_on,
+            't1_right_arrow_off': self.traffic_lights_list[0].turn_rightarrow_off,
+            't1_left_arrow_off': self.traffic_lights_list[0].turn_leftarrow_off,
+            't1_left_arrow_blinking': self.traffic_lights_list[0].set_leftarrow_blinking,
+            't1_right_arrow_blinking': self.traffic_lights_list[0].set_rightarrow_blinking,
+            't1_display_timer': self.traffic_lights_list[0].set_timer_value,
 
             't2_red': self.traffic_lights_list[1].set_red,
             't2_yellow_red': self.traffic_lights_list[1].set_yellow_red,
             't2_yellow': self.traffic_lights_list[1].set_yellow,
             't2_green': self.traffic_lights_list[1].set_green,
             't2_blinking': self.traffic_lights_list[1].set_green_blinking,
+            't2_right_arrow_on': self.traffic_lights_list[1].turn_rightarrow_on,
+            't2_left_arrow_on': self.traffic_lights_list[1].turn_leftarrow_on,
+            't2_right_arrow_off': self.traffic_lights_list[1].turn_rightarrow_off,
+            't2_left_arrow_off': self.traffic_lights_list[1].turn_leftarrow_off,
+            't2_left_arrow_blinking': self.traffic_lights_list[1].set_leftarrow_blinking,
+            't2_right_arrow_blinking': self.traffic_lights_list[1].set_rightarrow_blinking,
+            't2_display_timer': self.traffic_lights_list[1].set_timer_value,
 
             't3_red': self.traffic_lights_list[2].set_red,
             't3_yellow_red': self.traffic_lights_list[2].set_yellow_red,
             't3_yellow': self.traffic_lights_list[2].set_yellow,
             't3_green': self.traffic_lights_list[2].set_green,
             't3_blinking': self.traffic_lights_list[2].set_green_blinking,
+            't3_right_arrow_on': self.traffic_lights_list[2].turn_rightarrow_on,
+            't3_left_arrow_on': self.traffic_lights_list[2].turn_leftarrow_on,
+            't3_right_arrow_off': self.traffic_lights_list[2].turn_rightarrow_off,
+            't3_left_arrow_off': self.traffic_lights_list[2].turn_leftarrow_off,
+            't3_left_arrow_blinking': self.traffic_lights_list[2].set_leftarrow_blinking,
+            't3_right_arrow_blinking': self.traffic_lights_list[2].set_rightarrow_blinking,
+            't3_display_timer': self.traffic_lights_list[2].set_timer_value,
 
             't4_red': self.traffic_lights_list[3].set_red,
             't4_yellow_red': self.traffic_lights_list[3].set_yellow_red,
             't4_yellow': self.traffic_lights_list[3].set_yellow,
             't4_green': self.traffic_lights_list[3].set_green,
             't4_blinking': self.traffic_lights_list[3].set_green_blinking,
+            't4_right_arrow_on': self.traffic_lights_list[3].turn_rightarrow_on,
+            't4_left_arrow_on': self.traffic_lights_list[3].turn_leftarrow_on,
+            't4_right_arrow_off': self.traffic_lights_list[3].turn_rightarrow_off,
+            't4_left_arrow_off': self.traffic_lights_list[3].turn_leftarrow_off,
+            't4_left_arrow_blinking': self.traffic_lights_list[3].set_leftarrow_blinking,
+            't4_right_arrow_blinking': self.traffic_lights_list[3].set_rightarrow_blinking,
+            't4_display_timer': self.traffic_lights_list[3].set_timer_value,
 
             't5_red': self.traffic_lights_list[4].set_red,
             't5_yellow_red': self.traffic_lights_list[4].set_yellow_red,
             't5_yellow': self.traffic_lights_list[4].set_yellow,
             't5_green': self.traffic_lights_list[4].set_green,
             't5_blinking': self.traffic_lights_list[4].set_green_blinking,
+            't5_right_arrow_on': self.traffic_lights_list[4].turn_rightarrow_on,
+            't5_left_arrow_on': self.traffic_lights_list[4].turn_leftarrow_on,
+            't5_right_arrow_off': self.traffic_lights_list[4].turn_rightarrow_off,
+            't5_left_arrow_off': self.traffic_lights_list[4].turn_leftarrow_off,
+            't5_left_arrow_blinking': self.traffic_lights_list[4].set_leftarrow_blinking,
+            't5_right_arrow_blinking': self.traffic_lights_list[4].set_rightarrow_blinking,
+            't5_display_timer': self.traffic_lights_list[4].set_timer_value,
 
             't6_red': self.traffic_lights_list[5].set_red,
             't6_yellow_red': self.traffic_lights_list[5].set_yellow_red,
             't6_yellow': self.traffic_lights_list[5].set_yellow,
             't6_green': self.traffic_lights_list[5].set_green,
             't6_blinking': self.traffic_lights_list[5].set_green_blinking,
+            't6_right_arrow_on': self.traffic_lights_list[5].turn_rightarrow_on,
+            't6_left_arrow_on': self.traffic_lights_list[5].turn_leftarrow_on,
+            't6_right_arrow_off': self.traffic_lights_list[5].turn_rightarrow_off,
+            't6_left_arrow_off': self.traffic_lights_list[5].turn_leftarrow_off,
+            't6_left_arrow_blinking': self.traffic_lights_list[5].set_leftarrow_blinking,
+            't6_right_arrow_blinking': self.traffic_lights_list[5].set_rightarrow_blinking,
+            't6_display_timer': self.traffic_lights_list[5].set_timer_value,
 
             # microwave instructions
 
@@ -459,6 +518,9 @@ class FSMRuntimeApp(tk.Frame):
 
     def update_timer(self, timeout_seconds):
         self.timeout_var.set(timeout_seconds)
+        # timer rework needed
+        #for display in self.displays_dict:
+        #    self.displays_dict[display].decrement_timer_value()
 
     def send_event(self, event):
         if self.active:
@@ -494,7 +556,11 @@ class FSMRuntimeApp(tk.Frame):
         elif instr[0] == 'timer_resume':
             self.timer_thread.resume_timer()
         elif instr[0] in self.instructions_dict:
-            self.instructions_dict[instr[0]]()
+            if instr[0].endswith('display_timer'):
+                # self.instructions_dict[instr[0]](instr[1])  # timer rework needed
+                pass
+            else:
+                self.instructions_dict[instr[0]]()
         else:
             logger.debug(f'GUI: unknown instruction: {instr[0]}')
 
@@ -611,7 +677,7 @@ class FSMRuntimeApp(tk.Frame):
     def switch_all_widgets(self, active: bool):
         if active:
             for instruction in self.widgets_dict:
-                self.widgets_dict[instruction].activate()
+                self.widgets_dict[instruction].enable()
         else:
             for instruction in self.widgets_dict:
                 self.widgets_dict[instruction].disable()
@@ -646,7 +712,7 @@ class FSMRuntimeApp(tk.Frame):
                 if widget == 'timer':
                     pass
                 elif widget in self.widgets_dict:
-                    self.widgets_dict[widget].activate()
+                    self.widgets_dict[widget].enable()
                     logger.debug(f'{widget} - widget active')
                 else:
                     logger.debug(f'{widget} - widget unknown')
@@ -664,7 +730,7 @@ class FSMRuntimeApp(tk.Frame):
                         button = self.buttons_dict[event]
                         button.configure(state=tk.NORMAL)
         else:
-            logger.debug(f'No events set provided:')
+            logger.debug(f'No events set provided')
             self.switch_all_buttons(True)
 
     def activate(self, event):

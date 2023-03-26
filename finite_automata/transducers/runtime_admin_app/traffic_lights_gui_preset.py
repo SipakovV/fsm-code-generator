@@ -61,12 +61,6 @@ class TrafficLight:
                                                    self.PADDING_SIZE * 4 + self.LAMP_SIZE * 3,
                                                    fill=self.OFF_COLOR)
 
-        self.timer_display = self.canvas.create_oval(self.CANVAS_SIZE / 2 + self.LAMP_SIZE / 2 + self.PADDING_SIZE,
-                                                     self.PADDING_SIZE * 2,
-                                                     self.CANVAS_SIZE / 2 + 3 * self.LAMP_SIZE / 2 + self.PADDING_SIZE,
-                                                     self.PADDING_SIZE * 2 + self.LAMP_SIZE,
-                                                     fill=self.OFF_COLOR)
-
         self.right_arrow = self.canvas.create_oval(self.CANVAS_SIZE / 2 + self.LAMP_SIZE / 2 + self.PADDING_SIZE,
                                                    self.PADDING_SIZE * 4 + self.LAMP_SIZE * 2,
                                                    self.CANVAS_SIZE / 2 + 3 * self.LAMP_SIZE / 2 + self.PADDING_SIZE,
@@ -74,10 +68,21 @@ class TrafficLight:
                                                    fill=self.OFF_COLOR)
 
         self.left_arrow = self.canvas.create_oval(self.CANVAS_SIZE / 2 - 3 * self.LAMP_SIZE / 2 - self.PADDING_SIZE,
-                                                   self.PADDING_SIZE * 4 + self.LAMP_SIZE * 2,
-                                                   self.CANVAS_SIZE / 2 - self.LAMP_SIZE / 2 - self.PADDING_SIZE,
-                                                   self.PADDING_SIZE * 4 + self.LAMP_SIZE * 3,
-                                                   fill=self.OFF_COLOR)
+                                                  self.PADDING_SIZE * 4 + self.LAMP_SIZE * 2,
+                                                  self.CANVAS_SIZE / 2 - self.LAMP_SIZE / 2 - self.PADDING_SIZE,
+                                                  self.PADDING_SIZE * 4 + self.LAMP_SIZE * 3,
+                                                  fill=self.OFF_COLOR)
+
+        self.timer_display = self.canvas.create_oval(self.CANVAS_SIZE / 2 + self.LAMP_SIZE / 2 + self.PADDING_SIZE,
+                                                     self.PADDING_SIZE * 2,
+                                                     self.CANVAS_SIZE / 2 + 3 * self.LAMP_SIZE / 2 + self.PADDING_SIZE,
+                                                     self.PADDING_SIZE * 2 + self.LAMP_SIZE,
+                                                     fill=self.OFF_COLOR)
+        self.timer_display_label = self.canvas.create_text(self.CANVAS_SIZE / 2 + self.LAMP_SIZE + self.PADDING_SIZE * 1,
+                                                           self.PADDING_SIZE * 2 + self.LAMP_SIZE / 2,
+                                                           fill='white', text='', font=('Adobe Caslon Oldstyle Figures', 15))
+        self.timer_display_value = 0
+
         self.disable()
 
     def disable(self):
@@ -89,7 +94,7 @@ class TrafficLight:
         self.canvas.itemconfig(self.left_arrow, fill=self.OFF_DISABLED_COLOR)
         self.canvas.itemconfig(self.timer_display, fill=self.OFF_DISABLED_COLOR)
 
-    def activate(self):
+    def enable(self):
         self.canvas.itemconfig(self.base, fill=self.BASE_COLOR)
         self.canvas.itemconfig(self.red_light, fill=self.OFF_COLOR)
         self.canvas.itemconfig(self.yellow_light, fill=self.OFF_COLOR)
@@ -102,6 +107,9 @@ class TrafficLight:
         self.canvas.itemconfig(self.red_light, fill=self.OFF_COLOR)
         self.canvas.itemconfig(self.yellow_light, fill=self.OFF_COLOR)
         self.canvas.itemconfig(self.green_light, fill=self.OFF_COLOR)
+        self.canvas.itemconfig(self.right_arrow, fill=self.OFF_COLOR)
+        self.canvas.itemconfig(self.left_arrow, fill=self.OFF_COLOR)
+        self.canvas.itemconfig(self.timer_display, fill=self.OFF_COLOR)
 
     def set_red(self):
         self.canvas.itemconfig(self.red_light, fill=self.RED_COLOR)
@@ -123,10 +131,39 @@ class TrafficLight:
         self.canvas.itemconfig(self.yellow_light, fill=self.OFF_COLOR)
         self.canvas.itemconfig(self.green_light, fill=self.GREEN_COLOR)
 
+    def turn_leftarrow_on(self):
+        self.canvas.itemconfig(self.left_arrow, fill=self.GREEN_COLOR)
+
+    def turn_leftarrow_off(self):
+        self.canvas.itemconfig(self.left_arrow, fill=self.OFF_COLOR)
+
+    def turn_rightarrow_on(self):
+        self.canvas.itemconfig(self.right_arrow, fill=self.GREEN_COLOR)
+
+    def turn_rightarrow_off(self):
+        self.canvas.itemconfig(self.right_arrow, fill=self.OFF_COLOR)
+
     def set_green_blinking(self):
         self.canvas.itemconfig(self.red_light, fill=self.OFF_COLOR)
         self.canvas.itemconfig(self.yellow_light, fill=self.OFF_COLOR)
         self.canvas.itemconfig(self.green_light, fill='cyan')
+
+    def set_leftarrow_blinking(self):
+        self.canvas.itemconfig(self.left_arrow, fill='cyan')
+
+    def set_rightarrow_blinking(self):
+        self.canvas.itemconfig(self.right_arrow, fill='cyan')
+
+    def set_timer_value(self, timeout_seconds: int):
+        print(f'value set: {timeout_seconds}')
+        self.timer_display_value = timeout_seconds
+        self.canvas.itemconfig(self.timer_display_label, text=str(self.timer_display_value))
+
+    def decrement_timer_value(self):
+        if self.timer_display_value > 0:
+            self.timer_display_value -= 1
+            print(f'decremented: {self.timer_display_value}')
+            self.canvas.itemconfig(self.timer_display_label, text=str(self.timer_display_value))
 
 
 class PedestrianLight:
@@ -160,16 +197,15 @@ class PedestrianLight:
                                                    self.CANVAS_SIZE / 2 + self.LAMP_SIZE / 2,
                                                    self.PADDING_SIZE * 3 + self.LAMP_SIZE * 2 + self.LAMP_SIZE / 2,
                                                    fill=self.OFF_COLOR)
-
+        # TODO: add timer display
         self.disable()
 
     def disable(self):
         self.canvas.itemconfig(self.base, fill=self.BASE_DISABLED_COLOR)
         self.canvas.itemconfig(self.red_light, fill=self.OFF_DISABLED_COLOR)
         self.canvas.itemconfig(self.green_light, fill=self.OFF_DISABLED_COLOR)
-        # self.canvas.configure(state='disabled')
 
-    def activate(self):
+    def enable(self):
         self.canvas.itemconfig(self.base, fill=self.BASE_COLOR)
         self.canvas.itemconfig(self.red_light, fill=self.OFF_COLOR)
         self.canvas.itemconfig(self.green_light, fill=self.OFF_COLOR)
@@ -189,6 +225,12 @@ class PedestrianLight:
     def set_green_blinking(self):
         self.canvas.itemconfig(self.red_light, fill=self.OFF_COLOR)
         self.canvas.itemconfig(self.green_light, fill='cyan')
+
+    def set_timer_value(self, timeout_seconds: int):
+        pass
+
+    def decrement_timer_value(self):
+        pass
 
 
 class TimerDisplay:
