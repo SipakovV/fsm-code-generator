@@ -442,18 +442,18 @@ class FSMRuntimeApp(tk.Frame):
                                       command=lambda: self.send_event('button_reset'), style='TButton')
         self.button_reset.grid(row=1, column=1, padx=5, pady=5)
 
-        self.door = tk.Scale(self.tab_microwave, from_=0, to=1, label='Closed', showvalue=False, command=self.switch_door, state=tk.DISABLED, orient=tk.HORIZONTAL, length=230)
+        self.door = tk.Scale(self.tab_microwave, from_=0, to=1, label='Door: Closed', showvalue=False, command=self.switch_door, state=tk.DISABLED, orient=tk.HORIZONTAL, length=230)
         self.door.grid(row=1, column=2, columnspan=2, padx=5, pady=5)
 
         self.tab_control.add(self.tab_microwave, text='Microwave')
 
     def switch_door(self, val):
         if val == '1':
-            self.door['label'] = 'Open'
+            self.door['label'] = 'Door: Open'
             if self.active:
                 self.send_event('door_open')
         else:
-            self.door['label'] = 'Closed'
+            self.door['label'] = 'Door: Closed'
             if self.active:
                 self.send_event('door_close')
 
