@@ -25,7 +25,7 @@ class Indicator:
     def disable(self):
         self.canvas.itemconfig(self.lamp, fill=self.OFF_DISABLED_COLOR)
 
-    def activate(self):
+    def enable(self):
         self.canvas.itemconfig(self.lamp, fill=self.OFF_COLOR)
 
     def turn_on(self):

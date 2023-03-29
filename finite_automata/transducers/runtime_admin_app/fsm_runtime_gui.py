@@ -20,7 +20,6 @@ from utility import timings
 from runtime_admin_app import timer
 from runtime_admin_app.traffic_lights_gui_preset import TrafficLight, PedestrianLight, TimerDisplay
 from runtime_admin_app.microwave_gui_preset import PowerIndicator, LampIndicator, BeepIndicator
-#from python_server import fsm_server
 
 
 SERVER_ADDRESS = ("127.0.0.1", 12345)
@@ -31,6 +30,82 @@ logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(stream=sys.stdout)
 handler.setFormatter(logging.Formatter(fmt='[%(asctime)s: client %(levelname)-7s] %(message)s'))
 logger.addHandler(handler)
+
+
+instructions_list_text = '== Список инструкций:' \
+                         'Таймер:\n' \
+                         'timer_set X - установить на X секунд. Если X=0 - сброс\n' \
+                         'timer_add X - добавить X секунд\n' \
+                         'timer_pause - поставить на паузу\n' \
+                         'timer_resume - возобновить\n\n' \
+                         '-- Светофор:\nВсего 6 виджетов каждого вида. Инструкции состоят из 2 частей: <виджет>_<состояние>' \
+                         't1-t6 - автомобильный светофор.\n' \
+                         'Состояния основной части:\n' \
+                         'red (красный)\n' \
+                         'yellow (желтый)\n' \
+                         'yellow_red (желтый с красным)\n' \
+                         'green (зеленый)\n' \
+                         'blinking (мигающий зеленый)\n\n' \
+                         'Команды для боковых ламп:\n' \
+                         'left_arrow_on (вкл. левую стрелку)\n' \
+                         'left_arrow_off (выкл. левую стрелку)\n' \
+                         'right_arrow_on (вкл. правую стрелку)\n' \
+                         'right_arrow_off (выкл. правую стрелку)\n' \
+                         'p1-p6 - пешеходный светофор. Состояния:\n' \
+                         'red (красный)\n' \
+                         'green (зеленый)\n' \
+                         'blinking (мигающий зеленый)\n\n' \
+                         '-- Микроволновая печь:\n' \
+                         'lamp_on - вкл. свет\n' \
+                         'lamp_off - выкл. свет\n' \
+                         'power_on - вкл. печь\n' \
+                         'power_off - выкл. печь\n' \
+                         'beep_on - вкл. сигнал готовности\n' \
+                         'beep_off - выкл. сигнал готовности\n'
+
+events_list_text = '== Список входных сигналов:\n' \
+                   'timeout - срабатывание таймера\n\n' \
+                   '-- Светофор:\n' \
+                   'button1-button6 - нажатие кнопки 1-6\n\n' \
+                   '-- Микроволновая печь:\n' \
+                   'button_run - кнопка запуска печи (+30 секунд)\n' \
+                   'button_reset - кнопка сброса\n' \
+                   'door_open - сенсор открытия двери, на данном интерфейсе - переключатель\n' \
+                   'door_close - сенсор закрытия двери'
+
+
+help_text = 'Для начала работы с программой выберите пункт меню File -> Open и выберите нужный файл (.py). ' \
+            'Если это действительный сгенерированный файл конечного автомата, ' \
+            'запустится сервер и загрузятся соответствующие ему изображения. ' \
+            'После этого вы можете взаимодействовать с автоматом посредством кнопок и виджетов. ' \
+            'Чтобы просмотреть список кнопок и соответствующих им событий, ' \
+            'а также список виджетов и соответствующих им инструкций, ' \
+            'см. Instructions and events sheet\n\n' \
+            'Путь по умолчанию к каталогу с изображениями: generated_graph_images/<имя файла автомата>.\n' \
+            '* Если данного каталога не существует, выполнение продолжится без изображений\n' \
+            '* Если каталог существует и содержит файл _base.png, оно будет загружено как изображение по умолчанию\n' \
+            '* Если каталог содержит изображения для каждого состояния автомата, ' \
+            'изображение будет сменяться каждый раз, когда будет получено от сервера сообщение о смене состояния.\n\n' \
+            'Порт по умолчанию для сервера: 12345\n' \
+            'По умолчанию сервер будет запущен с параметром --visualize. ' \
+            'Это означает, что он будет посылать не только инструкции, но и сообщения о смене состояний. ' \
+            'Это необходимо для визуализации графа конечного автомата (см. абзац выше).'
+
+
+about_text = 'Данная программа является частью ВКР по теме ' \
+             '"Программная реализация автоматической генерации кода на основании декларативного описания". ' \
+             'Работа включает 2 модуля:\n' \
+             'FSM compile - программа трансляции декларативного описания конечного автомата в код на языке C или Python.\n' \
+             'FSM runtime GUI client - программа для запуска и взаимодействия со сгенерированными автоматами.\n' \
+             'Она позволяет запустить выбранный файл автомата на сервере и ' \
+             'организовать взаимодействие с ним посредством графического интерфейса. ' \
+             'Данный интерфейс позволяет:\n' \
+             '* посылать входные сигналы (события/events) с помощью кнопок и других интерактивных элементов\n' \
+             '* получать выходные сигналы (инструкции/instructions) с помощью виджетов, таких как светофор или индикатор микроволновой печи\n' \
+             '* получать информацию о смене состояний автомата и отображать на графе (если найдены сгенерированные изображения)\n' \
+             'Программа предназначена для отладки и демонстрации результатов работы транслятора - модуля FSM compile.\n\n' \
+             'Выполнил Сипаков В.В. (гр. 19-ПО)'
+
 
 app_colors = {
     'bg': 'white',
@@ -142,7 +217,8 @@ def connecting_thread(sock, gui):
             break
     else:
         logger.error('Couldn\'t connect to server')
-        gui.reset()
+        gui.event_generate('<<app_reset>>')
+        #gui.reset()
 
 
 def _placeholder():
@@ -153,7 +229,7 @@ class FSMRuntimeApp(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
 
-        self.master.title('FSM GUI: Traffic Lights')
+        self.master.title('FSM Runtime GUI client')
         self.master.minsize(700, 450)
         self.master.maxsize(1600, 900)
         self.master.protocol("WM_DELETE_WINDOW", self.exit)
@@ -163,6 +239,7 @@ class FSMRuntimeApp(tk.Frame):
         self.bind('<<set_config>>', self.set_fsm_info)
         self.bind('<<activate>>', self.activate)
         self.bind('<<instruction>>', self.execute_instruction)
+        self.bind('<<timeout>>', self.timeout_event)
 
         self.FONTS = {
             'oldstyle': Font(family='Adobe Caslon Oldstyle Figures', size=30),
@@ -174,6 +251,7 @@ class FSMRuntimeApp(tk.Frame):
         self.style = ttk.Style()
         self.style.theme_use('default')
         self.style.configure('TLabel', foreground='black', background=app_colors['bg'], padding=10, font=self.FONTS['normal'])
+        self.style.configure('About.TLabel', foreground='black', background=app_colors['bg'], padding=10, font=self.FONTS['normal'])
         self.style.configure('Header.TLabel', foreground='black', background=app_colors['bg'], padding=10,
                                      font=self.FONTS['heading'])
         self.style.configure('Timer.TLabel', foreground='black', background=app_colors['bg'], justify=tk.RIGHT, width=2, height=1, padding=10, font=self.FONTS['oldstyle'])
@@ -196,7 +274,9 @@ class FSMRuntimeApp(tk.Frame):
         menu_bar.add_cascade(label='File', menu=file_menu)
 
         helpmenu = tk.Menu(menu_bar, tearoff=0)
-        helpmenu.add_command(label='About...', command=_placeholder)  # TODO: add About popup window
+        helpmenu.add_command(label='How to use program', command=self.info_popup)
+        helpmenu.add_command(label='Instructions and events sheet', command=self.sheet_popup)
+        helpmenu.add_command(label='About...', command=self.about_popup)
         menu_bar.add_cascade(label='Help', menu=helpmenu)
 
         self.master.config(menu=menu_bar)
@@ -303,6 +383,22 @@ class FSMRuntimeApp(tk.Frame):
             'beeping': self.mw_beep,
         }
 
+        self.displays_dict = {
+            'p1': self.pedestrian_lights_list[0],
+            'p2': self.pedestrian_lights_list[1],
+            'p3': self.pedestrian_lights_list[2],
+            'p4': self.pedestrian_lights_list[3],
+            'p5': self.pedestrian_lights_list[4],
+            'p6': self.pedestrian_lights_list[5],
+
+            't1': self.traffic_lights_list[0],
+            't2': self.traffic_lights_list[1],
+            't3': self.traffic_lights_list[2],
+            't4': self.traffic_lights_list[3],
+            't5': self.traffic_lights_list[4],
+            't6': self.traffic_lights_list[5],
+        }
+
         self.instructions_dict = {
             # traffic lights instructions
 
@@ -335,36 +431,78 @@ class FSMRuntimeApp(tk.Frame):
             't1_yellow': self.traffic_lights_list[0].set_yellow,
             't1_green': self.traffic_lights_list[0].set_green,
             't1_blinking': self.traffic_lights_list[0].set_green_blinking,
+            't1_right_arrow_on': self.traffic_lights_list[0].turn_rightarrow_on,
+            't1_left_arrow_on': self.traffic_lights_list[0].turn_leftarrow_on,
+            't1_right_arrow_off': self.traffic_lights_list[0].turn_rightarrow_off,
+            't1_left_arrow_off': self.traffic_lights_list[0].turn_leftarrow_off,
+            't1_left_arrow_blinking': self.traffic_lights_list[0].set_leftarrow_blinking,
+            't1_right_arrow_blinking': self.traffic_lights_list[0].set_rightarrow_blinking,
+            't1_display_timer': self.traffic_lights_list[0].set_timer_value,
 
             't2_red': self.traffic_lights_list[1].set_red,
             't2_yellow_red': self.traffic_lights_list[1].set_yellow_red,
             't2_yellow': self.traffic_lights_list[1].set_yellow,
             't2_green': self.traffic_lights_list[1].set_green,
             't2_blinking': self.traffic_lights_list[1].set_green_blinking,
+            't2_right_arrow_on': self.traffic_lights_list[1].turn_rightarrow_on,
+            't2_left_arrow_on': self.traffic_lights_list[1].turn_leftarrow_on,
+            't2_right_arrow_off': self.traffic_lights_list[1].turn_rightarrow_off,
+            't2_left_arrow_off': self.traffic_lights_list[1].turn_leftarrow_off,
+            't2_left_arrow_blinking': self.traffic_lights_list[1].set_leftarrow_blinking,
+            't2_right_arrow_blinking': self.traffic_lights_list[1].set_rightarrow_blinking,
+            't2_display_timer': self.traffic_lights_list[1].set_timer_value,
 
             't3_red': self.traffic_lights_list[2].set_red,
             't3_yellow_red': self.traffic_lights_list[2].set_yellow_red,
             't3_yellow': self.traffic_lights_list[2].set_yellow,
             't3_green': self.traffic_lights_list[2].set_green,
             't3_blinking': self.traffic_lights_list[2].set_green_blinking,
+            't3_right_arrow_on': self.traffic_lights_list[2].turn_rightarrow_on,
+            't3_left_arrow_on': self.traffic_lights_list[2].turn_leftarrow_on,
+            't3_right_arrow_off': self.traffic_lights_list[2].turn_rightarrow_off,
+            't3_left_arrow_off': self.traffic_lights_list[2].turn_leftarrow_off,
+            't3_left_arrow_blinking': self.traffic_lights_list[2].set_leftarrow_blinking,
+            't3_right_arrow_blinking': self.traffic_lights_list[2].set_rightarrow_blinking,
+            't3_display_timer': self.traffic_lights_list[2].set_timer_value,
 
             't4_red': self.traffic_lights_list[3].set_red,
             't4_yellow_red': self.traffic_lights_list[3].set_yellow_red,
             't4_yellow': self.traffic_lights_list[3].set_yellow,
             't4_green': self.traffic_lights_list[3].set_green,
             't4_blinking': self.traffic_lights_list[3].set_green_blinking,
+            't4_right_arrow_on': self.traffic_lights_list[3].turn_rightarrow_on,
+            't4_left_arrow_on': self.traffic_lights_list[3].turn_leftarrow_on,
+            't4_right_arrow_off': self.traffic_lights_list[3].turn_rightarrow_off,
+            't4_left_arrow_off': self.traffic_lights_list[3].turn_leftarrow_off,
+            't4_left_arrow_blinking': self.traffic_lights_list[3].set_leftarrow_blinking,
+            't4_right_arrow_blinking': self.traffic_lights_list[3].set_rightarrow_blinking,
+            't4_display_timer': self.traffic_lights_list[3].set_timer_value,
 
             't5_red': self.traffic_lights_list[4].set_red,
             't5_yellow_red': self.traffic_lights_list[4].set_yellow_red,
             't5_yellow': self.traffic_lights_list[4].set_yellow,
             't5_green': self.traffic_lights_list[4].set_green,
             't5_blinking': self.traffic_lights_list[4].set_green_blinking,
+            't5_right_arrow_on': self.traffic_lights_list[4].turn_rightarrow_on,
+            't5_left_arrow_on': self.traffic_lights_list[4].turn_leftarrow_on,
+            't5_right_arrow_off': self.traffic_lights_list[4].turn_rightarrow_off,
+            't5_left_arrow_off': self.traffic_lights_list[4].turn_leftarrow_off,
+            't5_left_arrow_blinking': self.traffic_lights_list[4].set_leftarrow_blinking,
+            't5_right_arrow_blinking': self.traffic_lights_list[4].set_rightarrow_blinking,
+            't5_display_timer': self.traffic_lights_list[4].set_timer_value,
 
             't6_red': self.traffic_lights_list[5].set_red,
             't6_yellow_red': self.traffic_lights_list[5].set_yellow_red,
             't6_yellow': self.traffic_lights_list[5].set_yellow,
             't6_green': self.traffic_lights_list[5].set_green,
             't6_blinking': self.traffic_lights_list[5].set_green_blinking,
+            't6_right_arrow_on': self.traffic_lights_list[5].turn_rightarrow_on,
+            't6_left_arrow_on': self.traffic_lights_list[5].turn_leftarrow_on,
+            't6_right_arrow_off': self.traffic_lights_list[5].turn_rightarrow_off,
+            't6_left_arrow_off': self.traffic_lights_list[5].turn_leftarrow_off,
+            't6_left_arrow_blinking': self.traffic_lights_list[5].set_leftarrow_blinking,
+            't6_right_arrow_blinking': self.traffic_lights_list[5].set_rightarrow_blinking,
+            't6_display_timer': self.traffic_lights_list[5].set_timer_value,
 
             # microwave instructions
 
@@ -441,23 +579,63 @@ class FSMRuntimeApp(tk.Frame):
                                       command=lambda: self.send_event('button_reset'), style='TButton')
         self.button_reset.grid(row=1, column=1, padx=5, pady=5)
 
-        self.door = tk.Scale(self.tab_microwave, from_=0, to=1, label='Closed', showvalue=False, command=self.switch_door, state=tk.DISABLED, orient=tk.HORIZONTAL, length=230)
+        self.door = tk.Scale(self.tab_microwave, from_=0, to=1, label='Door: Closed', showvalue=False, command=self.switch_door, state=tk.DISABLED, orient=tk.HORIZONTAL, length=230)
         self.door.grid(row=1, column=2, columnspan=2, padx=5, pady=5)
 
         self.tab_control.add(self.tab_microwave, text='Microwave')
 
+    def about_popup(self):
+        global pop
+        pop = tk.Toplevel(self)
+        pop.title('About')
+        pop.geometry('600x600')
+        pop.config(bg='white')
+
+        text = tk.Text(pop, wrap=tk.WORD, highlightthickness=0)
+        text.insert(tk.INSERT, about_text)
+        #about_label = ttk.Label(pop, text=about_text, style='About.TLabel', wrap=tk.WORD)
+        text.pack(pady=10)
+
+    def info_popup(self):
+        global pop
+        pop = tk.Toplevel(self)
+        pop.title('Info')
+        pop.geometry('600x600')
+        pop.config(bg='white')
+
+        text = tk.Text(pop, wrap=tk.WORD, highlightthickness=0)
+        text.insert(tk.INSERT, help_text)
+        #about_label = ttk.Label(pop, text=about_text, style='About.TLabel', wrap=tk.WORD)
+        text.pack(pady=10)
+
+    def sheet_popup(self):
+        global pop
+        pop = tk.Toplevel(self)
+        pop.title('Instructions and events sheet')
+        pop.geometry('600x600')
+        pop.config(bg='white')
+
+        text = tk.Text(pop, wrap=tk.WORD, highlightthickness=0)
+        text.insert(tk.INSERT, instructions_list_text)
+        text.insert(tk.INSERT, events_list_text)
+        #about_label = ttk.Label(pop, text=about_text, style='About.TLabel', wrap=tk.WORD)
+        text.pack(pady=10)
+
     def switch_door(self, val):
         if val == '1':
-            self.door['label'] = 'Open'
+            self.door['label'] = 'Door: Open'
             if self.active:
                 self.send_event('door_open')
         else:
-            self.door['label'] = 'Closed'
+            self.door['label'] = 'Door: Closed'
             if self.active:
                 self.send_event('door_close')
 
     def update_timer(self, timeout_seconds):
         self.timeout_var.set(timeout_seconds)
+        # timer rework needed
+        #for display in self.displays_dict:
+        #    self.displays_dict[display].decrement_timer_value()
 
     def send_event(self, event):
         if self.active:
@@ -468,7 +646,7 @@ class FSMRuntimeApp(tk.Frame):
             self.sock.send(bytes(event_json, encoding='utf-8'))
             #self.queue.put(event)
 
-    def timeout_event(self):
+    def timeout_event(self, event):
         self.update_timer(0)
         self.send_event('timeout')
 
@@ -493,7 +671,11 @@ class FSMRuntimeApp(tk.Frame):
         elif instr[0] == 'timer_resume':
             self.timer_thread.resume_timer()
         elif instr[0] in self.instructions_dict:
-            self.instructions_dict[instr[0]]()
+            if instr[0].endswith('display_timer'):
+                # self.instructions_dict[instr[0]](instr[1])  # timer rework needed
+                pass
+            else:
+                self.instructions_dict[instr[0]]()
         else:
             logger.debug(f'GUI: unknown instruction: {instr[0]}')
 
@@ -610,7 +792,7 @@ class FSMRuntimeApp(tk.Frame):
     def switch_all_widgets(self, active: bool):
         if active:
             for instruction in self.widgets_dict:
-                self.widgets_dict[instruction].activate()
+                self.widgets_dict[instruction].enable()
         else:
             for instruction in self.widgets_dict:
                 self.widgets_dict[instruction].disable()
@@ -645,7 +827,7 @@ class FSMRuntimeApp(tk.Frame):
                 if widget == 'timer':
                     pass
                 elif widget in self.widgets_dict:
-                    self.widgets_dict[widget].activate()
+                    self.widgets_dict[widget].enable()
                     logger.debug(f'{widget} - widget active')
                 else:
                     logger.debug(f'{widget} - widget unknown')
@@ -663,7 +845,7 @@ class FSMRuntimeApp(tk.Frame):
                         button = self.buttons_dict[event]
                         button.configure(state=tk.NORMAL)
         else:
-            logger.debug(f'No events set provided:')
+            logger.debug(f'No events set provided')
             self.switch_all_buttons(True)
 
     def activate(self, event):
