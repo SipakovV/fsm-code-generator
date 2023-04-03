@@ -88,9 +88,9 @@ def test_DFA_even_ones(entry, accepts):
     assert initial_state in state_set
     assert final_states.issubset(state_set)
 
-    triple_ones_dfa = DFA(alphabet, state_set, initial_state, final_states, transition_map)
+    even_ones_dfa = DFA(alphabet, state_set, initial_state, final_states, transition_map)
 
-    assert triple_ones_dfa.parse(entry) == accepts
+    assert even_ones_dfa.parse(entry) == accepts
 
 
 @pytest.mark.parametrize(
