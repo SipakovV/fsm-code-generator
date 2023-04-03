@@ -1,4 +1,4 @@
-from fsm_core import fsm
+from fsm_core.transducer_fsm import TransducerFSM
 
 
 def generate_fsm_with_button():
@@ -24,11 +24,11 @@ def generate_fsm_with_button():
     assert (row in state_set for row in transition_map)
     assert initial_state in state_set
 
-    fsm_TL_4way_1button = fsm.FSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
-                                  initial_state=initial_state, initial_instructions=initial_instructions, transition_map=transition_map,
-                                  name='fsm_with_button',
-                                  title='FSM with button',
-                                  description='FSM for testing the buttons')
+    fsm_TL_4way_1button = TransducerFSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
+                                        initial_state=initial_state, initial_instructions=initial_instructions, transition_map=transition_map,
+                                        name='fsm_with_button',
+                                        title='FSM with button',
+                                        description='FSM for testing the buttons')
     print()
     print(fsm_TL_4way_1button)
     fsm_TL_4way_1button.visualize(all_states=True)
@@ -59,12 +59,12 @@ def generate_fsm_without_button():
     assert (row in state_set for row in transition_map)
     assert initial_state in state_set
 
-    test_FSM_TL_4way_p_and_t = fsm.FSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
-                                       initial_state=initial_state, initial_instructions=initial_instructions,
-                                       transition_map=transition_map,
-                                       name='fsm_without_button',
-                                       title='FSM without button',
-                                       description='FSM for testing the timeouts')
+    test_FSM_TL_4way_p_and_t = TransducerFSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
+                                             initial_state=initial_state, initial_instructions=initial_instructions,
+                                             transition_map=transition_map,
+                                             name='fsm_without_button',
+                                             title='FSM without button',
+                                             description='FSM for testing the timeouts')
     print()
     print(test_FSM_TL_4way_p_and_t)
     test_FSM_TL_4way_p_and_t.visualize(all_states=True)
@@ -103,12 +103,12 @@ def generate_fsm_microwave():
     assert (row in state_set for row in transition_map)
     assert initial_state in state_set
 
-    microwave_fsm = fsm.FSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
-                                       initial_state=initial_state, initial_instructions=initial_instructions,
-                                       transition_map=transition_map,
-                                       name='microwave_fsm',
-                                       title='FSM for microwave',
-                                       description='FSM for testing the microwave widgets')
+    microwave_fsm = TransducerFSM(alphabet=alphabet, instructions_set=instructions_set, state_set=state_set,
+                                  initial_state=initial_state, initial_instructions=initial_instructions,
+                                  transition_map=transition_map,
+                                  name='microwave_fsm',
+                                  title='FSM for microwave',
+                                  description='FSM for testing the microwave widgets')
     print()
     print(microwave_fsm)
     microwave_fsm.visualize(all_states=True)
