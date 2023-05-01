@@ -6,7 +6,7 @@ import graphviz
 from fsm_core.code_generator import CodeGeneratorBackend
 
 
-class FSM:
+class TransducerFSM:
     def __init__(self, alphabet: Set[str], instructions_set: Set[str], state_set: Set[Union[str, int]],
               initial_state: Union[str, int], transition_map: dict,
               initial_instructions: List[Union[str, tuple]] = None, final_states: Set[Union[str, int]] = None,
@@ -23,7 +23,7 @@ class FSM:
         self.state_set = state_set
         self.init_state = initial_state
         if not initial_instructions:
-            self.final_states = list()
+            self.init_instructions = list()
         else:
             assert all(instr in instructions_set if type(instr) is str else instr[0] in instructions_set for instr in initial_instructions)
             self.init_instructions = initial_instructions
@@ -34,8 +34,6 @@ class FSM:
             assert final_states.issubset(state_set)
             self.final_states = final_states
         self.transition_map = transition_map
-
-
 
         assert initial_state in state_set
         assert all(instr in instructions_set or type(instr) is tuple and instr[0] in instructions_set for instr in
@@ -64,7 +62,7 @@ class FSM:
         return out
 
     def __eq__(self, other) -> bool:
-        assert isinstance(other, FSM)
+        assert isinstance(other, TransducerFSM)
         if self.alphabet != other.alphabet:
             print('Alphabets don\'t match')
             return False
@@ -130,9 +128,9 @@ class FSM:
                 dot.node(state)
 
         for state in self.transition_map:
-            print('state:', state)
+            #print('state:', state)
             for event in self.transition_map[state]:
-                print('event:', event)
+                #print('event:', event)
                 target_state, instruction_list = self.transition_map[state][event]
                 label = '<<b>' + event + '</b><br/>'
                 for instr in instruction_list:
@@ -189,7 +187,7 @@ class FSM:
         code_gen.write("")
 
         """Metadata config (for GUI)"""
-        conf_string = f"'title': '{self._title}', 'description': '{self._description}', " \
+        conf_string = f"'type': 'transducer', 'title': '{self._title}', 'description': '{self._description}', " \
                       f"'instructions_set': {list(self.instructions_set)}, 'events_set': {list(self.alphabet)}"
         code_gen.write("config = {" + conf_string + "}")
         code_gen.write("")
