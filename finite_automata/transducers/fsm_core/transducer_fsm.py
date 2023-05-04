@@ -169,6 +169,7 @@ class TransducerFSM:
             pass
 
         base_graph = self._generate_graph()
+        base_graph.save('_base.dot', directory=path).replace('\\', '/')
         base_graph.render('_base', directory=path, format='png').replace('\\', '/')
 
         if all_states:
