@@ -1,0 +1,7 @@
+digraph microwave_fsm {
+	door_closed
+	cooking
+	cooking_interrupted
+	door_open
+	cooking_completed
+}
