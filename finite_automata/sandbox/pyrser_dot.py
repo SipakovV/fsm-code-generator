@@ -22,13 +22,13 @@ class FSMDOT(grammar.Grammar):
     stmt_list = [ stmt stmt_list? ]
     stmt = [ edge_stmt | node_stmt ]
     
-    node_stmt = [ ID:n [ '[' attrs ']' ]? #add_state(_, n) ]
-    edge_stmt = [ ID:from "->" ID:to [ '[' attrs ']' ]? #debug_print('from', from) #debug_print('to', to) ]
+    node_stmt = [ ID:n [ '[' node_attrs ']' ]? #add_state(_, n) ]
+    edge_stmt = [ ID:from "->" ID:to [ '[' edge_attrs ']' ] #debug_print('from', from) #debug_print('to', to) ]
     
-    attrs = [ attr [ ',' attr ]* ]
-    attr = [ label_attr | other_attr ]
+    node_attrs = [ attr [ ',' attr ]* ]
+    edge_attrs = [ label_attr [ ',' attr ]*  ]
     label_attr = [ "label" '=' transition_spec ]
-    other_attr = [ ID '=' ID ]
+    attr = [ ID '=' ID ]
     
     transition_spec = [ '<' html_tag* events html_tag* [ ':' html_tag* instructions html_tag* ]? '>' ]
     
