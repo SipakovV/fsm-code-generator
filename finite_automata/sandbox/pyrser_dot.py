@@ -23,17 +23,21 @@ class FSMDOT(grammar.Grammar):
     stmt = [ edge_stmt | node_stmt ]
     
     node_stmt = [ ID:n [ '[' -> ']' ]? #add_state(_, n) ]
-    edge_stmt = [ ID:from "->" ID:to [ '[' edge_attrs ']' ] #debug_print('from', from) #debug_print('to', to) ]
+    edge_stmt = [ ID:from "->" ID:to [ '[' edge_attrs:spec ']' ] #is_transition(_, from, to, spec) ]
     
-    edge_attrs = [ label_attr [ ',' attr ]*  ]
-    label_attr = [ "label" '=' transition_spec ]
+    edge_attrs = [ label_attr:>_ [ ',' attr ]*  ]
+    label_attr = [ "label" '=' transition_spec:>_ ]
     attr = [ ID '=' ID ]
     
-    transition_spec = [ '<' html_tag* events:evts html_tag* [ ':' html_tag* instructions html_tag* ]? '>' #debug_list('evts', evts)  ]
+    transition_spec = 
+    [ 
+        '<' html_tag* events:evts html_tag* ':' html_tag* instructions:ins html_tag*  '>' #is_transition_spec(_, evts, ins) |
+        '<' html_tag* events:evts html_tag* '>' #is_transition_spec(_, evts)
+    ]
     
     events = [ #is_list(_) event:evt #add_item(_, evt)  [ html_tag* ',' html_tag* event:evt #add_item(_, evt) ]* ]
     event = [ ID:evt #is_id(_, evt) ]
-    instructions = [ instruction [ html_tag* ',' html_tag* instruction ]* ]
+    instructions = [ #is_list(_) instruction:ins #add_item(_, ins) [ html_tag* ',' html_tag* instruction #add_item(_, ins)]* ]
     instruction = [ ID:ins #is_id(_, ins) ]
     
     html_tag = [ "<br/>" | "<i>" | "</i>" | "<b>" | "</b>" | "<u>" | "</u>" ]
@@ -66,6 +70,46 @@ def debug_list(self, test_var: str, l):
     print(test_var, type(l), l)
     for el in l.node:
         print(el)
+    return True
+
+
+@meta.hook(FSMDOT)
+def debug_spec(self, test_var: str, transition):
+    print(test_var, type(transition), transition)
+    if hasattr(transition, 'node'):
+        print('evts:', transition.node[0])
+        print('ins:', transition.node[1])
+    return True
+
+
+@meta.hook(FSMDOT)
+def is_transition_spec(self, ast, evts, ins=None):
+    if ins:
+        ast.node = (evts, ins)
+    else:
+        ast.node = (evts, [])
+    print(ast.node)
+    return True
+
+
+@meta.hook(FSMDOT)
+def is_transition(self, ast, from_, to, spec):
+    if hasattr(spec.node[0], 'node'):
+        events = spec.node[0].node
+    else:
+        events = []
+    if hasattr(spec.node[1], 'node'):
+        instructions = spec.node[1].node
+    else:
+        instructions = []
+    from_state = self.value(from_)
+    to_state = self.value(to)
+    print(f'{events=}\n{instructions=}\n{from_state=}\n{to_state=}')
+    if from_state not in TRANSITION_MAP:
+        TRANSITION_MAP[from_state] = {}
+    for evt in events:
+        TRANSITION_MAP[from_state][evt] = (to_state, instructions)
+    print(f'TRANSITION_MAP[{from_state}] = {TRANSITION_MAP[from_state]}')
     return True
 
 
@@ -126,4 +170,5 @@ if __name__ == '__main__':
 
     print('graph:', GRAPH_NAME)
     print(STATES_SET)
+    print(TRANSITION_MAP)
     #print(res.node[0])
