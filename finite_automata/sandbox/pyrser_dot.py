@@ -35,10 +35,10 @@ class FSMDOT(grammar.Grammar):
         '<' html_tag* events:evts html_tag* '>' #is_transition_spec(_, evts)
     ]
     
-    events = [ #is_list(_) event:evt #add_item(_, evt)  [ html_tag* ',' html_tag* event:evt #add_item(_, evt) ]* ]
+    events = [ #is_list(_) event:evt #add_item(_, evt)  [ html_tag* ',' html_tag* event:evt #add_item(_, evt) ]* ','? ]
     event = [ ID:evt #is_id(_, evt) ]
-    instructions = [ #is_list(_) instruction:ins #add_item(_, ins) [ html_tag* ',' html_tag* instruction #add_item(_, ins)]* ]
-    instruction = [ ID:ins #is_id(_, ins) ]
+    instructions = [ #is_list(_) instruction:ins #add_item(_, ins) [ html_tag* ',' html_tag* instruction:ins #add_item(_, ins)]* ','? ]
+    instruction = [ ID:ins int_num:val #is_instruction(_, ins, val) | ID:ins #is_instruction(_, ins) ]
     
     html_tag = [ "<br/>" | "<i>" | "</i>" | "<b>" | "</b>" | "<u>" | "</u>" ]
     
@@ -46,6 +46,7 @@ class FSMDOT(grammar.Grammar):
     
     letter_ = [ letter | '_' ]
     letter = [ 'A'..'Z' | 'a'..'z' ]
+    int_num = [ @ignore("null") digit+ ]
     digit = [ '0'..'9' ]
     
     """
@@ -134,6 +135,25 @@ def is_id(self, ast, s):
 
 
 @meta.hook(FSMDOT)
+def is_int(self, ast, s):
+    ast.node = self.value(s)
+    print(ast.node)
+    return True
+
+
+@meta.hook(FSMDOT)
+def is_instruction(self, ast, ins, val=None):
+    if val:
+        print('===========')
+        ast.node = (self.value(ins), int(self.value(val)))
+    else:
+        ast.node = self.value(ins)
+
+    print(ast.node)
+    return True
+
+
+@meta.hook(FSMDOT)
 def add_transition(self, ast, graph_name):
     graphname = self.value(graph_name)
     ast.node = graphname
@@ -166,7 +186,7 @@ def add_graph(self, ast, graph_name):
 
 if __name__ == '__main__':
     dot = FSMDOT()
-    res = dot.parse_file('sample.dot')
+    res = dot.parse_file('microwave1.dot')
 
     print('graph:', GRAPH_NAME)
     print(STATES_SET)
