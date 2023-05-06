@@ -1,7 +1,8 @@
 /* slkejrse 345 */
 //44454345
 digraph microwave_fsm {
-	door_closed
+	door_closed [color=red]
+	test_attrs [color=blue, shape=diamond]
 	g45jt
 	// 3498573 ^$%* oppa
 	/* 435 */
@@ -11,4 +12,20 @@ digraph microwave_fsm {
 	door_open234
 	cooking_completed
 	_gt234
+
+	test1
+	test2
+
+	cooking->cooking_interrupted
+	cooking->door_open234 [color=red]
+	cooking->cooking_completed [label=<event: instruction1, instruction2>]
+	door_open234 ->door_closed [label=<<b>event</b>:<i><br/>instruction1,<br/>instruction2</i>>]
+	door_open234->ejr214 [label=<event_only>]
+	door_open234->g45jt [label=event_without_html]
+
+	cooking_completed->door_open234 [label=<event1,<br/>event2:<br/>instruction1,<br/>instruction2>]
+
+	//test1->test2 [label=<invalid:>]
+	//test1->test2 [label=<invalid1, invalid2:instr>]
+
 }
