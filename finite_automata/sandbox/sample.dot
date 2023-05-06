@@ -18,7 +18,7 @@ digraph microwave_fsm {
 
 	cooking->cooking_interrupted
 	cooking->door_open234 [color=red]
-	cooking->cooking_completed [label=<event: instruction1, instruction2>]
+	cooking->cooking_completed [label=<event: instruction1, instruction2>, color=blue]
 	door_open234 ->door_closed [label=<<b>event</b>:<i><br/>instruction1,<br/>instruction2</i>>]
 	door_open234->ejr214 [label=<event_only>]
 	door_open234->g45jt [label=event_without_html]

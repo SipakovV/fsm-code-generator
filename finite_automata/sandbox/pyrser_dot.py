@@ -26,7 +26,9 @@ class FSMDOT(grammar.Grammar):
     edge_stmt = [ ID:from "->" ID:to [ '[' attrs ']' ]? #debug_print('from', from) #debug_print('to', to) ]
     
     attrs = [ attr [ ',' attr ]* ]
-    attr = [ "label" '=' transition_spec | ID '=' ID ]
+    attr = [ label_attr | other_attr ]
+    label_attr = [ "label" '=' transition_spec ]
+    other_attr = [ ID '=' ID ]
     
     transition_spec = [ '<' html_tag* events html_tag* [ ':' html_tag* instructions html_tag* ]? '>' ]
     
