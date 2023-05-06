@@ -29,12 +29,12 @@ class FSMDOT(grammar.Grammar):
     label_attr = [ "label" '=' transition_spec ]
     attr = [ ID '=' ID ]
     
-    transition_spec = [ '<' html_tag* events html_tag* [ ':' html_tag* instructions html_tag* ]? '>' ]
+    transition_spec = [ '<' html_tag* events:evts html_tag* [ ':' html_tag* instructions html_tag* ]? '>' #debug_list('evts', evts)  ]
     
-    events = [ event [ html_tag* ',' html_tag* event ]* ]
-    event = [ ID ]
+    events = [ #is_list(_) event:evt #add_item(_, evt)  [ html_tag* ',' html_tag* event:evt #add_item(_, evt) ]* ]
+    event = [ ID:evt #is_id(_, evt) ]
     instructions = [ instruction [ html_tag* ',' html_tag* instruction ]* ]
-    instruction = [ ID ]
+    instruction = [ ID:ins #is_id(_, ins) ]
     
     html_tag = [ "<br/>" | "<i>" | "</i>" | "<b>" | "</b>" | "<u>" | "</u>" ]
     
@@ -62,6 +62,43 @@ def debug_print(self, test_var: str, arg):
 
 
 @meta.hook(FSMDOT)
+def debug_list(self, test_var: str, l):
+    print(test_var, type(l), l)
+    for el in l.node:
+        print(el)
+    return True
+
+
+@meta.hook(FSMDOT)
+def is_list(self, ast):
+    ast.node = []
+    return True
+
+
+@meta.hook(FSMDOT)
+def add_item(self, ast, item):
+    ast.node.append(item.node)
+    print('append:', ast.node)
+    return True
+
+
+@meta.hook(FSMDOT)
+def is_id(self, ast, s):
+    ast.node = self.value(s)
+    print(ast.node)
+    return True
+
+
+@meta.hook(FSMDOT)
+def add_transition(self, ast, graph_name):
+    graphname = self.value(graph_name)
+    ast.node = graphname
+    global GRAPH_NAME
+    GRAPH_NAME = graphname
+    return True
+
+
+@meta.hook(FSMDOT)
 def add_state(self, ast, state_name):
     state = self.value(state_name)
     ast.node = state
@@ -76,15 +113,6 @@ def add_state(self, ast, state_name):
 
 @meta.hook(FSMDOT)
 def add_graph(self, ast, graph_name):
-    graphname = self.value(graph_name)
-    ast.node = graphname
-    global GRAPH_NAME
-    GRAPH_NAME = graphname
-    return True
-
-
-@meta.hook(FSMDOT)
-def add_transition(self, ast, graph_name):
     graphname = self.value(graph_name)
     ast.node = graphname
     global GRAPH_NAME
