@@ -1,7 +1,7 @@
 /* slkejrse 345 */
 //44454345
 digraph microwave_fsm {
-	door_closed [color=red]
+	door_closed [color=red, label=<oppa>]
 	test_attrs [color=blue, shape=diamond]
 	g45jt
 	// 3498573 ^$%* oppa

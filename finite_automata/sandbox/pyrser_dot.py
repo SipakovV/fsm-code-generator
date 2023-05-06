@@ -22,10 +22,9 @@ class FSMDOT(grammar.Grammar):
     stmt_list = [ stmt stmt_list? ]
     stmt = [ edge_stmt | node_stmt ]
     
-    node_stmt = [ ID:n [ '[' node_attrs ']' ]? #add_state(_, n) ]
+    node_stmt = [ ID:n [ '[' -> ']' ]? #add_state(_, n) ]
     edge_stmt = [ ID:from "->" ID:to [ '[' edge_attrs ']' ] #debug_print('from', from) #debug_print('to', to) ]
     
-    node_attrs = [ attr [ ',' attr ]* ]
     edge_attrs = [ label_attr [ ',' attr ]*  ]
     label_attr = [ "label" '=' transition_spec ]
     attr = [ ID '=' ID ]
@@ -49,6 +48,8 @@ class FSMDOT(grammar.Grammar):
 
 
 """
+node_attrs = [ attr [ ',' attr ]* ]
+
 line_comment = [ "//" ANY* '\n' ]
 multiline_comment = [ "/*" ANY* "*/" ]
 """
