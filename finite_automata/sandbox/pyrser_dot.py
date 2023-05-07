@@ -17,33 +17,38 @@ class FSMDOT(grammar.Grammar):
     grammar = """
     dot = [ graph:>_ eof ]
 
-    graph = [ @ignore("C/C++") "digraph" ID:n #add_graph(_, n) '{' stmt_list:l '}']
+    graph = [ @ignore("C/C++") "digraph" ID:n '{' stmt_list:>_ #add_graph_name(_, n) '}']
     
-    stmt_list = [ stmt ';'? stmt_list? ]
+    stmt_list = [ #is_fsm_config(_) [ stmt:s #add_entry(_, s) ';'? ]+ ]
     
-    stmt = [ attr_stmt | edge_stmt | node_stmt ]
+    stmt = 
+    [ 
+        attr_stmt
+        | edge_stmt:>_
+        | node_stmt:>_
+    ]
     
     attr_stmt = [ ID '=' [ ID | num | string ] ]
     
     node_stmt =
     [ 
-        "START" [ '[' -> ']' ]? #debug_print('start node')
-        | node_id:n [ '[' -> ']' ]? #add_state(n)
+        "START" [ '[' -> ']' ]?
+        | node_id:n [ '[' -> ']' ]? #is_state_entry(_, n)
     ]
     
     edge_stmt = [ 
         "START" "->" node_id:to '[' init_edge_attrs:spec ']' #is_init_transition(_, to, spec)
         | "START" "->" node_id:to #is_init_transition(_, to)
-        | node_id:from "->" #debug_var('from', from) node_id:to [ '[' edge_attrs:spec ']' ] #is_transition(_, from, to, spec)
+        | node_id:from "->" node_id:to [ '[' edge_attrs:spec ']' ] #is_transition(_, from, to, spec)
     ]
     
     
-    node_id = [ ID:s #is_id(_, s) #debug_print('node_id', s) port? ]
+    node_id = [ ID:s #is_id(_, s) port? ]
     
     port = 
     [ 
-        ':' compass_pt #debug_print('compass_pt called')
-        | ':' ID [ ':' compass_pt ]? #debug_print('port called')
+        ':' compass_pt
+        | ':' ID [ ':' compass_pt ]?
     ]
     
     compass_pt = [ @ignore("null") [ "nw" | "ne" | 'n' | 'e' | "se" | "sw" | 's' | 'w' | 'c' | '_' ] ]
@@ -112,6 +117,12 @@ multiline_comment = [ "/*" ANY* "*/" ]
 
 
 @meta.hook(FSMDOT)
+def print_config(self, ast):
+    print('config:', ast.node)
+    return True
+
+
+@meta.hook(FSMDOT)
 def debug_print(self, test_var: str, arg=None):
     if arg:
         print(f'{test_var} = {self.value(arg)}')
@@ -159,7 +170,7 @@ def is_init_transition_spec(self, ast, ins=None):
         ast.node = ([], ins)
     else:
         ast.node = ([], [])
-    print('init spec:', ast.node)
+    #print('init spec:', ast.node)
     return True
 
 
@@ -175,7 +186,8 @@ def is_transition(self, ast, from_, to, spec):
         instructions = []
     from_state = from_.node
     to_state = to.node
-    print(f'{events=}\n{instructions=}\n{from_state=}\n{to_state=}')
+    #print(f'{events=}\n{instructions=}\n{from_state=}\n{to_state=}')
+    '''
     if from_state not in TRANSITION_MAP:
         TRANSITION_MAP[from_state] = {}
     for instr in instructions:
@@ -183,14 +195,24 @@ def is_transition(self, ast, from_, to, spec):
     for evt in events:
         TRANSITION_MAP[from_state][evt] = (to_state, instructions)
         ALPHABET.add(evt)
+    '''
     #print(f'TRANSITION_MAP[{from_state}] = {TRANSITION_MAP[from_state]}')
+
+    ast.node = {
+        'type': 'transition',
+        'from': from_state,
+        'to': to_state,
+        'events': events,
+        'instructions': instructions,
+    }
+
     return True
 
 
 @meta.hook(FSMDOT)
 def is_init_transition(self, ast, to, spec=None):
     if spec:
-        print(f'{spec=}')
+        #print(f'{spec=}')
         if hasattr(spec.node[0], 'node'):
             if spec.node[0].node:
                 print('Initial transition must not contain events')
@@ -202,13 +224,20 @@ def is_init_transition(self, ast, to, spec=None):
     else:
         instructions = []
     to_state = to.node
-    print(f'{instructions=}\n{to_state=}')
+    #print(f'{instructions=}\n{to_state=}')
     for instr in instructions:
         INSTRUCTIONS_SET.add(instr)
 
     global INITIAL_STATE, INITIAL_ISTRUCTIONS
     INITIAL_STATE = to_state
     INITIAL_ISTRUCTIONS = instructions
+
+    ast.node = {
+        'type': 'init_transition',
+        'to': to_state,
+        'instructions': instructions,
+    }
+
     return True
 
 
@@ -261,21 +290,67 @@ def add_transition(self, ast, graph_name):
 
 
 @meta.hook(FSMDOT)
-def add_state(self, id_node):
+def is_state_entry(self, ast, id_node):
     state = id_node.node
-    #ast.node = state
+    ast.node = {
+        'type': 'state',
+        'name': state,
+    }
 
-    STATES_SET.add(state)
-    print('added state', state)
+
+    #STATES_SET.add(state)
+    #print('added state', state)
     return True
 
 
 @meta.hook(FSMDOT)
-def add_graph(self, ast, graph_name):
-    graphname = self.value(graph_name)
-    ast.node = graphname
-    global GRAPH_NAME
-    GRAPH_NAME = graphname
+def add_graph_name(self, ast, graph_name):
+    name = self.value(graph_name)
+    ast.node['name'] = name
+    return True
+
+
+@meta.hook(FSMDOT)
+def add_entry(self, ast, entry_node):
+    if hasattr(entry_node, 'node'):
+        entry = entry_node.node
+        #print('entry:', entry)
+        entry_type = entry['type']
+        if entry_type == 'state':
+            #print(f'State entry added: {entry["name"]}')
+            ast.node['states_set'].add(entry["name"])
+        elif entry_type == 'transition':
+            #print(f'Transition entry added: from {entry["from"]} to {entry["to"]}\n  '
+            #      f'Events: {entry["events"]}\n  Instructions: {entry["instructions"]}')
+            if entry['from'] not in ast.node['transition_map']:
+                ast.node['transition_map'][entry['from']] = {}
+            for event in entry['events']:
+                ast.node['transition_map'][entry['from']][event] = (entry['to'], entry['instructions'])
+                ast.node['events_set'].add(event)
+            ast.node['instructions_set'].update(set(entry['instructions']))
+        elif entry_type == 'init_transition':
+            #print(f'Init transition entry added: {entry["to"]}:\n  '
+            #      f'Instructions: {entry["instructions"]}')
+            if ast.node['initial_state']:
+                print(f'More than one initial state: {ast.node["initial_state"]} - {entry["to"]}')
+                return False
+            else:
+                ast.node['initial_state'] = entry["to"]
+                ast.node['initial_instructions'] = entry['instructions']
+    return True
+
+
+@meta.hook(FSMDOT)
+def is_fsm_config(self, ast):
+    ast.node = {
+        'name': '',
+        'states_set': set(),
+        'events_set': set(),
+        'instructions_set': set(),
+        'initial_state': None,
+        'initial_instructions': [],
+        'transition_map': {},
+    }
     return True
 
 
@@ -283,12 +358,12 @@ if __name__ == '__main__':
     dot = FSMDOT()
     res = dot.parse_file('microwave1.dot')
 
-    print('graph:', GRAPH_NAME)
-    print('states_set:', STATES_SET)
-    print('events_set:', ALPHABET)
-    print('instructions_set:', INSTRUCTIONS_SET)
-    print('initial_state:', INITIAL_STATE)
-    print('initial_instructions:', INITIAL_ISTRUCTIONS)
+    print('graph:', res.node['name'])
+    print('states_set:', res.node['states_set'])
+    print('events_set:', res.node['events_set'])
+    print('instructions_set:', res.node['instructions_set'])
+    print('initial_state:', res.node['initial_state'])
+    print('initial_instructions:', res.node['initial_instructions'])
 
-    print('transition_map:', TRANSITION_MAP)
+    print('\ntransition_map:', res.node['transition_map'])
     #print(res.node[0])
