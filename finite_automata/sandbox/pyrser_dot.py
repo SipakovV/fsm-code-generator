@@ -20,21 +20,44 @@ class FSMDOT(grammar.Grammar):
     graph = [ @ignore("C/C++") "digraph" ID:n #add_graph(_, n) '{' stmt_list:l '}']
     
     stmt_list = [ stmt ';'? stmt_list? ]
+    
     stmt = [ attr_stmt | edge_stmt | node_stmt ]
     
-    attr_stmt = [ ID '=' [ ID | num ] ]
-    node_stmt = [ "START" [ '[' -> ']' ]? | ID:n [ '[' -> ']' ]? #add_state(_, n) ]
-    edge_stmt = [ 
-        "START" "->" ID:to '[' init_edge_attrs:spec ']' #is_init_transition(_, to, spec)
-        | "START" "->" ID:to #is_init_transition(_, to)
-        | ID:from "->" ID:to [ '[' edge_attrs:spec ']' ] #is_transition(_, from, to, spec)
+    attr_stmt = [ ID '=' [ ID | num | string ] ]
+    
+    node_stmt =
+    [ 
+        "START" [ '[' -> ']' ]? #debug_print('start node')
+        | node_id:n [ '[' -> ']' ]? #add_state(n)
     ]
     
+    edge_stmt = [ 
+        "START" "->" node_id:to '[' init_edge_attrs:spec ']' #is_init_transition(_, to, spec)
+        | "START" "->" node_id:to #is_init_transition(_, to)
+        | node_id:from "->" #debug_var('from', from) node_id:to [ '[' edge_attrs:spec ']' ] #is_transition(_, from, to, spec)
+    ]
+    
+    
+    node_id = [ ID:s #is_id(_, s) #debug_print('node_id', s) port? ]
+    
+    port = 
+    [ 
+        ':' compass_pt #debug_print('compass_pt called')
+        | ':' ID [ ':' compass_pt ]? #debug_print('port called')
+    ]
+    
+    compass_pt = [ @ignore("null") [ "nw" | "ne" | 'n' | 'e' | "se" | "sw" | 's' | 'w' | 'c' | '_' ] ]
+    
+    
     edge_attrs = [ label_attr:>_ [ ',' attr ]*  ]
+    
     init_edge_attrs = [ init_label_attr:>_ [ ',' attr ]*  ]
+    
     label_attr = [ "label" '=' transition_spec:>_ ]
+    
     init_label_attr = [ "label" '=' init_transition_spec:>_ ]
-    attr = [ ID '=' ID | num ]
+    
+    attr = [ ID '=' [ ID | num | string ] ]
     
     transition_spec = 
     [ 
@@ -42,16 +65,31 @@ class FSMDOT(grammar.Grammar):
         | '<' html_tag* events:evts html_tag* '>' #is_transition_spec(_, evts)
     ]
     
-    init_transition_spec = [ '<' html_tag* instructions:ins html_tag* '>' #is_init_transition_spec(_, ins) ]
+    init_transition_spec = 
+    [ 
+        '<' html_tag* instructions:ins html_tag* '>' #is_init_transition_spec(_, ins) 
+    ]
     
-    events = [ #is_list(_) event:evt #add_item(_, evt)  [ html_tag* ',' html_tag* event:evt #add_item(_, evt) ]* ','? ]
+    
+    events = 
+    [
+        #is_list(_) event:evt #add_item(_, evt) [ html_tag* ',' html_tag* event:evt #add_item(_, evt) ]* ','? 
+    ]
+    
     event = [ ID:evt #is_id(_, evt) ]
+    
     instructions = [ #is_list(_) instruction:ins #add_item(_, ins) [ html_tag* ',' html_tag* instruction:ins #add_item(_, ins)]* ','? ]
-    instruction = [ ID:ins int_num:val #is_instruction(_, ins, val) | ID:ins #is_instruction(_, ins) ]
+    
+    instruction = 
+    [ 
+        ID:ins int_num:val #is_instruction(_, ins, val) 
+        | ID:ins #is_instruction(_, ins)
+    ]
+    
     
     html_tag = [ "<br/>" | "<i>" | "</i>" | "<b>" | "</b>" | "<u>" | "</u>" ]
     
-    ID = [ @ignore("null") [ letter_ [letter_ | digit]* ] ]
+    ID = [ @ignore("null") letter_ [letter_ | digit]* ]
     
     letter_ = [ letter | '_' ]
     letter = [ 'A'..'Z' | 'a'..'z' ]
@@ -74,8 +112,17 @@ multiline_comment = [ "/*" ANY* "*/" ]
 
 
 @meta.hook(FSMDOT)
-def debug_print(self, test_var: str, arg):
-    print(f'{test_var} = {self.value(arg)}')
+def debug_print(self, test_var: str, arg=None):
+    if arg:
+        print(f'{test_var} = {self.value(arg)}')
+    else:
+        print(f'{test_var}')
+    return True
+
+
+@meta.hook(FSMDOT)
+def debug_var(self, test_var: str, arg=None):
+    print(f'{test_var} = {arg.node}')
     return True
 
 
@@ -126,9 +173,9 @@ def is_transition(self, ast, from_, to, spec):
         instructions = spec.node[1].node
     else:
         instructions = []
-    from_state = self.value(from_)
-    to_state = self.value(to)
-    #print(f'{events=}\n{instructions=}\n{from_state=}\n{to_state=}')
+    from_state = from_.node
+    to_state = to.node
+    print(f'{events=}\n{instructions=}\n{from_state=}\n{to_state=}')
     if from_state not in TRANSITION_MAP:
         TRANSITION_MAP[from_state] = {}
     for evt in events:
@@ -209,15 +256,12 @@ def add_transition(self, ast, graph_name):
 
 
 @meta.hook(FSMDOT)
-def add_state(self, ast, state_name):
-    state = self.value(state_name)
-    ast.node = state
-    if state in STATES_SET:
-        print('Duplicate state declaration')
-        return False
-    else:
-        STATES_SET.add(state)
-    #print(ast)
+def add_state(self, id_node):
+    state = id_node.node
+    #ast.node = state
+
+    STATES_SET.add(state)
+    print('added state', state)
     return True
 
 
