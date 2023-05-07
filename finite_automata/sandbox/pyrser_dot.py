@@ -178,8 +178,11 @@ def is_transition(self, ast, from_, to, spec):
     print(f'{events=}\n{instructions=}\n{from_state=}\n{to_state=}')
     if from_state not in TRANSITION_MAP:
         TRANSITION_MAP[from_state] = {}
+    for instr in instructions:
+        INSTRUCTIONS_SET.add(instr)
     for evt in events:
         TRANSITION_MAP[from_state][evt] = (to_state, instructions)
+        ALPHABET.add(evt)
     #print(f'TRANSITION_MAP[{from_state}] = {TRANSITION_MAP[from_state]}')
     return True
 
@@ -198,8 +201,10 @@ def is_init_transition(self, ast, to, spec=None):
             instructions = []
     else:
         instructions = []
-    to_state = self.value(to)
+    to_state = to.node
     print(f'{instructions=}\n{to_state=}')
+    for instr in instructions:
+        INSTRUCTIONS_SET.add(instr)
 
     global INITIAL_STATE, INITIAL_ISTRUCTIONS
     INITIAL_STATE = to_state
@@ -280,6 +285,8 @@ if __name__ == '__main__':
 
     print('graph:', GRAPH_NAME)
     print('states_set:', STATES_SET)
+    print('events_set:', ALPHABET)
+    print('instructions_set:', INSTRUCTIONS_SET)
     print('initial_state:', INITIAL_STATE)
     print('initial_instructions:', INITIAL_ISTRUCTIONS)
 
