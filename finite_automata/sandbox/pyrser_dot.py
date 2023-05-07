@@ -19,15 +19,16 @@ class FSMDOT(grammar.Grammar):
 
     graph = [ @ignore("C/C++") "digraph" ID:n #add_graph(_, n) '{' stmt_list:l '}']
     
-    stmt_list = [ stmt stmt_list? ]
-    stmt = [ edge_stmt | node_stmt ]
+    stmt_list = [ stmt ';'? stmt_list? ]
+    stmt = [ attr_stmt | edge_stmt | node_stmt ]
     
+    attr_stmt = [ ID '=' [ ID | num ] ]
     node_stmt = [ ID:n [ '[' -> ']' ]? #add_state(_, n) ]
     edge_stmt = [ ID:from "->" ID:to [ '[' edge_attrs:spec ']' ] #is_transition(_, from, to, spec) ]
     
     edge_attrs = [ label_attr:>_ [ ',' attr ]*  ]
     label_attr = [ "label" '=' transition_spec:>_ ]
-    attr = [ ID '=' ID ]
+    attr = [ ID '=' ID | num ]
     
     transition_spec = 
     [ 
@@ -46,8 +47,12 @@ class FSMDOT(grammar.Grammar):
     
     letter_ = [ letter | '_' ]
     letter = [ 'A'..'Z' | 'a'..'z' ]
-    int_num = [ @ignore("null") digit+ ]
+    num = [ int_num [ '.' digits+ ]? | '.' digits+ ]
+    int_num = [ @ignore("null") '-'? digit+ ]
     digit = [ '0'..'9' ]
+    digits = [ digit+ ]
+    digit1_9 = [ '1'..'9' ]
+    digit1_9 = [ digit1_9 digit* ]
     
     """
 

@@ -1,6 +1,6 @@
 // microwave_fsm
 digraph microwave_fsm {
-	//nodesep=1 pad=0.5 ranksep=0
+	nodesep=1 pad=0.5 ranksep=0
 	START [shape=diamond]
 	cooking
 	cooking_completed
