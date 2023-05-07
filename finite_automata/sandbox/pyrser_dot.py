@@ -23,18 +23,26 @@ class FSMDOT(grammar.Grammar):
     stmt = [ attr_stmt | edge_stmt | node_stmt ]
     
     attr_stmt = [ ID '=' [ ID | num ] ]
-    node_stmt = [ ID:n [ '[' -> ']' ]? #add_state(_, n) ]
-    edge_stmt = [ ID:from "->" ID:to [ '[' edge_attrs:spec ']' ] #is_transition(_, from, to, spec) ]
+    node_stmt = [ "START" [ '[' -> ']' ]? | ID:n [ '[' -> ']' ]? #add_state(_, n) ]
+    edge_stmt = [ 
+        "START" "->" ID:to '[' init_edge_attrs:spec ']' #is_init_transition(_, to, spec)
+        | "START" "->" ID:to #is_init_transition(_, to)
+        | ID:from "->" ID:to [ '[' edge_attrs:spec ']' ] #is_transition(_, from, to, spec)
+    ]
     
     edge_attrs = [ label_attr:>_ [ ',' attr ]*  ]
+    init_edge_attrs = [ init_label_attr:>_ [ ',' attr ]*  ]
     label_attr = [ "label" '=' transition_spec:>_ ]
+    init_label_attr = [ "label" '=' init_transition_spec:>_ ]
     attr = [ ID '=' ID | num ]
     
     transition_spec = 
     [ 
-        '<' html_tag* events:evts html_tag* ':' html_tag* instructions:ins html_tag*  '>' #is_transition_spec(_, evts, ins) |
-        '<' html_tag* events:evts html_tag* '>' #is_transition_spec(_, evts)
+        '<' html_tag* events:evts html_tag* ':' html_tag* instructions:ins html_tag*  '>' #is_transition_spec(_, evts, ins)
+        | '<' html_tag* events:evts html_tag* '>' #is_transition_spec(_, evts)
     ]
+    
+    init_transition_spec = [ '<' html_tag* instructions:ins html_tag* '>' #is_init_transition_spec(_, ins) ]
     
     events = [ #is_list(_) event:evt #add_item(_, evt)  [ html_tag* ',' html_tag* event:evt #add_item(_, evt) ]* ','? ]
     event = [ ID:evt #is_id(_, evt) ]
@@ -94,7 +102,17 @@ def is_transition_spec(self, ast, evts, ins=None):
         ast.node = (evts, ins)
     else:
         ast.node = (evts, [])
-    print(ast.node)
+    #print(ast.node)
+    return True
+
+
+@meta.hook(FSMDOT)
+def is_init_transition_spec(self, ast, ins=None):
+    if ins:
+        ast.node = ([], ins)
+    else:
+        ast.node = ([], [])
+    print('init spec:', ast.node)
     return True
 
 
@@ -110,12 +128,35 @@ def is_transition(self, ast, from_, to, spec):
         instructions = []
     from_state = self.value(from_)
     to_state = self.value(to)
-    print(f'{events=}\n{instructions=}\n{from_state=}\n{to_state=}')
+    #print(f'{events=}\n{instructions=}\n{from_state=}\n{to_state=}')
     if from_state not in TRANSITION_MAP:
         TRANSITION_MAP[from_state] = {}
     for evt in events:
         TRANSITION_MAP[from_state][evt] = (to_state, instructions)
-    print(f'TRANSITION_MAP[{from_state}] = {TRANSITION_MAP[from_state]}')
+    #print(f'TRANSITION_MAP[{from_state}] = {TRANSITION_MAP[from_state]}')
+    return True
+
+
+@meta.hook(FSMDOT)
+def is_init_transition(self, ast, to, spec=None):
+    if spec:
+        print(f'{spec=}')
+        if hasattr(spec.node[0], 'node'):
+            if spec.node[0].node:
+                print('Initial transition must not contain events')
+                return False
+        if hasattr(spec.node[1], 'node'):
+            instructions = spec.node[1].node
+        else:
+            instructions = []
+    else:
+        instructions = []
+    to_state = self.value(to)
+    print(f'{instructions=}\n{to_state=}')
+
+    global INITIAL_STATE, INITIAL_ISTRUCTIONS
+    INITIAL_STATE = to_state
+    INITIAL_ISTRUCTIONS = instructions
     return True
 
 
@@ -128,33 +169,33 @@ def is_list(self, ast):
 @meta.hook(FSMDOT)
 def add_item(self, ast, item):
     ast.node.append(item.node)
-    print('append:', ast.node)
+    #print('append:', ast.node)
     return True
 
 
 @meta.hook(FSMDOT)
 def is_id(self, ast, s):
     ast.node = self.value(s)
-    print(ast.node)
+    #print(ast.node)
     return True
 
 
 @meta.hook(FSMDOT)
 def is_int(self, ast, s):
     ast.node = self.value(s)
-    print(ast.node)
+    #print(ast.node)
     return True
 
 
 @meta.hook(FSMDOT)
 def is_instruction(self, ast, ins, val=None):
     if val:
-        print('===========')
+        #print('===========')
         ast.node = (self.value(ins), int(self.value(val)))
     else:
         ast.node = self.value(ins)
 
-    print(ast.node)
+    #print(ast.node)
     return True
 
 
@@ -176,7 +217,7 @@ def add_state(self, ast, state_name):
         return False
     else:
         STATES_SET.add(state)
-    print(ast)
+    #print(ast)
     return True
 
 
@@ -194,6 +235,9 @@ if __name__ == '__main__':
     res = dot.parse_file('microwave1.dot')
 
     print('graph:', GRAPH_NAME)
-    print(STATES_SET)
-    print(TRANSITION_MAP)
+    print('states_set:', STATES_SET)
+    print('initial_state:', INITIAL_STATE)
+    print('initial_instructions:', INITIAL_ISTRUCTIONS)
+
+    print('transition_map:', TRANSITION_MAP)
     #print(res.node[0])
