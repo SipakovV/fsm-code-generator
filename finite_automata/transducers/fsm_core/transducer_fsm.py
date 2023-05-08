@@ -10,9 +10,12 @@ class TransducerFSM:
     def __init__(self, alphabet: Set[str], instructions_set: Set[str], state_set: Set[Union[str, int]],
               initial_state: Union[str, int], transition_map: dict,
               initial_instructions: List[Union[str, tuple]] = None, final_states: Set[Union[str, int]] = None,
-              name: str = 'unnamed_fsm', title: str = 'Unnamed', description: str = '',):
+              name: str = 'unnamed_fsm', title: str = '', description: str = '',):
         self._name = name
-        self._title = title
+        if title:
+            self._title = title
+        else:
+            self._title = self._name
         if description:
             self._description = description
         else:
@@ -55,7 +58,7 @@ class TransducerFSM:
         try:
             out = f'{self.__name__}\n'
         except AttributeError:
-            out = f'DFA:\n'
+            out = f'FSM:\n'
 
         for k, v in self.__dict__.items():
             out += '{:>4s}: {}\n'.format(k, v)

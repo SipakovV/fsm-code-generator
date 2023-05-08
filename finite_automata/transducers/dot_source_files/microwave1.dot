@@ -17,6 +17,8 @@ digraph microwave_fsm {
 	cooking -> cooking_interrupted [label=<<b>door_open</b>:<br/><i>timer_pause,<br/>power_off,<br/></i>>]
 	cooking -> cooking_completed [label=<<b>timeout</b>:<br/><i>power_off,<br/>beeping_on,<br/></i>>]
 	cooking_interrupted -> cooking [label=<<b>door_close</b>:<br/><i>timer_resume,<br/>power_on,<br/></i>>]
+	cooking_interrupted -> door_open [label=<<b>button_reset</b>:<br/><i>timer_set 0,<br/>lamp_off,<br/></i>>]
+	cooking_interrupted -> cooking_interrupted [label=<<b>button_run</b>:<br/><i>timer_add 30,<br/></i>>]
 	cooking_completed -> door_open [label=<<b>door_open</b>:<br/><i>beeping_off,<br/></i>>]
 	cooking_completed -> door_closed [label=<<b>button_reset</b>:<br/><i>lamp_off,<br/>beeping_off,<br/></i>>]
 	START -> door_closed [label=<<i>power_off,<br/>lamp_off,<br/>beeping_off,<br/></i>>]
