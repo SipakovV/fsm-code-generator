@@ -337,7 +337,7 @@ def add_entry(self, ast, entry_node):
                 print(f'More than one initial state: {ast.node["initial_state"]} - {entry["to"]}')
                 return False
             else:
-                ast.node['initial_state'] = entry["to"]
+                ast.node['initial_state'] = entry['to']
                 ast.node['initial_instructions'] = entry['instructions']
             for ins in entry['instructions']:
                 if type(ins) is tuple:
