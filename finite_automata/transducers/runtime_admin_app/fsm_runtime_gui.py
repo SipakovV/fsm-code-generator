@@ -1,3 +1,5 @@
+# TODO: fix timer number not visible properly after 100
+
 import json
 from json.decoder import JSONDecodeError
 import logging
