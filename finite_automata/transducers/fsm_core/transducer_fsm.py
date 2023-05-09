@@ -155,10 +155,7 @@ class TransducerFSM:
 
         return dot
 
-    def visualize(self, directory: str = None, all_states: bool = False):
-        if not directory:
-            directory = 'generated_graph_images'
-
+    def visualize(self, directory: str = 'generated_graph_images', all_states: bool = False):
         try:
             os.mkdir(directory)
         except FileExistsError as exc:
