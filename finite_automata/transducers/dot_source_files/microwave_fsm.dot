@@ -2,6 +2,10 @@
 digraph microwave_fsm {
 	nodesep=1 pad=0.5 ranksep=0
 	_background="c 7 -#aa0000 p 4 4 4 36 4 36 36 4 36"
+	fontname="Helvetica,Arial,sans-serif"
+	rankdir=LR
+	node [fontname="Helvetica,Arial,sans-serif"]
+	edge [fontname="Helvetica,Arial,sans-serif"]
 
 	START [shape=diamond]
 	cooking

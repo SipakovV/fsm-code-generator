@@ -16,18 +16,19 @@ class FSMDOT(grammar.Grammar):
     grammar = """
     dot = [ graph:>_ eof ]
 
-    graph = [ @ignore("C/C++") "digraph" ID:n '{' stmt_list:>_ #add_graph_name(_, n) '}']
+    graph = [ @ignore("C/C++") "digraph" ID? '{' stmt_list:>_ '}']
 
     stmt_list = [ #is_fsm_config(_) [ stmt:s #add_entry(_, s) ';'? ]+ ]
 
     stmt = 
     [ 
-        attr_stmt
+        ID '=' [ ID | num | string ]
+        | attr_stmt
         | edge_stmt:>_
         | node_stmt:>_
     ]
 
-    attr_stmt = [ ID '=' [ ID | num | string ] ]
+    attr_stmt = [ ["graph" | "node" | "edge"] '[' -> ']' ]
 
     node_stmt =
     [ 
@@ -57,9 +58,15 @@ class FSMDOT(grammar.Grammar):
 
     init_edge_attrs = [ init_label_attr:>_ [ ',' attr ]*  ]
 
-    label_attr = [ "label" '=' transition_spec:>_ ]
+    label_attr = 
+    [
+        "label" '=' transition_spec:>_ 
+    ]
 
-    init_label_attr = [ "label" '=' init_transition_spec:>_ ]
+    init_label_attr = 
+    [
+        "label" '=' init_transition_spec:>_ 
+    ]
 
     attr = [ ID '=' [ ID | num | string ] ]
 

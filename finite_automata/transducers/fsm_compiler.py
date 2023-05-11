@@ -1,5 +1,6 @@
 import argparse
 import os
+import time
 
 import graphviz
 import pydot
@@ -11,6 +12,8 @@ from fsm_core.transducer_fsm import TransducerFSM
 def visualize_base(filename: str, png_directory: str):
     if not filename.endswith('.dot'):
         raise ValueError('Invalid DOT file')
+
+    s = graphviz.Source.from_file(filename)
 
     fsm_name = os.path.basename(filename[:-4])
 
@@ -26,10 +29,15 @@ def visualize_base(filename: str, png_directory: str):
     try:
         os.mkdir(path)
     except FileExistsError as exc:
-        pass
+        #print(os.listdir(path))
+        for file in os.listdir(path):
+            os.remove(os.path.join(path, file))
 
-    s = graphviz.Source.from_file(filename)
-    s.render('_base', format='png', directory=path)
+    s.render('_base', format='png', directory=path).replace('\\', '/')
+
+    file_path = os.path.join(path, '_base')
+    if os.path.exists(file_path):
+        os.remove(file_path)
     #print('_base rendered')
     # fsm.visualize(all_states=True)
 
@@ -55,11 +63,16 @@ def visualize_all_states(filename: str, png_directory: str):
     graphs = pydot.graph_from_dot_file(filename)
     graph = graphs[0]
 
+    if graph.get_node('\n'):
+        raise TypeError("Pydot fails to parse DOT files with ';'")
+
     node_list = graph.get_node_list()
+
+    print(node_list)
 
     for node in node_list:
         node_name = node.get_name()
-        if node_name == 'START':
+        if node_name in {'START', 'node', 'edge', 'graph'}:
             continue
 
         node.set_fillcolor('yellow')
@@ -81,6 +94,9 @@ def compile_fsm(filename, lang: str, visualize='full', png_directory='generated_
     parser = FSMDOT()
     res = parser.parse_file(filename)
 
+    fsm_name = os.path.basename(filename)[:-4]
+    res.node['name'] = fsm_name
+
     print('DOT parsed')
 
     fsm = TransducerFSM(**res.node)
@@ -92,8 +108,12 @@ def compile_fsm(filename, lang: str, visualize='full', png_directory='generated_
     print('Code generated')
 
     if visualize == 'full':
-        visualize_all_states(filename, png_directory)
-        print('All states highlight visualized')
+        try:
+            visualize_all_states(filename, png_directory)
+            print('All states highlight visualized')
+        except Exception as exc:
+            print('Couldn\'t visualize all states')
+            #print(exc)
 
 
 if __name__ == '__main__':

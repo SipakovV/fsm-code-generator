@@ -1,12 +1,14 @@
-/* slkejrse 345 */
-//44454345
-digraph microwave_fsm {
-
-	node1
-	node2
-	node3
-
-    START -> node1
-	node1 -> node2 [label=<event1>]
-	node1 -> node2 [label=<event2>]
-}
+digraph FSM {
+    nodesep=1 pad=0.5 ranksep=0;
+	_background="c 7 -#aa0000 p 4 4 4 36 4 36 36 4 36";
+	fontname="Helvetica,Arial,sans-serif";
+	rankdir=LR;
+	node [fontname="Helvetica,Arial,sans-serif"];
+	edge [fontname="Helvetica,Arial,sans-serif"];
+	cooking;
+	cooking_int;
+	ethld;
+	cooking -> cooking_int [label=<event2:<br/>instr1, instr2>];
+	cooking -> ethld [label=<event1>];
+	START -> cooking [label=<instr1,<br/>instr2>]
+	}
