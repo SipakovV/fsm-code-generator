@@ -38,21 +38,22 @@ class TransducerFSM:
             self.final_states = final_states
         self.transition_map = transition_map
 
-        assert initial_state in state_set
+        assert initial_state, 'FSM generation failed: no initial state'
+        assert initial_state in state_set, 'FSM generation failed: invalid initial state'
         assert all(instr in instructions_set or type(instr) is tuple and instr[0] in instructions_set for instr in
-                   self.init_instructions)
+                   self.init_instructions), 'FSM generation failed: invalid initial instructions'
 
         assert all(state in state_set for state in transition_map), \
-            'Transition map contains states not in state set'
+            'FSM generation failed: transition map contains states not in state set'
         assert all(all(transition_map[state][event][0] in state_set for event in transition_map[state]) for state in
                    transition_map), \
-            'Transition map contains target states not in state set'
+            'FSM generation failed: transition map contains target states not in state set'
         assert all(all(event in alphabet for event in transition_map[state]) for state in transition_map), \
-            'Transition map contains events not in alphabet'
+            'FSM generation failed: transition map contains events not in event set'
         assert all(all(all(
             instr in instructions_set or (type(instr) is tuple and instr[0] in instructions_set) for instr in
             transition_map[state][event][1]) for event in transition_map[state]) for state in transition_map), \
-            'Transition map contains instructions not in instructions set'
+            'FSM generation failed: transition map contains instructions not in instructions set'
 
     def __repr__(self):
         try:

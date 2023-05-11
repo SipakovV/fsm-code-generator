@@ -1,31 +1,12 @@
 /* slkejrse 345 */
 //44454345
 digraph microwave_fsm {
-	door_closed [color=red, label=<oppa>]
-	test_attrs [color=blue, shape=diamond]
-	g45jt
-	// 3498573 ^$%* oppa
-	/* 435 */
-	ejr214
-	cooking
-	cooking_interrupted
-	door_open234
-	cooking_completed
-	_gt234
 
-	test1
-	test2
+	node1
+	node2
+	node3
 
-	//cooking->cooking_interrupted - invalid: no attrs
-	//cooking->door_open234 [color=red] - invalid: no label attr
-	cooking->cooking_completed [label=<event: instruction1, instruction2>, color=blue]
-	door_open234 ->door_closed [label=<<b>event</b>:<i><br/>instruction1,<br/>instruction2</i>>]
-	door_open234->ejr214 [label=<event_only>]
-	//door_open234->g45jt [label=event_without_html] - invalid: no <> brbh
-
-	cooking_completed->door_open234 [label=<event1,<br/>event2:<br/>instruction1,<br/>instruction2>]
-
-	//test1->test2 [label=<event1:>] - invalid: ':' without instructions
-	test1->test2 [label=<event1, event2:instr>]
-
+    START -> node1
+	node1 -> node2 [label=<event1>]
+	node1 -> node2 [label=<event2>]
 }

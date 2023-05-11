@@ -74,6 +74,10 @@ def compile_fsm(filename, lang: str, visualize='full', png_directory='generated_
 
     # TODO: get fsm name from filename instead of graph name
 
+    if visualize == 'full' or visualize == 'base':
+        visualize_base(filename, png_directory)
+        print('Graph base visualized')
+
     parser = FSMDOT()
     res = parser.parse_file(filename)
 
@@ -86,10 +90,6 @@ def compile_fsm(filename, lang: str, visualize='full', png_directory='generated_
     fsm.generate_code_python()
     
     print('Code generated')
-
-    if visualize == 'full' or visualize == 'base':
-        visualize_base(filename, png_directory)
-        print('Graph base visualized')
 
     if visualize == 'full':
         visualize_all_states(filename, png_directory)
