@@ -68,16 +68,14 @@ def visualize_all_states(filename: str, png_directory: str):
 
     node_list = graph.get_node_list()
 
-    print(node_list)
-
     for node in node_list:
-        node_name = node.get_name()
+        node_name = node.get_name().strip('"')
         if node_name in {'START', 'node', 'edge', 'graph'}:
             continue
 
         node.set_fillcolor('yellow')
         node.set_style('filled')
-        graph.write_png(os.path.join(path, node_name) + '.png')
+        graph.write_png((os.path.join(path, node_name) + '.png').replace('\\', '/'))
         node.set_style('')
 
         #print(f'State {node_name} rendered')
