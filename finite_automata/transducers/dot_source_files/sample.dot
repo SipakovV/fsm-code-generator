@@ -1,14 +1,24 @@
-digraph FSM {
-    nodesep=1 pad=0.5 ranksep=0;
-	_background="c 7 -#aa0000 p 4 4 4 36 4 36 36 4 36";
-	fontname="Helvetica,Arial,sans-serif";
-	rankdir=LR;
-	node [fontname="Helvetica,Arial,sans-serif"];
-	edge [fontname="Helvetica,Arial,sans-serif"];
-	cooking;
-	cooking_int;
-	ethld;
-	cooking -> cooking_int [label=<event2:<br/>instr1, instr2>];
-	cooking -> ethld [label=<event1>];
-	START -> cooking [label=<instr1,<br/>instr2>]
-	}
+digraph G {
+    edge [comment="Wildcard node added automatic in EG."];
+    node [comment="Wildcard node added automatic in EG."];
+    START -> a;
+    a [shape="ellipse",
+       style="filled",
+       fillcolor="#1f77b4"];
+    b [shape="polygon",
+       style="filled",
+       fillcolor="#ff7f0e"];
+    a -> b  [color="#1f78b4",
+             fillcolor="#a6cee3",
+             label=<event1>];
+    n2 [shape=ellipse,
+        style=filled,
+        fillcolor="#1f77b4"];
+    a -> n2  [label=<event1>];
+    n4 [shape=ellipse];
+    a -> n4  [label=<event1>];
+    n5 [shape=point];
+    n7 [shape=plaintext];
+    n7 -> n5  [label=<event2>];
+    a -> n2  [label=<event1>];
+}

@@ -16,7 +16,7 @@ class FSMDOT(grammar.Grammar):
     grammar = """
     dot = [ graph:>_ eof ]
 
-    graph = [ @ignore("C/C++") "digraph" ID? '{' stmt_list:>_ '}']
+    graph = [ @ignore("C/C++") "strict"? "digraph" ID? '{' stmt_list:>_ '}']
 
     stmt_list = [ #is_fsm_config(_) [ stmt:s #add_entry(_, s) ';'? ]+ ]
 
@@ -43,7 +43,7 @@ class FSMDOT(grammar.Grammar):
     ]
 
 
-    node_id = [ ID:s #is_id(_, s) port? ]
+    node_id = [ ID:>_ port? ]
 
     port = 
     [ 
@@ -87,7 +87,7 @@ class FSMDOT(grammar.Grammar):
         #is_list(_) event:evt #add_item(_, evt) [ html_tag* ',' html_tag* event:evt #add_item(_, evt) ]* ','? 
     ]
 
-    event = [ ID:evt #is_id(_, evt) ]
+    event = [ ID:>_ ]
 
     instructions = [ #is_list(_) instruction:ins #add_item(_, ins) [ html_tag* ',' html_tag* instruction:ins #add_item(_, ins)]* ','? ]
 
@@ -100,7 +100,13 @@ class FSMDOT(grammar.Grammar):
 
     html_tag = [ "<br/>" | "<i>" | "</i>" | "<b>" | "</b>" | "<u>" | "</u>" ]
 
-    ID = [ @ignore("null") letter_ [letter_ | digit]* ]
+    ID = 
+    [ 
+        @ignore("null") '\"' id_str:s '\"' #is_id(_, s)
+        | id_str:s #is_id(_, s)
+    ]
+    
+    id_str = [ @ignore("null") letter_ [letter_ | digit]* ]
 
     letter_ = [ letter | '_' ]
     letter = [ 'A'..'Z' | 'a'..'z' ]
@@ -263,13 +269,27 @@ def add_item(self, ast, item):
 @meta.hook(FSMDOT)
 def is_id(self, ast, s):
     ast.node = self.value(s)
-    # print(ast.node)
+    #print('|', ast.node, '|')
+    return True
+
+
+@meta.hook(FSMDOT)
+def is_quoted_id(self, ast, s):
+    ast.node = self.value(s)
+    #print(ast.node)
     return True
 
 
 @meta.hook(FSMDOT)
 def is_int(self, ast, s):
-    ast.node = self.value(s)
+    ast.node = int(self.value(s))
+    # print(ast.node)
+    return True
+
+
+@meta.hook(FSMDOT)
+def is_float(self, ast, s):
+    ast.node = float(self.value(s))
     # print(ast.node)
     return True
 
@@ -278,9 +298,9 @@ def is_int(self, ast, s):
 def is_instruction(self, ast, ins, val=None):
     if val:
         # print('===========')
-        ast.node = (self.value(ins), int(self.value(val)))
+        ast.node = (ins.node, self.value(val))
     else:
-        ast.node = self.value(ins)
+        ast.node = ins.node
 
     # print(ast.node)
     return True
@@ -310,7 +330,7 @@ def is_state_entry(self, ast, id_node):
 
 @meta.hook(FSMDOT)
 def add_graph_name(self, ast, graph_name):
-    name = self.value(graph_name)
+    name = graph_name.node
     ast.node['name'] = name
     return True
 
