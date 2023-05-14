@@ -1,0 +1,39 @@
+digraph G {
+    fontname="sans-serif";
+    nodesep="0.2";
+    penwidth="0.1";
+    edge [comment="Wildcard edge", 
+          fontname="sans-serif", 
+          fontsize=10, 
+          colorscheme="greys9", 
+          color="9", 
+          fontcolor="9", 
+          label="<<b></b>:<br/>
+<i></i>>"];
+    node [fontname="serif", 
+          fontsize=13, 
+          fillcolor="1", 
+          colorscheme="greys3", 
+          color="2", 
+          fontcolor="4", 
+          style="filled"];
+    "START";
+    "idle_closed";
+    "idle_open";
+    "cooking";
+    "cooking_interrupted";
+    "cooking_completed";
+    "START" -> "idle_closed"  [label=<<i>magnetron_off,<br/>lamp_off,<br/>beeping_off</i>>];
+    "idle_closed" -> "idle_open"  [label=<<b>door_open</b>:<i>lamp_on</i>>];
+    "idle_closed" -> "cooking"  [label=<<b>button_run</b>:<br/><i>timer_set 30,<br/>lamp_on,<br/>magnetron_on</i>>];
+    "cooking" -> "cooking_completed"  [label=<<b>timeout</b>:<br/><i>magnetron_off,<br/>beeping_on</i>>];
+    "cooking" -> "cooking_interrupted"  [label=<<b>door_open</b>:<br/><i>magnetron_off,<br/>timer_pause</i>>];
+    "cooking" -> "cooking"  [label=<<b>button_run</b>:<br/><i>timer_add 30</i>>];
+    "cooking_interrupted" -> "cooking_interrupted"  [label=<<b>button_run</b>:<br/><i>timer_add 30</i>>];
+    "cooking_completed" -> "cooking"  [label=<<b>button_run</b>:<br/><i>magnetron_on,<br/>beeping_off</i>>];
+    "cooking_interrupted" -> "idle_open"  [label=<<b>button_reset</b>:<br/><i>timer_set 0</i>>];
+    "cooking_completed" -> "idle_closed"  [label=<<b>button_reset</b>:<br/><i>lamp_off,<br/>beeping_off</i>>];
+    "cooking_completed" -> "idle_open"  [label=<<b>door_open</b>:<br/><i>beeping_off</i>>];
+    "cooking_interrupted" -> "cooking"  [label=<<b>door_close</b>:<br/><i>magnetron_on,<br/>timer_resume</i>>];
+    "idle_open" -> "idle_closed"  [label=<<b>door_close</b>:<br/><i>lamp_off</i>>];
+}

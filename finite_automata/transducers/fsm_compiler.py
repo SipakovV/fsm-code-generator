@@ -73,10 +73,22 @@ def visualize_all_states(filename: str, png_directory: str):
         if node_name in {'START', 'node', 'edge', 'graph'}:
             continue
 
+        fillcolor = node.__get_attribute__('fillcolor')
+        style = node.__get_attribute__('style')
+        #print(fillcolor, style)
         node.set_fillcolor('yellow')
         node.set_style('filled')
+        #print(node.__get_attribute__('fillcolor'), node.__get_attribute__('style'))
+        #graph.write_dot((os.path.join(path, node_name) + '.dot').replace('\\', '/'))
         graph.write_png((os.path.join(path, node_name) + '.png').replace('\\', '/'))
-        node.set_style('')
+        if fillcolor:
+            node.set_fillcolor(fillcolor)
+        else:
+            node.set_fillcolor('')
+        if style:
+            node.set_style(style)
+        else:
+            node.set_style('')
 
         #print(f'State {node_name} rendered')
 
@@ -111,7 +123,7 @@ def compile_fsm(filename, lang: str, visualize='full', png_directory='generated_
             print('All states highlight visualized')
         except Exception as exc:
             print('Couldn\'t visualize all states')
-            #print(exc)
+            print(exc)
 
 
 if __name__ == '__main__':
