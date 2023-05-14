@@ -32,13 +32,13 @@ class FSMDOT(grammar.Grammar):
 
     node_stmt =
     [ 
-        "START" [ '[' -> ']' ]?
+        start_tag [ '[' -> ']' ]?
         | node_id:n [ '[' -> ']' ]? #is_state_entry(_, n)
     ]
 
     edge_stmt = [ 
-        "START" "->" node_id:to '[' init_edge_attrs:spec ']' #is_init_transition(_, to, spec)
-        | "START" "->" node_id:to #is_init_transition(_, to)
+        start_tag "->" node_id:to '[' init_edge_attrs:spec ']' #is_init_transition(_, to, spec)
+        | start_tag "->" node_id:to #is_init_transition(_, to)
         | node_id:from "->" node_id:to [ '[' edge_attrs:spec ']' ] #is_transition(_, from, to, spec)
     ]
 
@@ -89,7 +89,7 @@ class FSMDOT(grammar.Grammar):
 
     event = [ ID:>_ ]
 
-    instructions = [ #is_list(_) instruction:ins #add_item(_, ins) [ html_tag* ',' html_tag* instruction:ins #add_item(_, ins)]* ','? ]
+    instructions = [ #is_list(_) instruction:ins #add_item(_, ins) [ html_tag* ',' html_tag* instruction:ins #add_item(_, ins)]* html_tag* ','? ]
 
     instruction = 
     [ 
@@ -105,6 +105,7 @@ class FSMDOT(grammar.Grammar):
         @ignore("null") '\"' id_str:s '\"' #is_id(_, s)
         | id_str:s #is_id(_, s)
     ]
+    start_tag = [ "START" | @ignore("null") '\"' "START" '\"' ]
     
     id_str = [ @ignore("null") letter_ [letter_ | digit]* ]
 
@@ -302,7 +303,7 @@ def is_instruction(self, ast, ins, val=None):
     else:
         ast.node = ins.node
 
-    # print(ast.node)
+    #print('instruction', ast.node)
     return True
 
 
