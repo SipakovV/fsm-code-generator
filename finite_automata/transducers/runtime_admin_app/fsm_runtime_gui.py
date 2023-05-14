@@ -256,7 +256,7 @@ class FSMRuntimeApp(tk.Frame):
         self.style.configure('About.TLabel', foreground='black', background=app_colors['bg'], padding=10, font=self.FONTS['normal'])
         self.style.configure('Header.TLabel', foreground='black', background=app_colors['bg'], padding=10,
                                      font=self.FONTS['heading'])
-        self.style.configure('Timer.TLabel', foreground='black', background=app_colors['bg'], justify=tk.RIGHT, width=2, height=1, padding=10, font=self.FONTS['oldstyle'])
+        self.style.configure('Timer.TLabel', foreground='black', background=app_colors['bg'], justify=tk.RIGHT, width=3, height=1, padding=10, font=self.FONTS['oldstyle'])
         self.style.configure('TFrame', background=app_colors['bg'])
         self.style.configure('Thick.TFrame', background=app_colors['warning'], borderwidth=2)
         self.style.configure('TButton', background=app_colors['primary'], foreground='black', padding=10, font=self.FONTS['normal'])
