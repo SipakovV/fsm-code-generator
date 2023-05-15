@@ -94,9 +94,6 @@ def visualize_all_states(filename: str, png_directory: str):
 
 
 def compile_fsm(filename, lang: str, visualize='full', png_directory='generated_graph_images'):
-
-    # TODO: get fsm name from filename instead of graph name
-
     if visualize == 'full' or visualize == 'base':
         visualize_base(filename, png_directory)
         print('Graph base visualized')
