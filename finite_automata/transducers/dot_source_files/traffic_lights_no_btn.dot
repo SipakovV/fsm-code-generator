@@ -1,0 +1,25 @@
+// Traffic lights with button FSM
+digraph G {
+	nodesep=1 pad=0.5 ranksep=0
+	START [shape=diamond]
+	ns_stopped
+	ew_stopping
+	ns_go
+	ns_stopping
+	ew_stopped
+	ew_go
+	ns_go -> ns_stopping
+	    [label=<<b>timeout</b>:<br/><i>timer_set 3,<br/>t1_blinking,<br/>p1_blinking</i>>]
+	ns_stopping -> ns_stopped
+	    [label=<<b>timeout</b>:<br/><i>timer_set 3,<br/>t1_yellow,<br/>p1_red,<br/>t2_yellow_red</i>>]
+	ns_stopped -> ew_go
+	    [label=<<b>timeout</b>:<br/><i>timer_set 20,<br/>t1_red,<br/>t2_green,<br/>p2_green</i>>]
+	ew_go -> ew_stopping
+	    [label=<<b>timeout</b>:<br/><i>timer_set 3,<br/>t2_blinking,<br/>p2_blinking</i>>]
+	ew_stopping -> ew_stopped
+	    [label=<<b>timeout</b>:<br/><i>timer_set 3,<br/>t1_yellow_red,<br/>t2_yellow,<br/>p2_red</i>>]
+	ew_stopped -> ns_go
+	    [label=<<b>timeout</b>:<br/><i>timer_set 30,<br/>t1_green,<br/>p1_green,<br/>t2_red</i>>]
+	START -> ns_go
+	    [label=<<i>timer_set 30,<br/>t1_green,<br/>p1_green,<br/>t2_red,<br/>p2_red</i>>]
+}

@@ -1,0 +1,33 @@
+// Traffic lights with button FSM
+digraph G {
+	nodesep=1 pad=0.5 ranksep=0
+	START [shape=diamond]
+	p_stopping
+	traffic_stopping1
+	traffic_ready
+	p_go
+	traffic_stopping2
+	traffic_go
+	traffic_go_ready
+	traffic_go_change
+	traffic_go -> traffic_go_ready
+	    [label=<<b>timeout</b>>]
+	traffic_go -> traffic_go_change
+	    [label=<<b>button1</b>>]
+	traffic_go_ready -> traffic_stopping1
+	    [label=<<b>button1</b>:<br/><i>timer_set 3,<br/>t1_blinking</i>>]
+	traffic_go_change -> traffic_stopping1
+	    [label=<<b>timeout</b>:<br/><i>timer_set 3,<br/>t1_blinking</i>>]
+	traffic_stopping1 -> traffic_stopping2
+	    [label=<<b>timeout</b>:<br/><i>timer_set 3,<br/>t1_yellow</i>>]
+	traffic_stopping2 -> p_go
+	    [label=<<b>timeout</b>:<br/><i>timer_set 20,<br/>t1_red,<br/>p1_green</i>>]
+	p_go -> p_stopping
+	    [label=<<b>timeout</b>:<br/><i>timer_set 3,<br/>p1_blinking</i>>]
+	p_stopping -> traffic_ready
+	    [label=<<b>timeout</b>:<br/><i>timer_set 3,<br/>t1_yellow_red,<br/>p1_red</i>>]
+	traffic_ready -> traffic_go
+	    [label=<<b>timeout</b>:<br/><i>timer_set 30,<br/>t1_green,<br/>t1_display_timer 30</i>>]
+	START -> traffic_go
+	    [label=<<i>timer_set 30,<br/>t1_green,<br/>p1_red,<br/>t1_display_timer 30</i>>]
+}
