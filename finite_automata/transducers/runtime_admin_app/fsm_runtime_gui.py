@@ -161,7 +161,6 @@ def load_image(path):
 
 def get_instruction_from_server(sock):
     instruction_json = sock.recv(MAX_BUFFER_SIZE)
-    # TODO: split multiple jsons received (or handle otherwise)
 
     obj_list = [d.strip() for d in instruction_json.splitlines()]
     instr_list = []

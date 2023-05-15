@@ -7,24 +7,23 @@ from _thread import interrupt_main
 from time import sleep
 import json
 
-from app.admin_client.gui import GuiThread
 
 SERVER_ADDRESS = ("127.0.0.1", 12345)
 MAX_BUFFER_SIZE = 4096
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 handler = logging.StreamHandler(stream=sys.stdout)
 handler.setFormatter(logging.Formatter(fmt='[%(asctime)s| %(name)-40s: %(levelname)s] %(message)s'))
 logger.addHandler(handler)
 
 
-def instruction_listening_thread(soc, gui):  # поток, обрабатывающий пакеты с сервера
+def instruction_listening_thread(soc):
     while True:
         try:
-            instruction_dict = get_instruction_from_server(soc)
-            logger.debug(f'instruction received: {instruction_dict}')
+            instruction_list = get_instruction_from_server(soc)
+            logger.debug(f'Instruction received: {instruction_list}')
         except ConnectionResetError:
             logger.info('Server closed')
             interrupt_main()
@@ -32,54 +31,43 @@ def instruction_listening_thread(soc, gui):  # поток, обрабатыва�
             logger.error('Error while getting data from server')
             traceback.print_exc()
             interrupt_main()
-        try:
-            gui.execute_instruction(instruction_dict)
-        except:
-            logger.error('Error while data output to gui')
-            traceback.print_exc()
-            interrupt_main()
+        process_instruction(instruction_list)
 
 
-def send_event(event, soc):  # отправка запроса серверу
+def send_event(event, sock):
     event_dict = {
         'event': event,
     }
     event_json = json.dumps(event_dict)
-    soc.send(bytes(event_json, encoding='utf-8'))
+    sock.send(bytes(event_json, encoding='utf-8'))
 
 
-def get_instruction_from_server(soc):  # принятие пакета от сервера
-    instruction_json = soc.recv(MAX_BUFFER_SIZE)
-    logger.debug(instruction_json)
-    instruction_dict = json.loads(instruction_json)
-    return instruction_dict
+def get_instruction_from_server(sock):
+    instruction_json = sock.recv(MAX_BUFFER_SIZE)
+    obj_list = [d.strip() for d in instruction_json.splitlines()]
+    instr_list = []
+    for d in obj_list:
+        instr_list.append(json.loads(d))
+        logger.debug(d)
+    return instr_list
 
 
-def start_client():  # запуск программы
-    try:
-        gui = GuiThread(daemon=True)
-        gui.start()
-    except:
-        logger.error("Error while starting GUI thread")
-        traceback.print_exc()
+def process_instruction(instr_list):
+    for instr in instr_list:
+        if instr[1]:
+            print('>', instr[0], instr[1])
+        else:
+            print('>', instr[0])
 
-    sleep(1)
 
+def start_client():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connected = False
 
     while not connected:
-        if not gui.is_alive():
-            logger.info('Client closed')
-            exit(0)
         try:
             sock.connect(SERVER_ADDRESS)
             connected = True
-            config = {
-                'title': 'test',
-                'description': 'bla bla bla FSM bla bla\nbla bla'
-            }
-            gui.activate_runtime(config)
             logger.info('Connected to server')
         except KeyboardInterrupt:
             logger.info('Client closed')
@@ -89,20 +77,15 @@ def start_client():  # запуск программы
             sleep(1)
 
     try:
-        Thread(target=instruction_listening_thread, args=(sock, gui), daemon=True).start()
-    except:
+        Thread(target=instruction_listening_thread, args=(sock,), daemon=True).start()
+    except Exception:
         logger.error("Error while starting listening thread")
         traceback.print_exc()
 
     while True:
-        event = gui.get_event()
-        if event:
-            logger.debug('event: ' + event)
-            send_event(event, sock)
+        event = input()
 
-        sleep(0.01)
-        if not gui.is_alive():
-            break
+        send_event(event, sock)
 
 
 if __name__ == '__main__':
