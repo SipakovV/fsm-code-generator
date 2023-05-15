@@ -41,7 +41,7 @@ class Indicator:
 class PowerIndicator(Indicator):
     def init_thumbnail(self):
         img_path = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), 'runtime_admin_app', 'resources',
-                                'mw_power.png')
+                                'mw_magnetron.png')
         img = Image.open(img_path)
         width, height = img.size
         img_resized = img.resize((round(0.11 * width), round(0.11 * height)), Image.LANCZOS)

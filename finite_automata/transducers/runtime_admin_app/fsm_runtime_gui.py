@@ -1,5 +1,3 @@
-# TODO: fix timer number not visible properly after 100
-
 import json
 from json.decoder import JSONDecodeError
 import logging
@@ -60,8 +58,8 @@ instructions_list_text = '== Список инструкций:' \
                          '-- Микроволновая печь:\n' \
                          'lamp_on - вкл. свет\n' \
                          'lamp_off - выкл. свет\n' \
-                         'power_on - вкл. печь\n' \
-                         'power_off - выкл. печь\n' \
+                         'magnetron_on - вкл. печь\n' \
+                         'magnetron_off - выкл. печь\n' \
                          'beep_on - вкл. сигнал готовности\n' \
                          'beep_off - выкл. сигнал готовности\n'
 
@@ -344,6 +342,7 @@ class FSMRuntimeApp(tk.Frame):
         self.init_tab_traffic(self.tab_control)
         self.init_tab_elevator(self.tab_control)
         self.init_tab_microwave(self.tab_control)
+        self.init_tab_automatic_doors(self.tab_control)
         self.tab_control.grid(row=1, column=0, rowspan=4, columnspan=6, padx=0, pady=0)
 
         self.output_console_frame = ttk.Frame(self, style='TFrame')
@@ -352,6 +351,7 @@ class FSMRuntimeApp(tk.Frame):
         self.pack()
 
         self.buttons_dict = {
+            # Traffic lights tab
             'button1': self.input_btn_1,
             'button2': self.input_btn_2,
             'button3': self.input_btn_3,
@@ -359,10 +359,17 @@ class FSMRuntimeApp(tk.Frame):
             'button5': self.input_btn_5,
             'button6': self.input_btn_6,
 
+            # Microwave tab
             'button_run': self.button_run,
             'button_reset': self.button_reset,
             'door_close': self.door,
             'door_open': self.door,
+
+            # Automatic doors tab
+            'signal_open': self.signal_open,
+            'sensor_center': self.sensor_center,
+            'sensor_N': self.sensor_N,
+            'sensor_S': self.sensor_S,
         }
 
         self.widgets_dict = {
@@ -380,7 +387,7 @@ class FSMRuntimeApp(tk.Frame):
             't5': self.traffic_lights_list[4],
             't6': self.traffic_lights_list[5],
 
-            'power': self.mw_power,
+            'magnetron': self.mw_magnetron,
             'lamp': self.mw_lamp,
             'beeping': self.mw_beep,
         }
@@ -510,8 +517,8 @@ class FSMRuntimeApp(tk.Frame):
 
             'lamp_on': self.mw_lamp.turn_on,
             'lamp_off': self.mw_lamp.turn_off,
-            'power_on': self.mw_power.turn_on,
-            'power_off': self.mw_power.turn_off,
+            'magnetron_on': self.mw_magnetron.turn_on,
+            'magnetron_off': self.mw_magnetron.turn_off,
             'beeping_on': self.mw_beep.turn_on,
             'beeping_off': self.mw_beep.turn_off,
         }
@@ -570,7 +577,7 @@ class FSMRuntimeApp(tk.Frame):
         for row in range(row_count):
             self.grid_rowconfigure(row, minsize=mw_dimensions['canvas_size'] + mw_dimensions['padding'])
 
-        self.mw_power = PowerIndicator(self.tab_microwave, 0, 0, mw_dimensions, mw_colors)
+        self.mw_magnetron = PowerIndicator(self.tab_microwave, 0, 0, mw_dimensions, mw_colors)
         self.mw_lamp = LampIndicator(self.tab_microwave, 0, 1, mw_dimensions, mw_colors)
         self.mw_beep = BeepIndicator(self.tab_microwave, 0, 2, mw_dimensions, mw_colors)
 
@@ -585,6 +592,31 @@ class FSMRuntimeApp(tk.Frame):
         self.door.grid(row=1, column=2, columnspan=2, padx=5, pady=5)
 
         self.tab_control.add(self.tab_microwave, text='Microwave')
+
+    def init_tab_automatic_doors(self, tab_control):
+        self.tab_automatic_doors = ttk.Frame(tab_control, style='TFrame', width=700, height=500)
+
+        col_count, row_count = self.tab_automatic_doors.grid_size()
+        for col in range(col_count):
+            self.grid_columnconfigure(col, minsize=mw_dimensions['canvas_size'] + mw_dimensions['padding'])
+
+        for row in range(row_count):
+            self.grid_rowconfigure(row, minsize=mw_dimensions['canvas_size'] + mw_dimensions['padding'])
+
+        self.signal_open = ttk.Button(self.tab_automatic_doors, state=tk.DISABLED, text='signal_open',
+                                      command=lambda: self.send_event('signal_open'), style='TButton')
+        self.signal_open.grid(row=1, column=0, padx=5, pady=5)
+        self.sensor_center = ttk.Button(self.tab_automatic_doors, state=tk.DISABLED, text='sensor_center',
+                                        command=lambda: self.send_event('sensor_center'), style='TButton')
+        self.sensor_center.grid(row=1, column=2, padx=5, pady=5)
+        self.sensor_N = ttk.Button(self.tab_automatic_doors, state=tk.DISABLED, text='sensor_N',
+                                   command=lambda: self.send_event('signal_open'), style='TButton')
+        self.sensor_N.grid(row=1, column=1, padx=5, pady=5)
+        self.sensor_S = ttk.Button(self.tab_automatic_doors, state=tk.DISABLED, text='sensor_S',
+                                   command=lambda: self.send_event('sensor_center'), style='TButton')
+        self.sensor_S.grid(row=1, column=3, padx=5, pady=5)
+
+        self.tab_control.add(self.tab_automatic_doors, text='Automatic doors')
 
     def about_popup(self):
         global pop
@@ -842,7 +874,7 @@ class FSMRuntimeApp(tk.Frame):
                 logger.debug(f'event: {event}')
                 if event == 'timeout':
                     continue
-                elif event.startswith('button') or event.startswith('door'):
+                elif event.startswith(('button', 'door', 'signal', 'sensor')):
                     if event in self.buttons_dict:
                         button = self.buttons_dict[event]
                         button.configure(state=tk.NORMAL)
