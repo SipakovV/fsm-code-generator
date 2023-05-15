@@ -1,0 +1,22 @@
+// Automatic gate FSM
+digraph G {
+	START [shape=diamond]
+	idle_closed
+	wait_open
+	closing
+	opening
+	idle_closed -> opening
+	    [label=<<b>signal_open</b>:<br/><i>timer_set 3,<br/>gate_open</i>>]
+	opening -> wait_open
+	    [label=<<b>timeout</b>:<br/><i>timer_set 10,<br/></i>>]
+	wait_open -> wait_open
+	    [label=<<b>signal_open</b>:<br/><i>timer_set 10</i>>]
+	wait_open -> closing
+	    [label=<<b>timeout</b>:<br/><i>timer_set 3,<br/>gate_close</i>>]
+	closing -> opening
+	    [label=<<b>sensor_center</b>:<br/><i>timer_set 3,<br/>gate_open</i>>]
+	closing -> idle_closed
+	    [label=<<b>timeout</b>>]
+	START -> idle_closed
+	    [label=<<i>gate_close</i>>]
+}
