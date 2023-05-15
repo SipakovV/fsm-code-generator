@@ -136,22 +136,26 @@ class TransducerFSM:
             for event in self.transition_map[state]:
                 #print('event:', event)
                 target_state, instruction_list = self.transition_map[state][event]
-                label = '<<b>' + event + '</b><br/>'
-                for instr in instruction_list:
-                    if type(instr) is str:
-                        label += '<i>' + instr + '</i><br/>'
-                    else:
-                        label += '<i>' + instr[0] + ' ' + str(instr[1]) + '</i><br/>'
+                label = '<<b>' + event + '</b>'
+                if instruction_list:
+                    label += ':<br/><i>'
+                    for instr in instruction_list:
+                        if type(instr) is str:
+                            label += instr + ',<br/>'
+                        else:
+                            label += instr[0] + ' ' + str(instr[1]) + ',<br/>'
+                    label += '</i>'
                 label += '>'
                 dot.edge(state, target_state, label=label)
 
-        label = '<'
+        label = '<<i>'
         for instr in self.init_instructions:
+
             if type(instr) is str:
-                label += '<i>' + instr + '</i><br/>'
+                label += instr + ',<br/>'
             else:
-                label += '<i>' + instr[0] + ', ' + str(instr[1]) + '</i><br/>'
-        label += '>'
+                label += instr[0] + ' ' + str(instr[1]) + ',<br/>'
+        label += '</i>>'
         dot.edge('START', self.init_state, label=label)
 
         return dot
@@ -170,14 +174,16 @@ class TransducerFSM:
             pass
 
         base_graph = self._generate_graph()
-        base_graph.save('_base.dot', directory=path).replace('\\', '/')
-        base_graph.render('_base', directory=path, format='png').replace('\\', '/')
+        base_graph.save(self._name, directory=os.path.join('dot_source_files', '_generated')).replace('\\', '/')
+        #base_graph.render('_base', directory=path, format='png').replace('\\', '/')
 
+        '''
         if all_states:
             for state in self.state_set:
                 dot = self._generate_graph(state)
                 filename = state
                 dot.render(filename, directory=path, format='png').replace('\\', '/')
+        '''
 
     def generate_code_python(self, file_path: str = None):
         code_gen = CodeGeneratorBackend()
