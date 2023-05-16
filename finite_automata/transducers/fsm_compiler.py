@@ -110,7 +110,10 @@ def compile_fsm(filename, lang: str, visualize='full', png_directory='generated_
 
     print('FSM created')
 
-    fsm.generate_code_python()
+    if lang == 'python':
+        fsm.generate_code_python()
+    elif lang == 'c':
+        fsm.generate_code_c()
     
     print('Code generated')
 
@@ -133,4 +136,8 @@ if __name__ == '__main__':
     arg_parser.add_argument('dot_file', help='DOT file name. It must match certain form (see DOT_restrictions.txt)')
     args = arg_parser.parse_args()
 
-    compile_fsm(args.dot_file, lang=args.language)
+    if args.language not in {'c', 'python'}:
+        print('Unsupported language:', args.language)
+    else:
+        compile_fsm(args.dot_file, lang=args.language)
+
