@@ -1,192 +1,230 @@
 #include <stdio.h>
 
+/*
+// State constants
+#define STATE_IDLE_CLOSED 100
+#define STATE_IDLE_OPEN 101
+#define STATE_COOKING 102
+#define STATE_COOKING_COMPLETED 103
+#define STATE_COOKING_INTERRUPTED 104
 
-typedef enum State {
-    idle_closed,
-    idle_open,
-    cooking,
-    cooking_completed,
-    cooking_interrupted
-} State;
+// Event constants
+#define EVENT_TIMEOUT 200
+#define EVENT_DOOR_CLOSE 201
+#define EVENT_DOOR_OPEN 202
+#define EVENT_BUTTON_RUN 203
+#define EVENT_BUTTON_RESET 204
+
+// Instruction constants
+#define INSTR_TIMER_SET 300
+#define INSTR_TIMER_ADD 301
+#define INSTR_TIMER_PAUSE 302
+#define INSTR_TIMER_RESUME 303
+*/
+
+
+enum State {
+    state_idle_closed,
+    state_idle_open,
+    state_cooking,
+    state_cooking_completed,
+    state_cooking_interrupted
+};
+enum Event {
+    event_timeout,
+    event_door_open,
+    event_door_close,
+    event_button_run,
+    event_button_reset
+};
+enum Instr {
+    instr_timer_set,
+    instr_timer_add,
+    instr_timer_pause,
+    instr_timer_resume,
+    instr_magnetron_off,
+    instr_magnetron_on,
+    instr_lamp_off,
+    instr_lamp_on,
+    instr_beeping_off,
+    instr_beeping_on
+};
+
 
 const char* get_state_name(enum State state) {
    switch (state)
    {
-      case idle_open: return "idle_open";
-      case idle_closed: return "idle_closed";
-      case cooking: return "cooking";
-      case cooking_completed: return "cooking_completed";
-      case cooking_interrupted: return "cooking_interrupted";
+      case state_idle_open: return "idle_open";
+      case state_idle_closed: return "idle_closed";
+      case state_cooking: return "cooking";
+      case state_cooking_completed: return "cooking_completed";
+      case state_cooking_interrupted: return "cooking_interrupted";
    }
-}
-
-enum Event {
-    timeout,
-    door_open,
-    door_close,
-    button_run,
-    button_reset
 };
+
+
 
 const char* get_event_name(enum Event event) {
    switch (event)
    {
-      case timeout: return "timeout";
-      case door_open: return "door_open";
-      case door_close: return "door_close";
-      case button_run: return "button_run";
-      case button_reset: return "button_reset";
+      case event_timeout: return "timeout";
+      case event_door_open: return "door_open";
+      case event_door_close: return "door_close";
+      case event_button_run: return "button_run";
+      case event_button_reset: return "button_reset";
    }
-}
-
-enum Instr {
-    timer_set,
-    timer_add,
-    timer_pause,
-    timer_resume,
-    magnetron_off,
-    magnetron_on,
-    lamp_off,
-    lamp_on,
-    beeping_off,
-    beeping_on
 };
+
 
 const char* get_instr_name(enum Instr instr) {
    switch (instr)
    {
-      case timer_set: return "timer_set";
-      case timer_add: return "timer_add";
-      case timer_pause: return "timer_pause";
-      case timer_resume: return "timer_resume";
-      case magnetron_on: return "magnetron_on";
-      case magnetron_off: return "magnetron_off";
-      case lamp_on: return "lamp_on";
-      case lamp_off: return "lamp_off";
-      case beeping_on: return "beeping_on";
-      case beeping_off: return "beeping_off";
+      case instr_timer_set: return "timer_set";
+      case instr_timer_add: return "timer_add";
+      case instr_timer_pause: return "timer_pause";
+      case instr_timer_resume: return "timer_resume";
+      case instr_magnetron_on: return "magnetron_on";
+      case instr_magnetron_off: return "magnetron_off";
+      case instr_lamp_on: return "lamp_on";
+      case instr_lamp_off: return "lamp_off";
+      case instr_beeping_on: return "beeping_on";
+      case instr_beeping_off: return "beeping_off";
    }
-}
+};
+
 
 void send_instruction(enum Instr instr, int param) {
-    printf("\nInstruction sent: %s, %d", get_instr_name(instr), param);
-}
+    printf("Instruction sent: %s, %d\n", get_instr_name(instr), param);
+};
 
-char* get_next_event() {
+enum Event get_next_event() {
     enum Event evt;
     scanf("%d", &evt);
-    printf("Event: %s", get_event_name(evt));
-}
+    printf("Event: %s\n", get_event_name(evt));
+    return evt;
+};
 
 
 int main() {
-    enum State state = idle_closed;
-    send_instruction(Instr.power_off, 0);
-    send_instruction(Instr.lamp_off, 0);
-    send_instruction(Instr.beeping_off, 0);
+    enum State state = state_idle_closed;
+    enum Event event;
+
+    printf("Available events:\n");
+    for (int i = event_timeout; i <= event_button_reset; i++) {
+        printf("%d: %s\n", i, get_event_name(i));
+    }
+    send_instruction(instr_magnetron_off, 0);
+    send_instruction(instr_lamp_off, 0);
+    send_instruction(instr_beeping_off, 0);
     while (1) {
+        printf("State: %s\n", get_state_name(state));
         event = get_next_event();
 
         switch (state) {
-            case (idle_closed): {
+            case (state_idle_closed): {
                 switch (event) {
-                    case (door_open) {
-                        send_instruction(Instr.lamp_on, 0);
-                        state = State.door_open;
+                    case (event_door_open): {
+                        send_instruction(instr_lamp_on, 0);
+                        state = state_idle_open;
                         break;
                     }
-                    case (button_run) {
-                        send_instruction(Instr.timer_set, 30);
-                        send_instruction(Instr.lamp_on, 0);
-                        send_instruction(Instr.magnetron_on, 0);
-                        state = State.cooking;
+                    case (event_button_run): {
+                        send_instruction(instr_timer_set, 30);
+                        send_instruction(instr_lamp_on, 0);
+                        send_instruction(instr_magnetron_on, 0);
+                        state = state_cooking;
                         break;
                     }
                 }
+                break;
             }
 
-            case (idle_open) {
+            case (state_idle_open): {
                 switch (event) {
-                    case (door_close) {
-                        send_instruction(Instr.lamp_off, 0);
-                        state = State.idle_closed;
+                    case (event_door_close): {
+                        send_instruction(instr_lamp_off, 0);
+                        state = state_idle_closed;
                         break;
                     }
                 }
+                break;
             }
 
-            case (cooking) {
+            case (state_cooking): {
                 switch (event) {
-                    case (button_reset) {
-                        send_instruction(Instr.timer_set, 0);
-                        send_instruction(Instr.lamp_off, 0);
-                        send_instruction(Instr.magnetron_off, 0);
-                        state = State.idle_closed;
+                    case (event_button_reset): {
+                        send_instruction(instr_timer_set, 0);
+                        send_instruction(instr_lamp_off, 0);
+                        send_instruction(instr_magnetron_off, 0);
+                        state = state_idle_closed;
                         break;
                     }
-                    case (button_run) {
-                        send_instruction(Instr.timer_add, 30);
-                        state = State.cooking;
+                    case (event_button_run): {
+                        send_instruction(instr_timer_add, 30);
+                        state = state_cooking;
                         break;
                     }
-                    case (door_open) {
-                        send_instruction(Instr.timer_pause, 0);
-                        send_instruction(Instr.magnetron_off, 0);
-                        state = State.cooking_interrupted;
+                    case (event_door_open): {
+                        send_instruction(instr_timer_pause, 0);
+                        send_instruction(instr_magnetron_off, 0);
+                        state = state_cooking_interrupted;
                         break;
                     }
-                    case (timeout) {
-                        send_instruction(Instr.beeping_on, 0);
-                        send_instruction(Instr.magnetron_off, 0);
-                        state = State.cooking_completed;
+                    case (event_timeout): {
+                        send_instruction(instr_beeping_on, 0);
+                        send_instruction(instr_magnetron_off, 0);
+                        state = state_cooking_completed;
                         break;
                     }
                 }
+                break;
             }
 
-            case (cooking_interrupted) {
+            case (state_cooking_interrupted): {
                 switch (event) {
-                    case (door_close) {
-                        send_instruction(Instr.timer_resume, 0);
-                        send_instruction(Instr.magnetron_on, 0);
-                        state = State.cooking;
+                    case (event_door_close): {
+                        send_instruction(instr_timer_resume, 0);
+                        send_instruction(instr_magnetron_on, 0);
+                        state = state_cooking;
                         break;
                     }
-                    case (button_reset) {
-                        send_instruction(Instr.timer_set, 0);
-                        state = State.idle_open;
+                    case (event_button_reset): {
+                        send_instruction(instr_timer_set, 0);
+                        state = state_idle_open;
                         break;
                     }
-                    case (button_run) {
-                        send_instruction(Instr.timer_add, 30);
-                        state = State.cooking_interrupted;
+                    case (event_button_run): {
+                        send_instruction(instr_timer_add, 30);
+                        state = state_cooking_interrupted;
                         break;
                     }
                 }
+                break;
             }
 
-            case (cooking_completed) {
+            case (state_cooking_completed): {
                 switch (event) {
-                    case (door_open) {
-                        send_instruction(Instr.beeping_off, 0);
-                        state = State.idle_open;
+                    case (event_door_open): {
+                        send_instruction(instr_beeping_off, 0);
+                        state = state_idle_open;
                         break;
                     }
-                    case (button_reset) {
-                        send_instruction(Instr.lamp_off, 0);
-                        send_instruction(Instr.beeping_off, 0);
-                        state = State.idle_closed;
+                    case (event_button_reset): {
+                        send_instruction(instr_lamp_off, 0);
+                        send_instruction(instr_beeping_off, 0);
+                        state = state_idle_closed;
                         break;
                     }
-                    case (button_run) {
-                        send_instruction(Instr.magnetron_on, 0);
-                        send_instruction(Instr.beeping_off, 0);
-                        send_instruction(Instr.timer_set, 30);
-                        state = State.cooking;
+                    case (event_button_run): {
+                        send_instruction(instr_magnetron_on, 0);
+                        send_instruction(instr_beeping_off, 0);
+                        send_instruction(instr_timer_set, 30);
+                        state = state_cooking;
                         break;
                     }
                 }
+                break;
             }
         }
     }
-}
+};
