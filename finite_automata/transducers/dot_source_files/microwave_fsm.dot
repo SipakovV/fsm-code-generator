@@ -33,5 +33,5 @@ digraph G {
 	cooking_completed -> cooking
 	    [label=<<b>button_run</b>:<br/><i>magnetron_on,<br/>beeping_off,<br/>timer_set 30</i>>];
 	START -> idle_closed
-	    [label=<<i>power_off,<br/>lamp_off,<br/>beeping_off</i>>]
+	    [label=<<i>magnetron_off,<br/>lamp_off,<br/>beeping_off</i>>]
 }
