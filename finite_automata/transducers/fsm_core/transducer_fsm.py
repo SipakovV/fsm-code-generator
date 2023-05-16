@@ -187,7 +187,7 @@ class TransducerFSM:
 
     def generate_code_python(self, file_path: str = None):
         code_gen = CodeGeneratorBackend()
-        code_gen.begin(tab='    ')
+        code_gen.begin(tab='  ')
 
         """Import statements"""
         code_gen.write("from python_server import event_queue")
@@ -249,7 +249,179 @@ class TransducerFSM:
         code_gen.dedent()
         if not file_path:
             file_name = self._name + '.py'
-            file_path = 'python_fsm_generated/' + file_name
-        f = open(file_path, 'w')
+            file_dir = 'python_fsm_generated'
+        if not os.path.exists(file_dir):
+            os.mkdir(file_dir)
+        f = open(os.path.join(file_dir, file_name), 'w')
+        f.write(code_gen.end())
+        f.close()
+
+    def generate_code_c(self, file_path: str = None):
+        code_gen = CodeGeneratorBackend()
+        code_gen.begin(tab='    ')
+
+        """Include statements"""
+        code_gen.write("#include <stdio.h>")
+        code_gen.write("")
+        code_gen.write("")
+
+        """Enum declarations:"""
+        """State"""
+        code_gen.write("enum State {")
+        code_gen.indent()
+        for state in self.state_set:
+            code_gen.write(f'state_{state},')
+        code_gen.dedent()
+        code_gen.write("};")
+        code_gen.write("")
+
+        """Event"""
+        code_gen.write("enum Event {")
+        code_gen.indent()
+        for event in self.alphabet:
+            code_gen.write(f'event_{event},')
+        code_gen.dedent()
+        code_gen.write("};")
+        code_gen.write("")
+
+        """Instruction"""
+        code_gen.write("enum Instr {")
+        code_gen.indent()
+        for instr in self.instructions_set:
+            code_gen.write(f'instr_{instr},')
+        code_gen.dedent()
+        code_gen.write("};")
+        code_gen.write("")
+
+        """Enum-to-string functions:"""
+        """State"""
+        code_gen.write("const char* get_state_name(enum State state) {")
+        code_gen.indent()
+        code_gen.write("switch (state) {")
+        code_gen.indent()
+        for state in self.state_set:
+            code_gen.write(f'case state_{state}: return "{state}";')
+        code_gen.dedent()
+        code_gen.write("}")
+        code_gen.dedent()
+        code_gen.write("}")
+        code_gen.write("")
+
+        """Event"""
+        code_gen.write("const char* get_event_name(enum Event event) {")
+        code_gen.indent()
+        code_gen.write("switch (event) {")
+        code_gen.indent()
+        for event in self.alphabet:
+            code_gen.write(f'case event_{event}: return "{event}";')
+        code_gen.dedent()
+        code_gen.write("}")
+        code_gen.dedent()
+        code_gen.write("}")
+        code_gen.write("")
+
+        """Instruction"""
+        code_gen.write("const char* get_instr_name(enum Instr instr) {")
+        code_gen.indent()
+        code_gen.write("switch (instr) {")
+        code_gen.indent()
+        for instr in self.instructions_set:
+            code_gen.write(f'case instr_{instr}: return "{instr}";')
+        code_gen.dedent()
+        code_gen.write("}")
+        code_gen.dedent()
+        code_gen.write("}")
+        code_gen.write("")
+
+        """Send instruction function"""
+        code_gen.write("void send_instruction(enum Instr instr, int param) {")
+        code_gen.indent()
+        code_gen.write('printf("Instruction sent: %s, %d\\n", get_instr_name(instr), param);')
+        code_gen.dedent()
+        code_gen.write("}")
+        code_gen.write("")
+
+        """Get event function"""
+        code_gen.write("enum Event get_next_event() {")
+        code_gen.indent()
+        code_gen.write("enum Event evt;")
+        code_gen.write('scanf("%d", &evt);')
+        code_gen.write('printf("Event: %s\\n", get_event_name(evt));')
+        code_gen.write("return evt;")
+        code_gen.dedent()
+        code_gen.write("}")
+        code_gen.write("")
+
+        """Main run_fsm() function"""
+        code_gen.write("void run_fsm() {")
+        code_gen.indent()
+        code_gen.write(f"enum State state = state_{self.init_state};")
+        code_gen.write(f"enum Event event;")
+        code_gen.write('printf("Available events:\\n");')
+        for event in self.alphabet:
+            code_gen.write(f'printf("%d: %s\\n", event_{event}, get_event_name(event_{event}));')
+
+        for instr in self.init_instructions:
+            if type(instr) is tuple:
+                code_gen.write(f"send_instruction(instr_{instr[0]}, {instr[1]});")
+            else:
+                code_gen.write(f"send_instruction(instr_{instr}, 0);")
+
+        code_gen.write("while (1) {")
+        code_gen.indent()
+        code_gen.write('printf("State: %s\\n", get_state_name(state));')
+        code_gen.write("event = get_next_event();")
+        code_gen.write("switch (state) {")
+        code_gen.indent()
+        i = 0
+        for state in self.transition_map:
+            code_gen.write("case state_" + state + ": {")
+            code_gen.indent()
+            transitions = self.transition_map[state]
+            if transitions:
+                code_gen.write("switch (event) {")
+                code_gen.indent()
+                for event in self.transition_map[state]:
+                    code_gen.write(f"case event_" + event + ": {")
+                    code_gen.indent()
+                    target_state, instruction_list = transitions[event]
+                    for instr in instruction_list:
+                        if type(instr) is tuple:
+                            code_gen.write(f"send_instruction(instr_{instr[0]}, {instr[1]});")
+                        else:
+                            code_gen.write(f"send_instruction(instr_{instr}, 0);")
+                    code_gen.write(f"state = state_{target_state};")
+                    code_gen.write(f"break;")
+                    code_gen.dedent()
+                    code_gen.write("}")
+            code_gen.dedent()
+            code_gen.write("}")
+            code_gen.write("break;")
+            code_gen.dedent()
+            code_gen.write("}")
+            i += 1
+
+        code_gen.dedent()
+        code_gen.write("}")
+        code_gen.dedent()
+        code_gen.write("}")
+        code_gen.dedent()
+        code_gen.write("}")
+        code_gen.write("")
+
+        """Main()"""
+        code_gen.write("int main() {")
+        code_gen.indent()
+        code_gen.write("run_fsm();")
+        code_gen.dedent()
+        code_gen.write("}")
+
+        if not file_path:
+            file_name = self._name + '.c'
+            file_dir = 'C_fsm_generated'
+
+        if not os.path.exists(file_dir):
+            os.mkdir(file_dir)
+        f = open(os.path.join(file_dir, file_name), 'w')
         f.write(code_gen.end())
         f.close()

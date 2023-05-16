@@ -60,7 +60,7 @@ const char* get_state_name(enum State state) {
       case state_cooking_completed: return "cooking_completed";
       case state_cooking_interrupted: return "cooking_interrupted";
    }
-};
+}
 
 
 
@@ -72,8 +72,9 @@ const char* get_event_name(enum Event event) {
       case event_door_close: return "door_close";
       case event_button_run: return "button_run";
       case event_button_reset: return "button_reset";
+      default: return "unknown event";
    }
-};
+}
 
 
 const char* get_instr_name(enum Instr instr) {
@@ -90,22 +91,22 @@ const char* get_instr_name(enum Instr instr) {
       case instr_beeping_on: return "beeping_on";
       case instr_beeping_off: return "beeping_off";
    }
-};
+}
 
 
 void send_instruction(enum Instr instr, int param) {
     printf("Instruction sent: %s, %d\n", get_instr_name(instr), param);
-};
+}
 
 enum Event get_next_event() {
     enum Event evt;
     scanf("%d", &evt);
     printf("Event: %s\n", get_event_name(evt));
     return evt;
-};
+}
 
 
-int main() {
+void run_fsm() {
     enum State state = state_idle_closed;
     enum Event event;
 
@@ -227,4 +228,8 @@ int main() {
             }
         }
     }
-};
+}
+
+int main() {
+    run_fsm();
+}
