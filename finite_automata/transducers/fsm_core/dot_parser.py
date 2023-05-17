@@ -74,11 +74,14 @@ class FSMDOT(grammar.Grammar):
     [ 
         '<' html_tag* events:evts html_tag* ':' html_tag* instructions:ins html_tag*  '>' #is_transition_spec(_, evts, ins)
         | '<' html_tag* events:evts html_tag* '>' #is_transition_spec(_, evts)
+        | '\"' html_tag* events:evts html_tag* ':' html_tag* instructions:ins html_tag*  '\"' #is_transition_spec(_, evts, ins)
+        | '\"' html_tag* events:evts html_tag* '\"' #is_transition_spec(_, evts)
     ]
 
     init_transition_spec = 
     [ 
-        '<' html_tag* instructions:ins html_tag* '>' #is_init_transition_spec(_, ins) 
+        '<' html_tag* instructions:ins html_tag* '>' #is_init_transition_spec(_, ins)
+        | '\"' html_tag* instructions:ins html_tag* '\"' #is_init_transition_spec(_, ins)
     ]
 
 

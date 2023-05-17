@@ -1,0 +1,38 @@
+// Microwave FSM
+digraph G {
+    nodesep=0.2 pad=0.5 ranksep=1 rankdir=BT
+	START [shape=diamond]
+	cooking
+	cooking_completed
+	idle_open
+	cooking_interrupted
+	idle_closed
+	idle_closed -> idle_open
+	    [label="door_open:lamp_on"]
+	idle_closed -> cooking
+	    [label="button_run:timer_set 30,lamp_on,magnetron_on"]
+	idle_open -> idle_closed
+	    [label="door_close:lamp_off"]
+	cooking -> idle_closed
+	    [label="button_reset:timer_set 0,lamp_off,magnetron_off"]
+	cooking -> cooking
+	    [label="button_run:timer_add 30"]
+	cooking -> cooking_interrupted
+	    [label="door_open:timer_pause,magnetron_off"]
+	cooking -> cooking_completed
+	    [label="timeout:magnetron_off,beeping_on"]
+	cooking_interrupted -> cooking
+	    [label="door_close:timer_resume,magnetron_on"]
+	cooking_interrupted -> idle_open
+	    [label="button_reset:timer_set 0"]
+	cooking_interrupted -> cooking_interrupted
+	    [label="button_run:timer_add 30"]
+	cooking_completed -> idle_open
+	    [label="door_open:beeping_off"]
+	cooking_completed -> idle_closed
+	    [label="button_reset:lamp_off,beeping_off"]
+	cooking_completed -> cooking
+	    [label="button_run:magnetron_on,beeping_off,timer_set 30"];
+	START -> idle_closed
+	    [label="magnetron_off,lamp_off,beeping_off"]
+}
