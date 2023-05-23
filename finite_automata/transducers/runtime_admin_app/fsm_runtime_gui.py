@@ -304,13 +304,13 @@ class FSMRuntimeApp(tk.Frame):
         self.title_var = tk.StringVar()
         self.description_var = tk.StringVar()
 
-        self.title_frame = tk.Frame(self, borderwidth=2, relief=tk.RIDGE, width=500, height=500, bg='blue')
+        self.title_frame = tk.Frame(self, borderwidth=2, relief=tk.RIDGE, width=500, height=500)
         self.title_label = ttk.Label(self.title_frame, textvariable=self.title_var, style='Header.TLabel')
         #self.title_label.grid(row=0, column=0)
         self.title_label.pack()
         self.title_frame.grid(row=0, column=0)
 
-        self.description_frame = tk.Frame(self, borderwidth=2, relief=tk.RIDGE, width=500, height=500, bg='green')
+        self.description_frame = tk.Frame(self, borderwidth=2, relief=tk.RIDGE, width=500, height=500)
         self.description_label = ttk.Label(self.description_frame, textvariable=self.description_var)
         #self.description_label.grid(row=0, column=1, columnspan=3)
         self.description_label.pack()
@@ -319,7 +319,7 @@ class FSMRuntimeApp(tk.Frame):
         #self.timer_display_default = TimerDisplay(self, 0, self.timeout_var)
         #self.timer_display_default = ttk.Label(self, font='Courier 18 bold',  textvariable=self.timeout_var)
         #self.timer_display_frame = ttk.Frame(self, borderwidth=2, width=300, height=300, style='Thick.TFrame')
-        self.timer_display_frame = tk.Frame(self, borderwidth=2, relief=tk.RIDGE, width=500, height=500, bg='yellow')
+        self.timer_display_frame = tk.Frame(self, borderwidth=2, relief=tk.RIDGE, width=500, height=500)
         self.timer_display_default = ttk.Label(self.timer_display_frame, textvariable=self.timeout_var, style='Timer.TLabel')
         self.timer_display_default.pack(pady=20, padx=20)
         self.timer_display_frame.grid(row=0, column=5)
@@ -339,7 +339,7 @@ class FSMRuntimeApp(tk.Frame):
 
         self.tab_control = ttk.Notebook(self, style='TNotebook')
         self.init_tab_traffic(self.tab_control)
-        self.init_tab_elevator(self.tab_control)
+        #self.init_tab_elevator(self.tab_control)
         self.init_tab_microwave(self.tab_control)
         self.init_tab_automatic_doors(self.tab_control)
         self.tab_control.grid(row=1, column=0, rowspan=4, columnspan=6, padx=0, pady=0)
