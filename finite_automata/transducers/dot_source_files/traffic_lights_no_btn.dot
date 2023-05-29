@@ -1,7 +1,7 @@
 // Traffic lights with button FSM
 digraph G {
 	nodesep=1 pad=0.5 ranksep=0
-	START [shape=diamond]
+	START [style=invis]
 	ns_stopped
 	ew_stopping
 	ns_go

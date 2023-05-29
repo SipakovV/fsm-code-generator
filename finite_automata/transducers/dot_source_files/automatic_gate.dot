@@ -1,6 +1,6 @@
 // Automatic gate FSM
 digraph G {
-	START [shape=diamond]
+	START [style=invis]
 	idle_closed
 	wait_open
 	closing
