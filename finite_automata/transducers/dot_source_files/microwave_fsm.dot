@@ -1,7 +1,7 @@
 // Microwave FSM
 digraph G {
     //nodesep=1 pad=0.5 ranksep=0
-	START [shape=diamond]
+	START [style=invis]
 	cooking
 	cooking_completed
 	idle_open
