@@ -1,0 +1,7 @@
+digraph G {
+	nodesep=0.2; pad=0.5; ranksep=1; rankdir=BT;  // атрибуты графа
+	node [color=green];  // все узлы по умолчанию зеленого цвета
+    node1;  // узел без атрибутов
+    node2 [shape=diamond]; // узел в форме ромба
+    node1 -> node2 [color=red]; // дуга от node1 к node2 красного цвета
+}
