@@ -95,6 +95,55 @@ class TransducerFSM:
         else:
             queue.put_instruction(instruction)
 
+    def get_unreachable_states(self) -> set:
+        marked_states = set()
+        stack = []
+
+        state = self.init_state
+        traversed_arcs = set()
+
+        #print()
+
+        while True:
+            arcs = set(self.transition_map[state])
+            #print(f'{state=}: {arcs=}, {traversed_arcs=}, {marked_states=}, {stack=}')
+            if traversed_arcs == arcs:
+                if stack:
+                    # return up
+                    state, traversed_arcs = stack.pop()
+                    continue
+                else:
+                    # exit tree
+                    break
+
+            marked_states.add(state)
+            if marked_states == self.state_set:
+                break
+
+            for transition_arc in arcs.difference(traversed_arcs):
+                new_state = self.transition_map[state][transition_arc][0]
+                if new_state in marked_states:
+                    continue
+                else:
+                    break
+            else:
+                # if all remaining states are marked
+                if stack:
+                    # return up
+                    state, traversed_arcs = stack.pop()
+                    continue
+                else:
+                    # exit tree
+                    break
+
+            traversed_arcs.add(transition_arc)
+
+            stack.append((state, traversed_arcs))
+            traversed_arcs = set()
+            state = new_state
+
+        return self.state_set.symmetric_difference(marked_states)
+
     def run(self, event_queue):
         state = self.init_state
         for instr in self.init_instructions:

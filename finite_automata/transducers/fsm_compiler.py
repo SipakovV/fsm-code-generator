@@ -110,6 +110,13 @@ def compile_fsm(filename, lang: str, visualize='full', png_directory='generated_
 
     print('FSM created')
 
+    unreachable_states = fsm.get_unreachable_states()
+
+    if unreachable_states:
+        print(f'Warning: unreachable states found:')
+        for state in unreachable_states:
+            print(f'    {state}')
+
     if lang == 'python':
         fsm.generate_code_python()
     elif lang == 'c':
