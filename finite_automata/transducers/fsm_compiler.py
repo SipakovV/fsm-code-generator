@@ -124,7 +124,7 @@ def compile_fsm(filename, lang: str, visualize='full', png_directory='generated_
     
     print('Code generated')
 
-    if visualize == 'full':
+    if visualize == 'full' and lang == 'python':
         try:
             visualize_all_states(filename, png_directory)
             print('All states highlight visualized')
