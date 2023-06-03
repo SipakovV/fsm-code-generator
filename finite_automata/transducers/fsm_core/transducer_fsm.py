@@ -236,7 +236,7 @@ class TransducerFSM:
 
     def generate_code_python(self, file_path: str = None):
         code_gen = CodeGeneratorBackend()
-        code_gen.begin(tab='  ')
+        code_gen.begin(tab='    ')
 
         """Import statements"""
         code_gen.write("from python_server import event_queue")
@@ -307,7 +307,7 @@ class TransducerFSM:
 
     def generate_code_c(self, file_path: str = None):
         code_gen = CodeGeneratorBackend()
-        code_gen.begin(tab='    ')
+        code_gen.begin(tab='  ')
 
         """Include statements"""
         code_gen.write("#include <stdio.h>")
