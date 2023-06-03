@@ -117,9 +117,9 @@ def compile_fsm(filename, lang: str, visualize='full', png_directory='generated_
         for state in unreachable_states:
             print(f'    {state}')
 
-    if lang == 'python':
+    if lang in {'python', 'Python', 'py'}:
         fsm.generate_code_python()
-    elif lang == 'c':
+    elif lang in {'c', 'C'}:
         fsm.generate_code_c()
     
     print('Code generated')
