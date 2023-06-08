@@ -19,7 +19,7 @@ class TransducerFSM:
         if description:
             self._description = description
         else:
-            self._description = self._name
+            self._description = ''
 
         self.alphabet = alphabet
         self.instructions_set = instructions_set
