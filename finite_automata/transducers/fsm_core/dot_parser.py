@@ -54,9 +54,9 @@ class FSMDOT(grammar.Grammar):
     compass_pt = [ @ignore("null") [ "nw" | "ne" | 'n' | 'e' | "se" | "sw" | 's' | 'w' | 'c' | '_' ] ]
 
 
-    edge_attrs = [ label_attr:>_ [ ',' attr ]*  ]
+    edge_attrs = [ label_attr:>_ [ ','? attr ]*  ]
 
-    init_edge_attrs = [ init_label_attr:>_ [ ',' attr ]*  ]
+    init_edge_attrs = [ init_label_attr:>_ [ ','? attr ]*  ]
 
     label_attr = 
     [
@@ -74,14 +74,14 @@ class FSMDOT(grammar.Grammar):
     [ 
         '<' html_tag* events:evts html_tag* ':' html_tag* instructions:ins html_tag*  '>' #is_transition_spec(_, evts, ins)
         | '<' html_tag* events:evts html_tag* '>' #is_transition_spec(_, evts)
-        | '\"' html_tag* events:evts html_tag* ':' html_tag* instructions:ins html_tag*  '\"' #is_transition_spec(_, evts, ins)
-        | '\"' html_tag* events:evts html_tag* '\"' #is_transition_spec(_, evts)
+        | '\"' events:evts ':' instructions:ins '\"' #is_transition_spec(_, evts, ins)
+        | '\"' events:evts '\"' #is_transition_spec(_, evts)
     ]
 
     init_transition_spec = 
     [ 
         '<' html_tag* instructions:ins html_tag* '>' #is_init_transition_spec(_, ins)
-        | '\"' html_tag* instructions:ins html_tag* '\"' #is_init_transition_spec(_, ins)
+        | '\"' instructions:ins '\"' #is_init_transition_spec(_, ins)
     ]
 
 
