@@ -20,6 +20,7 @@ from utility import timings
 from runtime_admin_app import timer
 from runtime_admin_app.traffic_lights_gui_preset import TrafficLight, PedestrianLight, TimerDisplay
 from runtime_admin_app.microwave_gui_preset import PowerIndicator, LampIndicator, BeepIndicator
+from runtime_admin_app.custom_gui_preset import ColoredIndicator
 
 
 SERVER_ADDRESS = ("127.0.0.1", 12345)
@@ -342,6 +343,7 @@ class FSMRuntimeApp(tk.Frame):
         #self.init_tab_elevator(self.tab_control)
         self.init_tab_microwave(self.tab_control)
         self.init_tab_automatic_doors(self.tab_control)
+        self.init_tab_custom(self.tab_control)
         self.tab_control.grid(row=1, column=0, rowspan=4, columnspan=6, padx=0, pady=0)
 
         self.output_console_frame = ttk.Frame(self, style='TFrame')
@@ -369,9 +371,16 @@ class FSMRuntimeApp(tk.Frame):
             'sensor_center': self.sensor_center,
             'sensor_N': self.sensor_N,
             'sensor_S': self.sensor_S,
+
+            # Custom tab
+            'btn1': self.custom_b1,
+            'btn2': self.custom_b2,
+            'btn3': self.custom_b3,
+            'btn4': self.custom_b4,
         }
 
         self.widgets_dict = {
+            # Traffic lights tab
             'p1': self.pedestrian_lights_list[0],
             'p2': self.pedestrian_lights_list[1],
             'p3': self.pedestrian_lights_list[2],
@@ -386,9 +395,16 @@ class FSMRuntimeApp(tk.Frame):
             't5': self.traffic_lights_list[4],
             't6': self.traffic_lights_list[5],
 
+            # Microwave tab
             'magnetron': self.mw_magnetron,
             'lamp': self.mw_lamp,
             'beeping': self.mw_beep,
+
+            # Custom tab
+            'red': self.custom_red,
+            'yellow': self.custom_yellow,
+            'green': self.custom_green,
+            'blue': self.custom_blue,
         }
 
         self.displays_dict = {
@@ -520,6 +536,18 @@ class FSMRuntimeApp(tk.Frame):
             'magnetron_off': self.mw_magnetron.turn_off,
             'beeping_on': self.mw_beep.turn_on,
             'beeping_off': self.mw_beep.turn_off,
+
+            # custom tab instructions
+
+            'red_on': self.custom_red.turn_on,
+            'yellow_on': self.custom_yellow.turn_on,
+            'green_on': self.custom_green.turn_on,
+            'blue_on': self.custom_blue.turn_on,
+
+            'red_off': self.custom_red.turn_off,
+            'yellow_off': self.custom_yellow.turn_off,
+            'green_off': self.custom_green.turn_off,
+            'blue_off': self.custom_blue.turn_off,
         }
 
     def init_tab_traffic(self, tab_control):
@@ -591,6 +619,39 @@ class FSMRuntimeApp(tk.Frame):
         self.door.grid(row=1, column=2, columnspan=2, padx=5, pady=5)
 
         self.tab_control.add(self.tab_microwave, text='Microwave')
+
+    def init_tab_custom(self, tab_control):
+        self.tab_custom = ttk.Frame(tab_control, style='TFrame', width=700, height=500)
+
+        col_count, row_count = self.tab_custom.grid_size()
+        for col in range(col_count):
+            self.grid_columnconfigure(col, minsize=mw_dimensions['canvas_size'] + mw_dimensions['padding'])
+
+        for row in range(row_count):
+            self.grid_rowconfigure(row, minsize=mw_dimensions['canvas_size'] + mw_dimensions['padding'])
+
+        self.custom_red = ColoredIndicator(self.tab_custom, 0, 0, mw_dimensions, mw_colors, 'red')
+        self.custom_yellow = ColoredIndicator(self.tab_custom, 0, 1, mw_dimensions, mw_colors, 'yellow')
+        self.custom_green = ColoredIndicator(self.tab_custom, 0, 2, mw_dimensions, mw_colors, 'green')
+        self.custom_blue = ColoredIndicator(self.tab_custom, 0, 3, mw_dimensions, mw_colors, 'blue')
+
+        self.custom_b1 = ttk.Button(self.tab_custom, state=tk.DISABLED, text='btn1',
+                                      command=lambda: self.send_event('btn1'), style='TButton')
+        self.custom_b1.grid(row=1, column=0, padx=5, pady=5)
+
+        self.custom_b2 = ttk.Button(self.tab_custom, state=tk.DISABLED, text='btn2',
+                                      command=lambda: self.send_event('btn2'), style='TButton')
+        self.custom_b2.grid(row=1, column=1, padx=5, pady=5)
+
+        self.custom_b3 = ttk.Button(self.tab_custom, state=tk.DISABLED, text='btn3',
+                                    command=lambda: self.send_event('btn3'), style='TButton')
+        self.custom_b3.grid(row=1, column=2, padx=5, pady=5)
+
+        self.custom_b4 = ttk.Button(self.tab_custom, state=tk.DISABLED, text='btn4',
+                                    command=lambda: self.send_event('btn4'), style='TButton')
+        self.custom_b4.grid(row=1, column=3, padx=5, pady=5)
+
+        self.tab_control.add(self.tab_custom, text='Custom')
 
     def init_tab_automatic_doors(self, tab_control):
         self.tab_automatic_doors = ttk.Frame(tab_control, style='TFrame', width=700, height=500)
@@ -874,7 +935,7 @@ class FSMRuntimeApp(tk.Frame):
                 logger.debug(f'event: {event}')
                 if event == 'timeout':
                     continue
-                elif event.startswith(('button', 'door', 'signal', 'sensor')):
+                elif event.startswith(('button', 'door', 'signal', 'sensor', 'btn')):
                     if event in self.buttons_dict:
                         button = self.buttons_dict[event]
                         button.configure(state=tk.NORMAL)
