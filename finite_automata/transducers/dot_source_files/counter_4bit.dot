@@ -4,6 +4,9 @@ digraph G {
     // btn2 - substract 1
     // btn3 - reset to 0
     // red indicator - negative numbers
+
+    nodesep=0.05 pad=0.02 ranksep=0
+
     START [style=invis]
     q0 [shape=circle]
 
