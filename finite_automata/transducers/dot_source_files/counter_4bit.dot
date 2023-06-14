@@ -1,4 +1,9 @@
 digraph G {
+    // 4-bit counter (from -7 to 7)
+    // btn1 - add 1
+    // btn2 - substract 1
+    // btn3 - reset to 0
+    // red indicator - negative numbers
     START [style=invis]
     q0 [shape=circle]
 
