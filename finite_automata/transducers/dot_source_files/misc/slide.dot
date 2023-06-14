@@ -1,0 +1,13 @@
+digraph G {
+    rankdir=LR;
+    START [style=invis]
+    q0 [shape=circle]
+    q1 [shape=circle]
+    q2 [shape=circle]
+    q3 [shape=doublecircle]
+    START -> q0
+    q0 -> q1 [label=<<b>a</b>>]
+    q0 -> q2 [label=<<b>b</b>>]
+    q1 -> q3 [label=<<b>c</b>>]
+    q2 -> q3 [label=<<b>c</b>>]
+}

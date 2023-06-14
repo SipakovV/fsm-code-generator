@@ -1,0 +1,9 @@
+digraph G {
+    rankdir=LR;
+    START [style=invis]
+    on [shape=circle]
+    off [shape=circle]
+    START -> off
+    off -> on [label=<<b>button</b>:<br/><i>lamp_on</i>>]
+    on -> off [label=<<b>button</b>:<br/><i>lamp_off</i>>]
+}
