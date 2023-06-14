@@ -95,6 +95,28 @@ class TransducerFSM:
         else:
             queue.put_instruction(instruction)
 
+    def run(self, event_queue) -> None:
+        state = self.init_state
+        for instr in self.init_instructions:
+            self._send_instruction(instr, event_queue)
+
+        while True:
+            if state in self.final_states:
+                print('final state reached:', state)
+                break
+
+            event = event_queue.get_next_event()
+            old_state = state
+
+            if state in self.transition_map:
+                transitions_available = self.transition_map[state]
+                if event in transitions_available:
+                    target_state, instruction_list = transitions_available[event]
+                    for instr in instruction_list:
+                        self._send_instruction(instr, event_queue)
+                    state = target_state
+                    print(f'== State change: {old_state} -{event}-> {state}')
+
     def get_unreachable_states(self) -> set:
         marked_states = set()
         stack = []
@@ -143,28 +165,6 @@ class TransducerFSM:
             state = new_state
 
         return self.state_set.symmetric_difference(marked_states)
-
-    def run(self, event_queue):
-        state = self.init_state
-        for instr in self.init_instructions:
-            self._send_instruction(instr, event_queue)
-
-        while True:
-            if state in self.final_states:
-                print('final state reached:', state)
-                break
-
-            event = event_queue.get_next_event()
-            old_state = state
-
-            if state in self.transition_map:
-                transitions_available = self.transition_map[state]
-                if event in transitions_available:
-                    target_state, instruction_list = transitions_available[event]
-                    for instr in instruction_list:
-                        self._send_instruction(instr, event_queue)
-                    state = target_state
-                    print(f'== State change: {old_state} -{event}-> {state}')
 
     def _generate_graph(self, selected_state: str = '') -> graphviz.Digraph:
         #dot = graphviz.Digraph(self._name, comment=self._title + ': ' + self._description)
