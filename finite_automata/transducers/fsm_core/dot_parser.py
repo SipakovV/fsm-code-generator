@@ -92,7 +92,10 @@ class FSMDOT(grammar.Grammar):
 
     event = [ ID:>_ ]
 
-    instructions = [ #is_list(_) instruction:ins #add_item(_, ins) [ html_tag* ',' html_tag* instruction:ins #add_item(_, ins)]* html_tag* ','? ]
+    instructions = 
+    [ 
+        #is_list(_) instruction:ins #add_item(_, ins) [ html_tag* ',' html_tag* instruction:ins #add_item(_, ins)]* html_tag* ','?
+    ]
 
     instruction = 
     [ 
@@ -114,17 +117,16 @@ class FSMDOT(grammar.Grammar):
 
     letter_ = [ letter | '_' ]
     letter = [ 'A'..'Z' | 'a'..'z' ]
-    num = [ int_num [ '.' digits+ ]? | '.' digits+ ]
+    num = [ int_num [ '.' digit+ ]? | '.' digit+ ]
     int_num = [ @ignore("null") '-'? digit+ ]
     digit = [ '0'..'9' ]
-    digits = [ digit+ ]
-    digit1_9 = [ '1'..'9' ]
-    digit1_9 = [ digit1_9 digit* ]
-
     """
 
 
 """
+digit1_9 = [ '1'..'9' ]
+digit1_9s = [ digit1_9 digit* ]
+digits = [ digit+ ]
 node_attrs = [ attr [ ',' attr ]* ]
 
 line_comment = [ "//" ANY* '\n' ]
@@ -301,12 +303,9 @@ def is_float(self, ast, s):
 @meta.hook(FSMDOT)
 def is_instruction(self, ast, ins, val=None):
     if val:
-        # print('===========')
         ast.node = (ins.node, self.value(val))
     else:
         ast.node = ins.node
-
-    #print('instruction', ast.node)
     return True
 
 
