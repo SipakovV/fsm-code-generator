@@ -265,7 +265,7 @@ class FSMRuntimeApp(tk.Frame):
 
         menu_bar = tk.Menu(self.master)
         file_menu = tk.Menu(menu_bar, tearoff=0)
-        file_menu.add_command(label='Open', command=self.open_file)
+        file_menu.add_command(label='Open', command=self.open_file_dialog)
         file_menu.add_separator()
         file_menu.add_command(label='Settings', command=_placeholder)  # TODO: add settings popup window
         file_menu.add_separator()
@@ -283,8 +283,8 @@ class FSMRuntimeApp(tk.Frame):
         self.instruction_queue = Queue()
         self.sock = None
         self.fsm_filename = None
-        self.active = False
-        self.dynamic_visualization = False
+        self.is_active = False
+        self.enable_dynamic_visualization = False
         self.graph_images = dict()
         self.timer_thread = timer.TimerThread(self)
         self.timer_thread.daemon = True
@@ -657,21 +657,21 @@ class FSMRuntimeApp(tk.Frame):
     def switch_door(self, val):
         if val == '1':
             self.door['label'] = 'Door: Open'
-            if self.active:
+            if self.is_active:
                 self.send_event('door_open')
         else:
             self.door['label'] = 'Door: Closed'
-            if self.active:
+            if self.is_active:
                 self.send_event('door_close')
 
-    def update_timer(self, timeout_seconds):
-        self.timeout_var.set(timeout_seconds)
-        # timer rework needed
+    def update_timer(self, timeout_secs):
+        self.timeout_var.set(timeout_secs)
+
         #for display in self.displays_dict:
         #    self.displays_dict[display].decrement_timer_value()
 
     def send_event(self, event):
-        if self.active:
+        if self.is_active:
             event_dict = {
                 'event': event,
             }
@@ -712,11 +712,11 @@ class FSMRuntimeApp(tk.Frame):
         else:
             logger.debug(f'GUI: unknown instruction: {instr[0]}')
 
-    def reset(self, event=None):
+    def reset(self):
         logger.debug('Reset called')
-        if self.active:
+        if self.is_active:
             self.fsm_filename = None
-            self.active = False
+            self.is_active = False
             self.server_process.kill()
             for widget in (self.traffic_lights_list + self.pedestrian_lights_list):
                 widget.reset()
@@ -729,14 +729,14 @@ class FSMRuntimeApp(tk.Frame):
             self.description_var.set('')
             self.graph_image_lbl.configure(image='')
             self.graph_images = dict()
-            self.dynamic_visualization = False
+            self.enable_dynamic_visualization = False
             self.switch_all_widgets(False)
             self.switch_all_buttons(False)
             self.fsm_config = None
             self.config_is_set = False
             logger.info(f'App is reset')
 
-    def open_file(self):
+    def open_file_dialog(self):
         init_dir = os.path.abspath(os.path.dirname(sys.argv[0])).replace('\\', '/') + '/python_fsm_generated'
         filename = filedialog.askopenfilename(
             initialdir=init_dir,
@@ -759,11 +759,12 @@ class FSMRuntimeApp(tk.Frame):
             self.fsm_filename = fsm_name
             self.start_server(filename)
             self.connect()
-            self.load_images(self.fsm_filename)
+            self.load_images()
             if self.graph_images:
                 self.switch_graph_image('_base')
 
-    def load_images(self, fsm_name):
+    def load_images(self):
+        fsm_name = self.fsm_filename
         images_dir = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), 'generated_graph_images', fsm_name[:-3])
 
         base_graph_found = False
@@ -794,7 +795,7 @@ class FSMRuntimeApp(tk.Frame):
         logger.debug('Available images loaded')
 
     def switch_graph_image(self, state_name):
-        if self.active:
+        if self.is_active:
             if state_name in self.graph_images:
                 img = self.graph_images[state_name]
                 logger.debug(f'GUI: graph image switched to {state_name}')
@@ -893,7 +894,7 @@ class FSMRuntimeApp(tk.Frame):
                 logger.error("Error while starting listening thread")
                 traceback.print_exc()
             logger.info('Connected to server')
-            self.active = True
+            self.is_active = True
 
     def exit(self):
         if self.server_process:
