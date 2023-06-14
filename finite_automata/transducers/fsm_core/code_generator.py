@@ -5,7 +5,7 @@ class CodeGeneratorBackend:
         self.tab = tab
         self.level = 0
 
-    def end(self):
+    def end(self) -> str:
         res = '\n'.join(self.code)
         return res + '\n'
 
