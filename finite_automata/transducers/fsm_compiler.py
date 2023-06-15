@@ -63,16 +63,23 @@ def visualize_all_states(filename: str, png_directory: str):
     graphs = pydot.graph_from_dot_file(filename)
     graph = graphs[0]
 
-    if graph.get_node('\n'):
-        raise TypeError("Pydot fails to parse DOT files with ';'")
+    if graph.get_node('\n') or graph.get_node('"\n"'):
+        #print("Pydot fails to parse DOT graphs with ';' at the end - artifact node may happen")
+        raise TypeError("Pydot fails to parse DOT graphs with ';' at the end - artifact node may happen")
 
+    #print(graph.get_node_list())
     node_list = graph.get_node_list()
 
     for node in node_list:
-        node_name = node.get_name().strip('"')
+        node_name = node.get_name()
+        if node_name == '\n':
+            print("Pydot fails to parse DOT graphs with ';' at the end - artifact node may happen")
+
+        node_name = node_name.strip('"')
+        #print(f'node_name="{node_name}"')
+
         if node_name in {'START', 'node', 'edge', 'graph'}:
             continue
-
         fillcolor = node.__get_attribute__('fillcolor')
         style = node.__get_attribute__('style')
         #print(fillcolor, style)
