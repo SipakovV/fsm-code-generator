@@ -632,7 +632,7 @@ class FSMRuntimeApp(tk.Frame):
 
         self.custom_red = ColoredIndicator(self.tab_custom, 0, 0, mw_dimensions, mw_colors, 'red')
         self.custom_yellow = ColoredIndicator(self.tab_custom, 0, 1, mw_dimensions, mw_colors, 'yellow')
-        self.custom_green = ColoredIndicator(self.tab_custom, 0, 2, mw_dimensions, mw_colors, 'green')
+        self.custom_green = ColoredIndicator(self.tab_custom, 0, 2, mw_dimensions, mw_colors, '#00ff55')
         self.custom_blue = ColoredIndicator(self.tab_custom, 0, 3, mw_dimensions, mw_colors, 'blue')
 
         self.custom_b1 = ttk.Button(self.tab_custom, state=tk.DISABLED, text='btn1',
