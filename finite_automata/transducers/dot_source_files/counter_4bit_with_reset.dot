@@ -2,6 +2,7 @@ digraph G {
     // 4-bit counter (from -7 to 7)
     // btn1 - add 1
     // btn2 - substract 1
+    // btn3 - reset to 0
     // red indicator - negative numbers
 
     nodesep=0.05 pad=0.02 ranksep=0
@@ -56,4 +57,20 @@ digraph G {
     n6 -> n5 [label=<<b>btn1</b>:<br/><i>green_off,<br/>blue_on</i>>]
     n6 -> n7 [label=<<b>btn2</b>:<br/><i>blue_on</i>>]
     n7 -> n6 [label=<<b>btn1</b>:<br/><i>blue_off</i>>]
+
+    p1 -> q0 [label=<<b>btn3</b>:<br/><i>yellow_off,<br/>green_off,<br/>blue_off</i>>]
+    p2 -> q0 [label=<<b>btn3</b>:<br/><i>yellow_off,<br/>green_off,<br/>blue_off</i>>]
+    p3 -> q0 [label=<<b>btn3</b>:<br/><i>yellow_off,<br/>green_off,<br/>blue_off</i>>]
+    p4 -> q0 [label=<<b>btn3</b>:<br/><i>yellow_off,<br/>green_off,<br/>blue_off</i>>]
+    p5 -> q0 [label=<<b>btn3</b>:<br/><i>yellow_off,<br/>green_off,<br/>blue_off</i>>]
+    p6 -> q0 [label=<<b>btn3</b>:<br/><i>yellow_off,<br/>green_off,<br/>blue_off</i>>]
+    p7 -> q0 [label=<<b>btn3</b>:<br/><i>yellow_off,<br/>green_off,<br/>blue_off</i>>]
+
+    n1 -> q0 [label=<<b>btn3</b>:<br/><i>red_off,<br/>yellow_off,<br/>green_off,<br/>blue_off</i>>]
+    n2 -> q0 [label=<<b>btn3</b>:<br/><i>red_off,<br/>yellow_off,<br/>green_off,<br/>blue_off</i>>]
+    n3 -> q0 [label=<<b>btn3</b>:<br/><i>red_off,<br/>yellow_off,<br/>green_off,<br/>blue_off</i>>]
+    n4 -> q0 [label=<<b>btn3</b>:<br/><i>red_off,<br/>yellow_off,<br/>green_off,<br/>blue_off</i>>]
+    n5 -> q0 [label=<<b>btn3</b>:<br/><i>red_off,<br/>yellow_off,<br/>green_off,<br/>blue_off</i>>]
+    n6 -> q0 [label=<<b>btn3</b>:<br/><i>red_off,<br/>yellow_off,<br/>green_off,<br/>blue_off</i>>]
+    n7 -> q0 [label=<<b>btn3</b>:<br/><i>red_off,<br/>yellow_off,<br/>green_off,<br/>blue_off</i>>]
 }
