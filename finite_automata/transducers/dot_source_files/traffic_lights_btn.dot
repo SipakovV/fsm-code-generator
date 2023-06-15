@@ -21,13 +21,13 @@ digraph G {
 	traffic_stopping1 -> traffic_stopping2
 	    [label=<<b>timeout</b>:<br/><i>timer_set 3,<br/>t1_yellow</i>>]
 	traffic_stopping2 -> p_go
-	    [label=<<b>timeout</b>:<br/><i>timer_set 20,<br/>t1_red,<br/>p1_green</i>>]
+	    [label=<<b>timeout</b>:<br/><i>timer_set 8,<br/>t1_red,<br/>p1_green</i>>]
 	p_go -> p_stopping
 	    [label=<<b>timeout</b>:<br/><i>timer_set 3,<br/>p1_blinking</i>>]
 	p_stopping -> traffic_ready
 	    [label=<<b>timeout</b>:<br/><i>timer_set 3,<br/>t1_yellow_red,<br/>p1_red</i>>]
 	traffic_ready -> traffic_go
-	    [label=<<b>timeout</b>:<br/><i>timer_set 30,<br/>t1_green,<br/>t1_display_timer 30</i>>]
+	    [label=<<b>timeout</b>:<br/><i>timer_set 12,<br/>t1_green</i>>]
 	START -> traffic_go
-	    [label=<<i>timer_set 30,<br/>t1_green,<br/>p1_red,<br/>t1_display_timer 30</i>>]
+	    [label=<<i>timer_set 12,<br/>t1_green,<br/>p1_red</i>>]
 }
