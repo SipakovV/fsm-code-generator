@@ -244,7 +244,7 @@ class TransducerFSM:
         code_gen.write("")
 
         """Metadata config (for GUI)"""
-        conf_string = f"'type': 'transducer', 'title': '{self._title}', 'description': '{self._description}', " \
+        conf_string = f"'type': 'Mealy', 'title': '{self._title}', 'description': '{self._description}', " \
                       f"'instructions_set': {list(self.instructions_set)}, 'events_set': {list(self.alphabet)}"
         code_gen.write("config = {" + conf_string + "}")
         code_gen.write("")
