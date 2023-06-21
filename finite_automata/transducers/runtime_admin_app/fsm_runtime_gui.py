@@ -190,6 +190,7 @@ def instruction_listening_thread(sock, gui):
             break
         else:
             for instr in instr_list:
+                logger.debug(str(instr))
                 if type(instr) is dict:
                     #gui.set_fsm_info(instruction)
                     gui.save_config(instr)
