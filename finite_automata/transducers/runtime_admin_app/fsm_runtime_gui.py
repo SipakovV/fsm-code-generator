@@ -858,6 +858,7 @@ class FSMRuntimeApp(tk.Frame):
 
     def switch_graph_image(self, state_name):
         if self.is_active:
+            self.description_var.set(state_name)
             if state_name in self.graph_images:
                 img = self.graph_images[state_name]
                 logger.debug(f'GUI: graph image switched to {state_name}')
