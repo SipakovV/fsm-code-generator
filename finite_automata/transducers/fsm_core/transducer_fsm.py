@@ -121,10 +121,8 @@ class TransducerFSM:
         marked_states = set()
         stack = []
 
-        state = self.init_state
-        traversed_arcs = set()
-
-        #print()
+        state = self.init_state  # current state
+        traversed_arcs = set()   #
 
         while True:
             arcs = set(self.transition_map[state])
