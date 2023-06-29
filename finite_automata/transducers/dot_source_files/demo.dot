@@ -8,6 +8,6 @@ digraph G {
     "off" -> "on"  [label="btn1:yellow_on, timer_set 5"];
     "on" -> "off"  [label="btn2, timeout:yellow_off, timer_set 0"];
     "on" -> "on"  [label="btn1:timer_set 5"];
-    "unreachable";
-    "unreachable" -> "on"  [label="btn1"];
+    "unreachable_state";
+    "unreachable_state" -> "on"  [label="btn1"];
 }
