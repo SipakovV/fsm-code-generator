@@ -1,0 +1,4 @@
+digraph G {
+    edge [comment="Wildcard node added automatic in EG."];
+    node [comment="Wildcard node added automatic in EG."];
+}
