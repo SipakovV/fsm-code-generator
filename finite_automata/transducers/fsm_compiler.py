@@ -63,23 +63,28 @@ def visualize_all_states(filename: str, png_directory: str):
     graphs = pydot.graph_from_dot_file(filename)
     graph = graphs[0]
 
-    if graph.get_node('\n') or graph.get_node('"\n"'):
-        #print("Pydot fails to parse DOT graphs with ';' at the end - artifact node may happen")
-        raise TypeError("Pydot fails to parse DOT graphs with ';' at the end - artifact node may happen")
+    if graph.get_node('\n') or graph.get_node('"\n"') or graph.get_node('"\\n"'):
+        pass
+        #raise TypeError("Pydot fails to parse DOT graphs with ';' at the end - artifact node may happen")
 
-    #print(graph.get_node_list())
+    #print([node.get_name() for node in graph.get_node_list()])
     node_list = graph.get_node_list()
 
     for node in node_list:
         node_name = node.get_name()
-        if node_name == '\n':
-            print("Pydot fails to parse DOT graphs with ';' at the end - artifact node may happen")
+        #if '\n' in node_name:
+            #print("Pydot fails to parse DOT graphs with ';' at the end - artifact node may happen")
+        #    continue
 
+        #print(f'|node_name="{node_name}"|')
         node_name = node_name.strip('"')
-        #print(f'node_name="{node_name}"')
+        #print(f'|node_stripped="{node_name}"|')
 
-        if node_name in {'START', 'node', 'edge', 'graph'}:
+        if node_name in {'START', 'node', 'edge', 'graph'} or '\n' in node_name or '\\n' in node_name:
+            #print(node_name, 'pass')
             continue
+
+        #print(f'|using node: {node_name}|')
         fillcolor = node.__get_attribute__('fillcolor')
         style = node.__get_attribute__('style')
         #print(fillcolor, style)
@@ -87,6 +92,7 @@ def visualize_all_states(filename: str, png_directory: str):
         node.set_style('filled')
         #print(node.__get_attribute__('fillcolor'), node.__get_attribute__('style'))
         #graph.write_dot((os.path.join(path, node_name) + '.dot').replace('\\', '/'))
+
         graph.write_png((os.path.join(path, node_name) + '.png').replace('\\', '/'))
         if fillcolor:
             node.set_fillcolor(fillcolor)
